@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(error.getField(), error.getDefaultMessage());
         }
-        Map<String, Object> body = buildBody(HttpStatus.BAD_REQUEST, "Greška u validaciji");
+        Map<String, Object> body = buildBody(HttpStatus.BAD_REQUEST, "Validation error");
         body.put("fieldErrors", fieldErrors);
         return ResponseEntity.badRequest().body(body);
     }
@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(buildBody(HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Interna greška servera: " + ex.getMessage()));
+                        "Internal server error: " + ex.getMessage()));
     }
 
     private Map<String, Object> buildBody(HttpStatus status, String message) {

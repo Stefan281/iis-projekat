@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface TransportRepository extends JpaRepository<Transport, Long> {
-    List<Transport> findByPutovanjeId(Long putovanjeId);
-    Optional<Transport> findByPutovanjeIdAndIzabranTrue(Long putovanjeId);
+    List<Transport> findByTripId(Long tripId);
+    Optional<Transport> findByTripIdAndSelectedTrue(Long tripId);
 }

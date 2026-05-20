@@ -1,9 +1,9 @@
 package com.iis.backend.repository;
 
-import com.iis.backend.model.Putovanje;
+import com.iis.backend.model.Trip;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PutovanjeRepository extends JpaRepository<Putovanje, Long> {
+public interface TripRepository extends JpaRepository<Trip, Long> {
 }

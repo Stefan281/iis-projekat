@@ -1,6 +1,8 @@
 package com.iis.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,23 +10,26 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "transport")
-public class Transport {
+@Table(name = "accommodation")
+public class Accommodation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "carrier_name", nullable = false)
-    private String carrierName;
+    @Column(nullable = false)
+    private String name;
 
-    @Column(name = "transport_type", nullable = false)
-    private String transportType;
+    @Column(nullable = false)
+    private String address;
 
     @Column(nullable = false)
     private BigDecimal price;
@@ -34,10 +39,14 @@ public class Transport {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "trip_id", nullable = false)
-    @JsonBackReference("trip-transport")
+    @JsonBackReference("trip-accommodation")
     private Trip trip;
 
-    public Transport() {
+    @OneToMany(mappedBy = "accommodation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("accommodation-room")
+    private List<Room> rooms = new ArrayList<>();
+
+    public Accommodation() {
     }
 
     public Long getId() {
@@ -48,20 +57,20 @@ public class Transport {
         this.id = id;
     }
 
-    public String getCarrierName() {
-        return carrierName;
+    public String getName() {
+        return name;
     }
 
-    public void setCarrierName(String carrierName) {
-        this.carrierName = carrierName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getTransportType() {
-        return transportType;
+    public String getAddress() {
+        return address;
     }
 
-    public void setTransportType(String transportType) {
-        this.transportType = transportType;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public BigDecimal getPrice() {
@@ -86,5 +95,13 @@ public class Transport {
 
     public void setTrip(Trip trip) {
         this.trip = trip;
+    }
+
+    public List<Room> getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(List<Room> rooms) {
+        this.rooms = rooms;
     }
 }
