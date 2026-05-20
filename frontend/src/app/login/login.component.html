@@ -1,0 +1,35 @@
+<main class="login-page">
+  <section class="login-panel" aria-labelledby="login-title">
+    <div class="brand-block">
+      <h1 id="login-title">Dobrodosli</h1>
+      <p>Prijavite se na svoj nalog</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+      <label>
+        Korisnicko ime
+        <input type="text" formControlName="username" autocomplete="username" />
+      </label>
+
+      <label>
+        Lozinka
+        <input type="password" formControlName="password" autocomplete="current-password" />
+      </label>
+
+      @if (errorMessage()) {
+        <p class="error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Prijava...' : 'Prijavi se' }}
+      </button>
+    </form>
+
+    <div class="demo-users">
+      <span>Demo korisnici</span>
+      <p>admin / admin123</p>
+      <p>statisticar / statisticar123</p>
+      <p>stab / stab123</p>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,22 @@
+<main class="dashboard-page">
+  <header class="topbar">
+    <div>
+      <p>Odbojkaski klub</p>
+      <h1>Pocetna stranica</h1>
+    </div>
+    <button type="button" (click)="logout()">Odjavi se</button>
+  </header>
+
+  <section class="content">
+    <div class="summary">
+      <span>Ulogovani korisnik</span>
+      <h2>{{ user()?.firstName }} {{ user()?.lastName }}</h2>
+    </div>
+
+    <div class="summary">
+      <span>Provera backend veze</span>
+      <h2>{{ backendMessage() || 'Ucitavanje...' }}</h2>
+      <p>Ovaj poziv prolazi samo kada Angular posalje validan JWT token.</p>
+    </div>
+  </section>
+</main>
