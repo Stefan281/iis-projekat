@@ -1,0 +1,56 @@
+<div class="tab-panel">
+  @if (showForm()) {
+    <div class="card form-card">
+      <h3>Nova ponuda</h3>
+      <form [formGroup]="form" (ngSubmit)="addPonuda()" class="offer-form">
+        <div class="form-field">
+          <label>Naziv prevoznika</label>
+          <input type="text" formControlName="naziv" [class.invalid]="form.controls.naziv.invalid && form.controls.naziv.touched" />
+        </div>
+        <div class="form-field">
+          <label>Vrsta prevoza</label>
+          <select formControlName="vrsta">
+            @for (v of vrstePrevoze; track v) {
+              <option [value]="v">{{ vrstaIcon(v) }} {{ v }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Cena (€)</label>
+          <input type="number" formControlName="cena" [class.invalid]="form.controls.cena.invalid && form.controls.cena.touched" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-danger" (click)="showForm.set(false); form.reset({vrsta: 'AUTOBUS'})">Poništi</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSaving()">Dodaj ponudu</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="offer-list">
+    @for (p of ponude(); track p.id) {
+      <div
+        class="offer-card"
+        [class.selected]="selectedPonudaId() === p.id"
+        [class.izabran]="p.izabran"
+        (click)="selectedPonudaId.set(p.id)"
+      >
+        <div class="offer-name">{{ p.naziv }}</div>
+        <div class="offer-meta">{{ vrstaIcon(p.vrsta) }} {{ p.vrsta }}</div>
+        <div class="offer-meta">💲 {{ p.cena }}€</div>
+        @if (p.izabran) {
+          <span class="izabran-badge">✓ Izabran</span>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-secondary" [disabled]="showForm()" (click)="showForm.set(true)">+ Dodaj ponudu</button>
+    <button
+      class="btn btn-success"
+      [disabled]="!selectedPonudaId() || showForm()"
+      (click)="izaberiPrevoz()"
+    >{{ izabranaJedna ? 'Izmeni izbor' : 'Izaberi prevoz' }}</button>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div class="tab-panel">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+    <div class="form-field">
+      <label>Ime putovanja</label>
+      <input type="text" formControlName="name" [class.invalid]="form.controls.name.invalid && form.controls.name.touched" />
+    </div>
+
+    <div class="form-field">
+      <label>Lokacija</label>
+      <input type="text" formControlName="location" [class.invalid]="form.controls.location.invalid && form.controls.location.touched" />
+    </div>
+
+    <div class="form-field">
+      <label>Povod putovanja</label>
+      <input type="text" formControlName="purpose" [class.invalid]="form.controls.purpose.invalid && form.controls.purpose.touched" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label>Datum polaska</label>
+        <input type="date" formControlName="departureDate" [class.invalid]="form.controls.departureDate.invalid && form.controls.departureDate.touched" />
+      </div>
+      <div class="form-field">
+        <label>Datum povratka <span class="optional">(prazno za jednodnevna)</span></label>
+        <input type="date" formControlName="returnDate" />
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label>Status putovanja</label>
+      <select formControlName="status">
+        @for (s of statusi; track s.value) {
+          <option [value]="s.value">{{ s.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-actions">
+      @if (saveSuccess()) {
+        <span class="success-msg">✓ Sačuvano!</span>
+      }
+      <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+        {{ isSaving() ? 'Čuvanje...' : (isNew ? 'Kreiraj putovanje' : 'Sačuvaj izmene') }}
+      </button>
+    </div>
+  </form>
+</div>

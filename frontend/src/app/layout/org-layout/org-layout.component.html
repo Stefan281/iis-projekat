@@ -1,0 +1,47 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">🏐</span>
+      <span class="brand-text">Organizacija putovanja</span>
+    </div>
+
+    <ul class="nav-list">
+      <li>
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/putovanja" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">✈️</span>
+          <span>Putovanja</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/inbox" routerLinkActive="active" class="nav-link">
+          <span class="nav-icon">✉️</span>
+          <span>Inbox</span>
+          @if (unreadCount() > 0) {
+            <span class="badge">{{ unreadCount() }}</span>
+          }
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <span class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+        <span class="user-role">{{ user()?.role }}</span>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        <span>🚪</span>
+        <span>Odjavi se</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

@@ -1,22 +1,109 @@
-<main class="dashboard-page">
-  <header class="topbar">
-    <div>
-      <p>Odbojkaski klub</p>
-      <h1>Pocetna stranica</h1>
-    </div>
-    <button type="button" (click)="logout()">Odjavi se</button>
-  </header>
+<div class="dashboard-page">
+  <div class="page-header">
+    <h1>Dashboard</h1>
+  </div>
 
-  <section class="content">
-    <div class="summary">
-      <span>Ulogovani korisnik</span>
-      <h2>{{ user()?.firstName }} {{ user()?.lastName }}</h2>
+  <div class="dashboard-grid">
+    <!-- Left column -->
+    <div class="left-col">
+      <!-- Notifications -->
+      <div class="card obavestenja-card">
+        <div class="card-header">
+          <h2>Obaveštenja</h2>
+          <button class="btn btn-success" (click)="showForm.set(!showForm())">+ Novo obaveštenje</button>
+        </div>
+
+        @if (showForm()) {
+          <div class="obav-form">
+            <p class="form-label">Novo obaveštenje:</p>
+            <form [formGroup]="novoObavestenjeForm" (ngSubmit)="submitObavestenje()">
+              <textarea formControlName="tekst" rows="4" placeholder="Unesite tekst obaveštenja..."></textarea>
+              <div class="form-actions">
+                <button type="button" class="btn btn-danger" (click)="showForm.set(false); novoObavestenjeForm.reset()">Poništi</button>
+                <button type="submit" class="btn btn-success" [disabled]="isSaving()">Postavi</button>
+              </div>
+            </form>
+          </div>
+        }
+
+        @if (obavestenja().length === 0 && !showForm()) {
+          <p class="empty-msg">Nema obaveštenja.</p>
+        }
+        @for (o of obavestenja(); track o.id) {
+          <div class="obav-item">
+            <span class="obav-tekst">{{ o.tekst }}</span>
+            <span class="obav-datum">{{ formatDatum(o.datum) }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Calendar or Detail -->
+      <div class="card calendar-card">
+        @if (!selectedPutovanje()) {
+          <div class="cal-header">
+            <button class="cal-nav" (click)="prevMonth()">&#8249;</button>
+            <span class="cal-month">{{ calendarMonthLabel }}</span>
+            <button class="cal-nav" (click)="nextMonth()">&#8250;</button>
+          </div>
+          <div class="cal-grid">
+            @for (h of ['Po','Ut','Sr','Če','Pe','Su','Ne']; track h) {
+              <div class="cal-head">{{ h }}</div>
+            }
+            @for (day of calendarDays; track day.date.getTime()) {
+              <div
+                class="cal-day"
+                [class.other-month]="!day.currentMonth"
+                [class.today]="day.isToday"
+                [class.has-trip]="day.tripIds.length > 0"
+                (click)="clickDay(day)"
+              >
+                {{ day.dayNum }}
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="trip-detail">
+            <h3>Putovanje: {{ selectedPutovanje()!.name }}</h3>
+            <div class="detail-rows">
+              <div class="detail-row"><span>🏐</span><span>{{ selectedPutovanje()!.purpose }}</span></div>
+              <div class="detail-row"><span>📍</span><span>{{ selectedPutovanje()!.location }}</span></div>
+              <div class="detail-row"><span>📅</span><span>{{ formatDateRange(selectedPutovanje()!) }}</span></div>
+              <div class="detail-row"><span>🏨</span><span>{{ selectedPutovanje()!.smestajId ? 'Smeštaj dodat' : 'Nema noćenja' }}</span></div>
+              <div class="detail-row"><span>🚌</span><span>{{ selectedPutovanje()!.transportId ? 'Transport dodat' : 'Nije definisan' }}</span></div>
+            </div>
+            <div class="detail-actions">
+              <button class="btn btn-secondary" (click)="backToCalendar()">Nazad na kalendar</button>
+              <a class="btn btn-primary" [routerLink]="['/putovanja', selectedPutovanje()!.id]">Otvori putovanje</a>
+            </div>
+          </div>
+        }
+      </div>
     </div>
 
-    <div class="summary">
-      <span>Provera backend veze</span>
-      <h2>{{ backendMessage() || 'Ucitavanje...' }}</h2>
-      <p>Ovaj poziv prolazi samo kada Angular posalje validan JWT token.</p>
+    <!-- Right column: upcoming trips -->
+    <div class="right-col">
+      <div class="card">
+        <h2 class="upcoming-title">Predstojeca putovanja</h2>
+        @if (predstojecaPutovanja().length === 0) {
+          <p class="empty-msg">Nema predstojećih putovanja.</p>
+        }
+        @for (p of predstojecaPutovanja(); track p.id) {
+          <div class="trip-card">
+            <div class="trip-card-header">
+              <span class="trip-name">{{ p.name }}</span>
+              <span class="status-badge" [class]="'status-' + p.status.toLowerCase()">{{ statusLabel(p.status) }}</span>
+            </div>
+            <div class="trip-meta">
+              <span>📍 {{ p.location }}</span>
+              <span>📅 {{ formatDateRange(p) }}</span>
+            </div>
+            @if (showWarning(p)) {
+              <div class="warning-msg">⚠ Ostalo jos manje od mesec dana</div>
+            }
+            <a class="detail-link" [routerLink]="['/putovanja', p.id]" (click)="selectPutovanjeForDetail(p)">Pritisni za detalje putovanja</a>
+          </div>
+        }
+      </div>
     </div>
-  </section>
-</main>
+  </div>
+</div>

@@ -1,0 +1,52 @@
+<div class="tab-panel">
+  @if (showForm()) {
+    <div class="card form-card">
+      <h3>Nova ponuda</h3>
+      <form [formGroup]="form" (ngSubmit)="addPonuda()" class="offer-form">
+        <div class="form-field">
+          <label>Ime smeštaja</label>
+          <input type="text" formControlName="ime" [class.invalid]="form.controls.ime.invalid && form.controls.ime.touched" />
+        </div>
+        <div class="form-field">
+          <label>Adresa</label>
+          <input type="text" formControlName="adresa" [class.invalid]="form.controls.adresa.invalid && form.controls.adresa.touched" />
+        </div>
+        <div class="form-field">
+          <label>Cena (€)</label>
+          <input type="number" formControlName="cena" [class.invalid]="form.controls.cena.invalid && form.controls.cena.touched" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-danger" (click)="showForm.set(false); form.reset()">Poništi</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSaving()">Dodaj ponudu</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="offer-list">
+    @for (p of ponude(); track p.id) {
+      <div
+        class="offer-card"
+        [class.selected]="selectedPonudaId() === p.id"
+        [class.izabran]="p.izabran"
+        (click)="selectedPonudaId.set(p.id)"
+      >
+        <div class="offer-name">{{ p.ime }}</div>
+        <div class="offer-meta">📍 {{ p.adresa }}</div>
+        <div class="offer-meta">💲 {{ p.cena }}€</div>
+        @if (p.izabran) {
+          <span class="izabran-badge">✓ Izabran</span>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-secondary" [disabled]="showForm()" (click)="showForm.set(true)">+ Dodaj ponudu</button>
+    <button
+      class="btn btn-success"
+      [disabled]="!selectedPonudaId() || showForm()"
+      (click)="izaberiSmestaj()"
+    >{{ izabranaJedna ? 'Izmeni izbor' : 'Izaberi smeštaj' }}</button>
+  </div>
+</div>
