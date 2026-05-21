@@ -1,0 +1,191 @@
+<section class="opponents-page">
+  <header class="page-header">
+    <div>
+      <p>Protivnicki timovi</p>
+      <h1>Priprema za naredne protivnike</h1>
+    </div>
+    <button class="primary-button" type="button" (click)="startCreate()">Novi protivnik</button>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error-message">{{ errorMessage() }}</p>
+  }
+
+  <div class="opponents-layout">
+    <aside class="team-list" aria-label="Lista protivnickih timova">
+      @if (isLoading()) {
+        <p class="muted">Ucitavanje...</p>
+      } @else if (teams().length === 0) {
+        <p class="muted">Nema unetih protivnika.</p>
+      } @else {
+        @for (team of teams(); track team.id) {
+          <button
+            class="team-list-item"
+            type="button"
+            [class.active]="selectedTeam()?.id === team.id && mode() === 'view'"
+            (click)="selectTeam(team)"
+          >
+            <span>{{ team.name }}</span>
+            <small>{{ team.city }} - {{ team.wins }}-{{ team.losses }}</small>
+          </button>
+        }
+      }
+    </aside>
+
+    <section class="details-panel">
+      @if (isFormMode()) {
+        <form class="opponent-form" [formGroup]="form" (ngSubmit)="save()">
+          <div class="panel-header">
+            <div>
+              <p>{{ mode() === 'create' ? 'Novi zapis' : 'Izmena zapisa' }}</p>
+              <h2>{{ mode() === 'create' ? 'Dodaj protivnika' : 'Izmeni protivnika' }}</h2>
+            </div>
+            <div class="action-row">
+              <button class="secondary-button" type="button" (click)="cancelForm()">Odustani</button>
+              <button class="primary-button2" type="submit">Sacuvaj</button>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              Naziv tima
+              <input formControlName="name" type="text" />
+            </label>
+            <label>
+              Grad
+              <input formControlName="city" type="text" />
+            </label>
+            <label>
+              Trener
+              <input formControlName="coach" type="text" />
+            </label>
+            <label>
+              Pobede
+              <input formControlName="wins" min="0" type="number" />
+            </label>
+            <label>
+              Porazi
+              <input formControlName="losses" min="0" type="number" />
+            </label>
+            <label class="wide-field">
+              Stil igre
+              <textarea formControlName="playStyle" rows="3"></textarea>
+            </label>
+            <label class="wide-field">
+              Napomena za pripremu
+              <textarea formControlName="note" rows="3"></textarea>
+            </label>
+          </div>
+
+          <div class="players-header">
+            <h3>Igraci</h3>
+            <button class="secondary-button" type="button" (click)="addPlayer()">Dodaj igraca</button>
+          </div>
+
+          <div class="players-form-list" formArrayName="players">
+            @for (player of players.controls; track $index) {
+              <div class="player-form-row" [formGroupName]="$index">
+                <label>
+                  Ime i prezime
+                  <input formControlName="fullName" type="text" />
+                </label>
+                <label>
+                  Broj
+                  <input formControlName="jerseyNumber" type="number" />
+                </label>
+                <label>
+                  Pozicija
+                  <input formControlName="position" type="text" />
+                </label>
+                <label>
+                  Visina
+                  <input formControlName="height" type="number" />
+                </label>
+                <label>
+                  Godina
+                  <input formControlName="age" type="number" />
+                </label>
+                <button class="icon-button" type="button" aria-label="Ukloni igraca" (click)="removePlayer($index)">
+                  x
+                </button>
+              </div>
+            }
+          </div>
+        </form>
+      } @else if (selectedTeam(); as team) {
+        <div class="panel-header">
+          <div>
+            <p>Pregled protivnika</p>
+            <h2>{{ team.name }}</h2>
+          </div>
+          <div class="action-row">
+            <button class="secondary-button" type="button" (click)="startEdit()">Izmeni</button>
+            <button class="danger-button" type="button" (click)="deleteSelected()">Obrisi zapis</button>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div>
+            <span>Sezona</span>
+            <strong>{{ team.wins }} pobeda - {{ team.losses }} poraza</strong>
+          </div>
+          <div>
+            <span>Grad</span>
+            <strong>{{ team.city }}</strong>
+          </div>
+          <div>
+            <span>Trener</span>
+            <strong>{{ team.coach }}</strong>
+          </div>
+          <div class="wide-field">
+            <span>Stil igre</span>
+            <p>{{ team.playStyle || 'Nema unetog stila igre.' }}</p>
+          </div>
+          <div class="wide-field">
+            <span>Napomena</span>
+            <p>{{ team.note || 'Nema napomene.' }}</p>
+          </div>
+        </div>
+
+        <div class="players-header">
+          <h3>Igraci</h3>
+        </div>
+
+        @if (team.players.length === 0) {
+          <p class="muted">Nema unetih igraca za ovaj tim.</p>
+        } @else {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ime i prezime</th>
+                  <th>Broj</th>
+                  <th>Pozicija</th>
+                  <th>Visina</th>
+                  <th>Godina</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (player of team.players; track player.id) {
+                  <tr>
+                    <td>{{ player.fullName }}</td>
+                    <td>{{ player.jerseyNumber }}</td>
+                    <td>{{ player.position }}</td>
+                    <td>{{ player.height }} cm</td>
+                    <td>{{ player.age }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <h2>Nema izabranog protivnika</h2>
+          <p>Dodajte prvi protivnicki tim da biste pripremili podatke za utakmicu.</p>
+          <button class="primary-button" type="button" (click)="startCreate()">Dodaj protivnika</button>
+        </div>
+      }
+    </section>
+  </div>
+</section>

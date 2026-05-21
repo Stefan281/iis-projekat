@@ -13,34 +13,35 @@ export class AuthService {
   private readonly apiUrl = 'http://localhost:8080/api/auth';
   readonly currentUser = signal<LoginResponse | null>(this.getStoredUser());
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+    this.clearLegacyStoredSession();
+  }
 
   login(credentials: LoginRequest) {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap((response) => {
-        localStorage.setItem(TOKEN_KEY, response.token);
-        localStorage.setItem(USER_KEY, JSON.stringify(response));
+        sessionStorage.setItem(TOKEN_KEY, response.token);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(response));
         this.currentUser.set(response);
       })
     );
   }
 
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    this.clearStoredSession();
     this.currentUser.set(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return sessionStorage.getItem(TOKEN_KEY);
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    return !!this.getToken() && !!this.currentUser();
   }
 
   private getStoredUser(): LoginResponse | null {
-    var rawUser = localStorage.getItem(USER_KEY);
+    var rawUser = sessionStorage.getItem(USER_KEY);
 
     if (!rawUser) {
       return null;
@@ -49,9 +50,18 @@ export class AuthService {
     try {
       return JSON.parse(rawUser) as LoginResponse;
     } catch {
-      localStorage.removeItem(USER_KEY);
-      localStorage.removeItem(TOKEN_KEY);
+      this.clearStoredSession();
       return null;
     }
+  }
+
+  private clearStoredSession(): void {
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
+  }
+
+  private clearLegacyStoredSession(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }
 }

@@ -1,0 +1,20 @@
+export interface OpponentPlayer {
+  id?: number;
+  fullName: string;
+  jerseyNumber: number;
+  position: string;
+  height: number;
+  age: number;
+}
+
+export interface OpponentTeam {
+  id?: number;
+  name: string;
+  wins: number;
+  losses: number;
+  city: string;
+  coach: string;
+  playStyle?: string | null;
+  note?: string | null;
+  players: OpponentPlayer[];
+}

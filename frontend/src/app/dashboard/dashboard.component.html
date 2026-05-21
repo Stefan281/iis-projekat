@@ -1,22 +1,28 @@
-<main class="dashboard-page">
-  <header class="topbar">
-    <div>
-      <p>Odbojkaski klub</p>
-      <h1>Pocetna stranica</h1>
-    </div>
-    <button type="button" (click)="logout()">Odjavi se</button>
-  </header>
+<section class="dashboard-content">
+  <article class="match-card" aria-labelledby="match-title">
+    <header class="match-card-header">
+      <h1 id="match-title">Aktuelna utakmica</h1>
+    </header>
 
-  <section class="content">
-    <div class="summary">
-      <span>Ulogovani korisnik</span>
-      <h2>{{ user()?.firstName }} {{ user()?.lastName }}</h2>
+    <div class="match-card-body">
+      <div class="team">
+        <div class="team-badge home-team">NT</div>
+        <h2>Nas tim</h2>
+      </div>
+
+      <div class="scoreboard" aria-label="Trenutni rezultat">
+        <span class="versus">VS</span>
+        <strong>{{ currentScore() }}</strong>
+      </div>
+
+      <div class="team">
+        <div class="team-badge away-team">P</div>
+        <h2>Partizan</h2>
+      </div>
     </div>
 
-    <div class="summary">
-      <span>Provera backend veze</span>
-      <h2>{{ backendMessage() || 'Ucitavanje...' }}</h2>
-      <p>Ovaj poziv prolazi samo kada Angular posalje validan JWT token.</p>
-    </div>
-  </section>
-</main>
+    <p class="match-description">
+      Prati poene, greske, servise, blokove i izmene igraca u realnom vremenu tokom utakmice
+    </p>
+  </article>
+</section>

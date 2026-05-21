@@ -1,0 +1,295 @@
+.opponents-page {
+  padding: 24px;
+}
+
+.page-header,
+.panel-header,
+.players-header,
+.action-row {
+  display: flex;
+  align-items: center;
+}
+
+.page-header,
+.panel-header,
+.players-header {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-header {
+  margin-bottom: 18px;
+}
+
+.page-header p,
+.panel-header p {
+  margin: 0 0 6px;
+  color: #0c7fda;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: clamp(1.55rem, 3vw, 2.1rem);
+}
+
+h2 {
+  font-size: 1.6rem;
+}
+
+h3 {
+  font-size: 1.05rem;
+}
+
+.opponents-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.team-list,
+.details-panel {
+  border: 1px solid #d7dde5;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(24, 34, 46, 0.08);
+}
+
+.team-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.team-list-item {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 12px;
+  background: #ffffff;
+  color: #26313d;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-list-item.active,
+.team-list-item:hover {
+  border-color: #bfe4ff;
+  background: #e3f3ff;
+}
+
+.team-list-item span {
+  font-weight: 800;
+}
+
+.team-list-item small,
+.muted {
+  color: #6b7683;
+}
+
+.details-panel,
+.opponent-form {
+  display: grid;
+  gap: 22px;
+}
+
+.details-panel {
+  padding: 22px;
+}
+
+.action-row {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #0C7FDA;
+  color: #ffffff;
+}
+
+.primary-button2 {
+  background: #21BD38;
+  color: #ffffff;
+}
+
+
+.secondary-button {
+  border: 1px solid #c7d1dc;
+  background: #0C7FDA;
+  color: #ffffff;
+}
+
+.danger-button {
+  background: #e2353b;
+  color: #ffffff;
+}
+
+.icon-button {
+  align-self: end;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background: #ff0000;
+  color: #000000;
+}
+
+.form-grid,
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+label,
+.info-grid div {
+  display: grid;
+  gap: 7px;
+}
+
+label,
+.info-grid span {
+  color: #536171;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #c7d1dc;
+  border-radius: 4px;
+  padding: 10px 11px;
+  color: #111820;
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  outline: 3px solid rgba(18, 136, 223, 0.18);
+  border-color: #1288df;
+}
+
+.wide-field {
+  grid-column: 1 / -1;
+}
+
+.info-grid strong {
+  font-size: 1rem;
+}
+
+.info-grid p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.players-form-list {
+  display: grid;
+  gap: 12px;
+}
+
+.player-form-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) 82px minmax(130px, 1fr) 92px 88px 36px;
+  gap: 10px;
+  align-items: end;
+  border: 1px solid #e1e6ed;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fbfcfe;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e1e6ed;
+  padding: 12px 10px;
+  text-align: left;
+}
+
+th {
+  color: #536171;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.error-message {
+  margin: 0 0 14px;
+  border: 1px solid #f0b4b7;
+  border-radius: 4px;
+  padding: 10px 12px;
+  background: #fff1f2;
+  color: #9c1c22;
+  font-weight: 700;
+}
+
+.empty-state {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 36px;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #6b7683;
+}
+
+@media (max-width: 1000px) {
+  .opponents-layout,
+  .form-grid,
+  .info-grid,
+  .player-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .icon-button {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .opponents-page {
+    padding: 16px;
+  }
+
+  .page-header,
+  .panel-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

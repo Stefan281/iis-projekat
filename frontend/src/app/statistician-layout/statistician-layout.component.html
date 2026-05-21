@@ -1,0 +1,37 @@
+<main class="stat-page">
+  <aside class="sidebar" aria-label="Navigacija statisticara">
+    <div class="sidebar-title">
+      <span>Priprema i pracenje</span>
+      <span>utakmice</span>
+    </div>
+
+    <nav class="nav-list">
+      <a
+        class="nav-item"
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <span class="nav-icon home-icon" aria-hidden="true"></span>
+        <span>Pocetni ekran</span>
+      </a>
+      <a class="nav-item disabled" aria-disabled="true">
+        <span class="nav-icon event-icon" aria-hidden="true"></span>
+        <span>Unos dogadjaja</span>
+      </a>
+      <a class="nav-item" routerLink="/protivnicki-timovi" routerLinkActive="active">
+        <span class="nav-icon shield-icon" aria-hidden="true"></span>
+        <span>Protivnicki timovi</span>
+      </a>
+    </nav>
+
+    <button class="logout-button" type="button" (click)="logout()">
+      <span class="logout-icon" aria-hidden="true"></span>
+      <span>Odjavite se</span>
+    </button>
+  </aside>
+
+  <section class="workspace">
+    <router-outlet />
+  </section>
+</main>
