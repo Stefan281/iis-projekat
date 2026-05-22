@@ -13,59 +13,108 @@
     }
 
     <section class="entry-panel">
-      <h2>Unos dogadjaja</h2>
+      @if (entryMode() === 'event') {
+        <h2>Unos dogadjaja</h2>
 
-      <div class="entry-grid">
-        <div class="team-column">
-          <h3>{{ match.homeTeam.name }}</h3>
-          @for (player of match.homeTeam.players; track trackPlayer($index, player)) {
-            <button
-              class="player-button"
-              type="button"
-              [class.active]="selectedPlayer()?.player?.id === player.id"
-              (click)="selectPlayer(match.homeTeam, player)"
-            >
-              <span>{{ player.jerseyNumber }}</span>
-              <strong>{{ player.fullName }}</strong>
+        <div class="entry-grid">
+          <div class="team-column">
+            <h3>{{ match.homeTeam.name }}</h3>
+            @for (player of playersInGame(match.homeTeam); track trackPlayer($index, player)) {
+              <button
+                class="player-button"
+                type="button"
+                [class.active]="selectedPlayer()?.player?.id === player.id"
+                (click)="selectPlayer(match.homeTeam, player)"
+              >
+                <span>{{ player.jerseyNumber }}</span>
+                <strong>{{ player.fullName }}</strong>
+              </button>
+            }
+            <button class="substitution-button" type="button" (click)="startSubstitution(match.homeTeam)">
+              Izmena igraca
             </button>
-          }
-          <button class="substitution-button" type="button" disabled>Izmena igraca</button>
+          </div>
+
+          <div class="event-actions">
+            @for (eventType of eventTypes; track eventType.type) {
+              <button
+                class="event-type-button"
+                type="button"
+                [class]="eventType.className"
+                [class.selected]="selectedEventType() === eventType.type"
+                (click)="selectEventType(eventType.type)"
+              >
+                {{ eventType.label }}
+              </button>
+            }
+
+            <button class="add-button" type="button" [disabled]="isSaving()" (click)="addEvent()">
+              Dodaj dogadjaj
+            </button>
+          </div>
+
+          <div class="team-column">
+            <h3>{{ match.awayTeam.name }}</h3>
+            @for (player of playersInGame(match.awayTeam); track trackPlayer($index, player)) {
+              <button
+                class="player-button"
+                type="button"
+                [class.active]="selectedPlayer()?.player?.id === player.id"
+                (click)="selectPlayer(match.awayTeam, player)"
+              >
+                <span>{{ player.jerseyNumber }}</span>
+                <strong>{{ player.fullName }}</strong>
+              </button>
+            }
+            <button class="substitution-button" type="button" (click)="startSubstitution(match.awayTeam)">
+              Izmena igraca
+            </button>
+          </div>
+        </div>
+      } @else if (substitutionTeam(); as team) {
+        <div class="substitution-header">
+          <h2>Izmena igraca - {{ team.name }}</h2>
+          <button class="back-link button-link" type="button" (click)="backToEventEntry()">Nazad -></button>
         </div>
 
-        <div class="event-actions">
-          @for (eventType of eventTypes; track eventType.type) {
-            <button
-              class="event-type-button"
-              type="button"
-              [class]="eventType.className"
-              [class.selected]="selectedEventType() === eventType.type"
-              (click)="selectEventType(eventType.type)"
-            >
-              {{ eventType.label }}
-            </button>
-          }
+        <div class="substitution-grid">
+          <div class="team-column">
+            <h3>IGRAC KOJI IZLAZI</h3>
+            @for (player of playersInGame(team); track trackPlayer($index, player)) {
+              <button
+                class="player-button"
+                type="button"
+                [class.active]="selectedOutgoingPlayer()?.id === player.id"
+                (click)="selectOutgoingPlayer(player)"
+              >
+                <span>{{ player.jerseyNumber }}</span>
+                <strong>{{ player.fullName }}</strong>
+              </button>
+            }
+          </div>
 
-          <button class="add-button" type="button" [disabled]="isSaving()" (click)="addEvent()">
-            Dodaj dogadjaj
-          </button>
-        </div>
-
-        <div class="team-column">
-          <h3>{{ match.awayTeam.name }}</h3>
-          @for (player of match.awayTeam.players; track trackPlayer($index, player)) {
-            <button
-              class="player-button"
-              type="button"
-              [class.active]="selectedPlayer()?.player?.id === player.id"
-              (click)="selectPlayer(match.awayTeam, player)"
-            >
-              <span>{{ player.jerseyNumber }}</span>
-              <strong>{{ player.fullName }}</strong>
+          <div class="substitution-actions">
+            <button class="confirm-substitution-button" type="button" [disabled]="isSaving()" (click)="confirmSubstitution()">
+              Potvrdi izmenu
             </button>
-          }
-          <button class="substitution-button" type="button" disabled>Izmena igraca</button>
+          </div>
+
+          <div class="team-column">
+            <h3>IGRAC KOJI ULAZI</h3>
+            @for (player of playersOnBench(team); track trackPlayer($index, player)) {
+              <button
+                class="player-button"
+                type="button"
+                [class.active]="selectedIncomingPlayer()?.id === player.id"
+                (click)="selectIncomingPlayer(player)"
+              >
+                <span>{{ player.jerseyNumber }}</span>
+                <strong>{{ player.fullName }}</strong>
+              </button>
+            }
+          </div>
         </div>
-      </div>
+      }
     </section>
 
     <section class="recent-panel">
@@ -77,7 +126,12 @@
           @for (event of match.events; track event.id) {
             <div [class]="eventClass(event)">
               <span>{{ event.teamName }}</span>
-              <strong>#{{ event.jerseyNumber }} {{ event.playerName }}</strong>
+              <strong>
+                #{{ event.jerseyNumber }} {{ event.playerName }}
+                @if (event.secondaryPlayerName) {
+                  -> #{{ event.secondaryJerseyNumber }} {{ event.secondaryPlayerName }}
+                }
+              </strong>
               <span>{{ eventLabel(event.eventType) }}</span>
               <time><span class="clock-icon" aria-hidden="true"></span>{{ event.eventTime | date: 'HH:mm:ss' }}</time>
               <button class="delete-event-button" type="button" aria-label="Obrisi dogadjaj" (click)="deleteEvent(event)">

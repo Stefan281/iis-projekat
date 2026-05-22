@@ -5,20 +5,30 @@ import com.iis.backend.dto.OpponentTeamRequest;
 import com.iis.backend.dto.OpponentTeamResponse;
 import com.iis.backend.model.OpponentPlayer;
 import com.iis.backend.model.OpponentTeam;
+import com.iis.backend.model.PlayerStatus;
+import com.iis.backend.repository.MatchEventRepository;
 import com.iis.backend.repository.OpponentTeamRepository;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class OpponentTeamService {
 
     private final OpponentTeamRepository opponentTeamRepository;
+    private final MatchEventRepository matchEventRepository;
 
-    public OpponentTeamService(OpponentTeamRepository opponentTeamRepository) {
+    public OpponentTeamService(
+            OpponentTeamRepository opponentTeamRepository,
+            MatchEventRepository matchEventRepository) {
         this.opponentTeamRepository = opponentTeamRepository;
+        this.matchEventRepository = matchEventRepository;
     }
 
     public List<OpponentTeamResponse> getAll() {
@@ -41,6 +51,7 @@ public class OpponentTeamService {
         return OpponentTeamResponse.fromEntity(opponentTeamRepository.save(team));
     }
 
+    @Transactional
     public OpponentTeamResponse update(Long id, OpponentTeamRequest request) {
         var team = findOpponent(id);
         validateTeamNameIsUnique(request.name(), id);
@@ -97,27 +108,60 @@ public class OpponentTeamService {
         team.setCoach(request.coach().trim());
         team.setPlayStyle(normalizeOptionalText(request.playStyle(), ""));
         team.setNote(normalizeOptionalText(request.note()));
-        team.setPlayers(toPlayers(request.players()));
+        syncPlayers(team, request.players());
     }
 
-    private List<OpponentPlayer> toPlayers(List<OpponentPlayerRequest> playerRequests) {
+    private void syncPlayers(OpponentTeam team, List<OpponentPlayerRequest> playerRequests) {
         if (playerRequests == null) {
-            return List.of();
+            deleteEventsForRemovedPlayers(team, List.of());
+            team.setPlayers(List.of());
+            return;
         }
 
-        return playerRequests.stream()
-                .map(this::toPlayer)
-                .toList();
+        deleteEventsForRemovedPlayers(team, playerRequests);
+
+        var updatedPlayers = new ArrayList<OpponentPlayer>();
+
+        for (OpponentPlayerRequest request : playerRequests) {
+            var player = findExistingPlayer(team, request.id());
+            applyPlayerRequest(player, request);
+            updatedPlayers.add(player);
+        }
+
+        team.setPlayers(updatedPlayers);
     }
 
-    private OpponentPlayer toPlayer(OpponentPlayerRequest request) {
-        var player = new OpponentPlayer();
+    private void deleteEventsForRemovedPlayers(OpponentTeam team, List<OpponentPlayerRequest> playerRequests) {
+        var keptPlayerIds = playerRequests.stream()
+                .map(OpponentPlayerRequest::id)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        team.getPlayers().stream()
+                .map(OpponentPlayer::getId)
+                .filter(Objects::nonNull)
+                .filter(playerId -> !keptPlayerIds.contains(playerId))
+                .forEach(playerId -> matchEventRepository.deleteByPrimaryPlayerIdOrSecondaryPlayerId(playerId, playerId));
+    }
+
+    private OpponentPlayer findExistingPlayer(OpponentTeam team, Long playerId) {
+        if (playerId == null) {
+            return new OpponentPlayer();
+        }
+
+        return team.getPlayers().stream()
+                .filter(player -> Objects.equals(player.getId(), playerId))
+                .findFirst()
+                .orElseGet(OpponentPlayer::new);
+    }
+
+    private void applyPlayerRequest(OpponentPlayer player, OpponentPlayerRequest request) {
         player.setFullName(request.fullName().trim());
         player.setJerseyNumber(request.jerseyNumber());
         player.setPosition(request.position().trim());
         player.setHeight(request.height());
         player.setAge(request.age());
-        return player;
+        player.setPlayerStatus(parsePlayerStatus(request.playerStatus()));
     }
 
     private String normalizeOptionalText(String value) {
@@ -130,5 +174,13 @@ public class OpponentTeamService {
         }
 
         return value.trim();
+    }
+
+    private PlayerStatus parsePlayerStatus(String playerStatus) {
+        if (playerStatus == null || playerStatus.isBlank()) {
+            return PlayerStatus.BENCH;
+        }
+
+        return PlayerStatus.valueOf(playerStatus);
     }
 }

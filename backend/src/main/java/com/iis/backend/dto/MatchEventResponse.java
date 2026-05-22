@@ -8,27 +8,30 @@ public record MatchEventResponse(
         Long id,
         EventType eventType,
         LocalDateTime eventTime,
-        String description,
         Long statisticianId,
         Long primaryPlayerId,
         Long secondaryPlayerId,
         String playerName,
+        String secondaryPlayerName,
         Integer jerseyNumber,
+        Integer secondaryJerseyNumber,
         String teamName) {
 
     public static MatchEventResponse fromEntity(MatchEvent event) {
         var player = event.getPrimaryPlayer();
+        var secondaryPlayer = event.getSecondaryPlayer();
 
         return new MatchEventResponse(
                 event.getId(),
                 event.getEventType(),
                 event.getEventTime(),
-                event.getDescription(),
                 event.getStatistician().getId(),
                 player.getId(),
-                event.getSecondaryPlayer() == null ? null : event.getSecondaryPlayer().getId(),
+                secondaryPlayer == null ? null : secondaryPlayer.getId(),
                 player.getFullName(),
+                secondaryPlayer == null ? null : secondaryPlayer.getFullName(),
                 player.getJerseyNumber(),
+                secondaryPlayer == null ? null : secondaryPlayer.getJerseyNumber(),
                 player.getTeam().getName());
     }
 }

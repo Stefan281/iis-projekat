@@ -5,5 +5,6 @@ public enum EventType {
     ERROR,
     SERVE,
     ASSIST,
-    BLOCK
+    BLOCK,
+    SUBSTITUTION
 }

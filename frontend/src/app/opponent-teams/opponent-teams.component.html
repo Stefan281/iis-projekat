@@ -83,7 +83,7 @@
           </div>
 
           <div class="players-form-list" formArrayName="players">
-            @for (player of players.controls; track $index) {
+            @for (player of players.controls; track player) {
               <div class="player-form-row" [formGroupName]="$index">
                 <label>
                   Ime i prezime

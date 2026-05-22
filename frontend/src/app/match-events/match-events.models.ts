@@ -1,17 +1,18 @@
 import { OpponentPlayer, OpponentTeam } from '../opponent-teams/opponent-team.models';
 
-export type MatchEventType = 'POINT' | 'ERROR' | 'SERVE' | 'ASSIST' | 'BLOCK';
+export type MatchEventType = 'POINT' | 'ERROR' | 'SERVE' | 'ASSIST' | 'BLOCK' | 'SUBSTITUTION';
 
 export interface MatchEvent {
   id: number;
   eventType: MatchEventType;
   eventTime: string;
-  description?: string | null;
   statisticianId: number;
   primaryPlayerId: number;
   secondaryPlayerId?: number | null;
   playerName: string;
+  secondaryPlayerName?: string | null;
   jerseyNumber: number;
+  secondaryJerseyNumber?: number | null;
   teamName: string;
 }
 
@@ -30,7 +31,6 @@ export interface MatchEventRequest {
   primaryPlayerId: number;
   secondaryPlayerId?: number | null;
   eventType: MatchEventType;
-  description?: string | null;
 }
 
 export interface PlayerSelection {

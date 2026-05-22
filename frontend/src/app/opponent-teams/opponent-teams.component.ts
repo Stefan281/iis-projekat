@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { OpponentTeam } from './opponent-team.models';
+import { OpponentPlayer, OpponentTeam } from './opponent-team.models';
 import { OpponentTeamsService } from './opponent-teams.service';
 
 type ViewMode = 'view' | 'create' | 'edit';
@@ -127,11 +127,13 @@ export class OpponentTeamsComponent {
       players: payload.players
         .filter((player) => this.hasPlayerData(player))
         .map((player) => ({
+          id: player.id || undefined,
           fullName: player.fullName.trim(),
           jerseyNumber: player.jerseyNumber,
           position: player.position.trim(),
           height: player.height,
-          age: player.age
+          age: player.age,
+          playerStatus: player.playerStatus
         }))
     };
 
@@ -213,23 +215,27 @@ export class OpponentTeamsComponent {
     players.forEach((player) => this.players.push(this.createPlayerGroup(player)));
   }
 
-  private createPlayerGroup(player = this.emptyPlayerValue()) {
+  private createPlayerGroup(player: OpponentPlayer = this.emptyPlayerValue()) {
     return this.formBuilder.nonNullable.group({
+      id: [player.id ?? 0],
       fullName: [player.fullName],
       jerseyNumber: [player.jerseyNumber, [Validators.required, Validators.min(0), Validators.max(99)]],
       position: [player.position],
       height: [player.height, [Validators.required, Validators.min(120), Validators.max(250)]],
-      age: [player.age, [Validators.required, Validators.min(12), Validators.max(60)]]
+      age: [player.age, [Validators.required, Validators.min(12), Validators.max(60)]],
+      playerStatus: [player.playerStatus ?? 'BENCH']
     });
   }
 
-  private emptyPlayerValue() {
+  private emptyPlayerValue(): OpponentPlayer {
     return {
+      id: 0,
       fullName: '',
       jerseyNumber: 0,
       position: '',
       height: 180,
-      age: 18
+      age: 18,
+      playerStatus: 'BENCH' as const
     };
   }
 

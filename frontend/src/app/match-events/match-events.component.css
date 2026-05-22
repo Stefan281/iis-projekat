@@ -70,6 +70,25 @@ h3 {
   margin-top: 22px;
 }
 
+.substitution-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.button-link {
+  background: #ffffff;
+}
+
+.substitution-grid {
+  display: grid;
+  grid-template-columns: 1fr 190px 1fr;
+  gap: 34px;
+  margin-top: 34px;
+  align-items: center;
+}
+
 .team-column,
 .event-actions,
 .events-list {
@@ -152,9 +171,11 @@ button {
   color: #001518;
 }
 
-.substitution-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.72;
+.confirm-substitution-button {
+  min-height: 64px;
+  background: #299127;
+  color: #ffffff;
+  font-size: 1.45rem;
 }
 
 .recent-panel h2 {
@@ -251,6 +272,10 @@ button {
   background: #ffce89;
 }
 
+.event-row.substitution {
+  background: #d7f1ff;
+}
+
 
 .error-message {
   border: 1px solid #f0b4b7;
@@ -267,6 +292,7 @@ button {
 
 @media (max-width: 900px) {
   .entry-grid,
+  .substitution-grid,
   .event-row {
     grid-template-columns: 1fr;
   }

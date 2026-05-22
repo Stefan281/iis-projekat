@@ -5,6 +5,7 @@ export interface OpponentPlayer {
   position: string;
   height: number;
   age: number;
+  playerStatus?: 'INACTIVE' | 'BENCH' | 'IN_GAME';
 }
 
 export interface OpponentTeam {

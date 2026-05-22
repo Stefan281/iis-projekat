@@ -2,6 +2,8 @@ package com.iis.backend.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,6 +34,10 @@ public class OpponentPlayer {
 
     @Column(nullable = false)
     private Integer age;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "player_status", length = 30)
+    private PlayerStatus playerStatus;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "opponent_team_id", nullable = false)
@@ -79,6 +85,14 @@ public class OpponentPlayer {
 
     public void setAge(Integer age) {
         this.age = age;
+    }
+
+    public PlayerStatus getPlayerStatus() {
+        return playerStatus;
+    }
+
+    public void setPlayerStatus(PlayerStatus playerStatus) {
+        this.playerStatus = playerStatus;
     }
 
     public OpponentTeam getTeam() {

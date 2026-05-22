@@ -6,6 +6,8 @@ import { OpponentPlayer, OpponentTeam } from '../opponent-teams/opponent-team.mo
 import { MatchDetails, MatchEvent, MatchEventType, PlayerSelection } from './match-events.models';
 import { MatchEventsService } from './match-events.service';
 
+type EntryMode = 'event' | 'substitution';
+
 @Component({
   selector: 'app-match-events',
   imports: [DatePipe],
@@ -19,6 +21,10 @@ export class MatchEventsComponent {
   readonly match = signal<MatchDetails | null>(null);
   readonly selectedEventType = signal<MatchEventType>('POINT');
   readonly selectedPlayer = signal<PlayerSelection | null>(null);
+  readonly entryMode = signal<EntryMode>('event');
+  readonly substitutionTeam = signal<OpponentTeam | null>(null);
+  readonly selectedOutgoingPlayer = signal<OpponentPlayer | null>(null);
+  readonly selectedIncomingPlayer = signal<OpponentPlayer | null>(null);
   readonly errorMessage = signal('');
   readonly isSaving = signal(false);
 
@@ -69,8 +75,7 @@ export class MatchEventsComponent {
       statisticianId: currentUser.id,
       primaryPlayerId: selectedPlayer.player.id,
       secondaryPlayerId: null,
-      eventType: this.selectedEventType(),
-      description: null
+      eventType: this.selectedEventType()
     }).subscribe({
       next: (createdEvent) => {
         this.match.update((currentMatch) => {
@@ -118,7 +123,72 @@ export class MatchEventsComponent {
     });
   }
 
+  startSubstitution(team: OpponentTeam): void {
+    this.entryMode.set('substitution');
+    this.substitutionTeam.set(team);
+    this.selectedOutgoingPlayer.set(this.playersInGame(team)[0] ?? null);
+    this.selectedIncomingPlayer.set(this.playersOnBench(team)[0] ?? null);
+    this.errorMessage.set('');
+  }
+
+  backToEventEntry(): void {
+    this.entryMode.set('event');
+    this.substitutionTeam.set(null);
+    this.selectedOutgoingPlayer.set(null);
+    this.selectedIncomingPlayer.set(null);
+    this.errorMessage.set('');
+  }
+
+  selectOutgoingPlayer(player: OpponentPlayer): void {
+    this.selectedOutgoingPlayer.set(player);
+    this.errorMessage.set('');
+  }
+
+  selectIncomingPlayer(player: OpponentPlayer): void {
+    this.selectedIncomingPlayer.set(player);
+    this.errorMessage.set('');
+  }
+
+  confirmSubstitution(): void {
+    const match = this.match();
+    const currentUser = this.authService.currentUser();
+    const outgoingPlayer = this.selectedOutgoingPlayer();
+    const incomingPlayer = this.selectedIncomingPlayer();
+
+    if (!match || !currentUser) {
+      this.errorMessage.set('Nema aktivne utakmice ili korisnik nije prijavljen.');
+      return;
+    }
+
+    if (!outgoingPlayer?.id || !incomingPlayer?.id) {
+      this.errorMessage.set('Izaberite igraca koji izlazi i igraca koji ulazi.');
+      return;
+    }
+
+    this.isSaving.set(true);
+    this.matchEventsService.addEvent(match.id, {
+      statisticianId: currentUser.id,
+      primaryPlayerId: outgoingPlayer.id,
+      secondaryPlayerId: incomingPlayer.id,
+      eventType: 'SUBSTITUTION'
+    }).subscribe({
+      next: () => {
+        this.loadMatch();
+        this.backToEventEntry();
+        this.isSaving.set(false);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage.set(error.error?.message ?? 'Nije moguce dodati izmenu igraca.');
+        this.isSaving.set(false);
+      }
+    });
+  }
+
   eventLabel(eventType: MatchEventType): string {
+    if (eventType === 'SUBSTITUTION') {
+      return 'Izmena';
+    }
+
     return this.eventTypes.find((item) => item.type === eventType)?.label ?? eventType;
   }
 
@@ -132,23 +202,35 @@ export class MatchEventsComponent {
       return 'event-row serve';
     else if(event.eventType === 'ASSIST')
       return 'event-row assist';
-    else
+    else if(event.eventType === 'BLOCK')
       return 'event-row block';
+    else
+      return 'event-row substitution';
   }
 
   trackPlayer(_: number, player: OpponentPlayer): number {
     return player.id ?? player.jerseyNumber;
   }
 
+  playersInGame(team: OpponentTeam): OpponentPlayer[] {
+    return team.players.filter((player) => player.playerStatus === 'IN_GAME');
+  }
+
+  playersOnBench(team: OpponentTeam): OpponentPlayer[] {
+    return team.players.filter((player) => player.playerStatus === 'BENCH');
+  }
+
   private loadMatch(): void {
     this.matchEventsService.getCurrentMatch().subscribe({
       next: (match) => {
         this.match.set(match);
-        const firstPlayer = match.homeTeam.players[0] ?? match.awayTeam.players[0];
+        const firstHomePlayer = this.playersInGame(match.homeTeam)[0];
+        const firstAwayPlayer = this.playersInGame(match.awayTeam)[0];
+        const firstPlayer = firstHomePlayer ?? firstAwayPlayer;
 
         if (firstPlayer) {
           this.selectedPlayer.set({
-            team: match.homeTeam.players[0] ? match.homeTeam : match.awayTeam,
+            team: firstHomePlayer ? match.homeTeam : match.awayTeam,
             player: firstPlayer
           });
         }

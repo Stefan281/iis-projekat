@@ -44,9 +44,6 @@ public class MatchEvent {
     @Column(nullable = false)
     private LocalDateTime eventTime;
 
-    @Column(length = 500)
-    private String description;
-
     public Long getId() {
         return id;
     }
@@ -99,11 +96,4 @@ public class MatchEvent {
         this.eventTime = eventTime;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

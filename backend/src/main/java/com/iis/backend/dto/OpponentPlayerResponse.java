@@ -8,7 +8,8 @@ public record OpponentPlayerResponse(
         Integer jerseyNumber,
         String position,
         Integer height,
-        Integer age) {
+        Integer age,
+        String playerStatus) {
 
     public static OpponentPlayerResponse fromEntity(OpponentPlayer player) {
         return new OpponentPlayerResponse(
@@ -17,6 +18,7 @@ public record OpponentPlayerResponse(
                 player.getJerseyNumber(),
                 player.getPosition(),
                 player.getHeight(),
-                player.getAge());
+                player.getAge(),
+                player.getPlayerStatus() == null ? "INACTIVE" : player.getPlayerStatus().name());
     }
 }

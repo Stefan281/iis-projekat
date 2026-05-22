@@ -5,11 +5,14 @@ import com.iis.backend.dto.MatchEventResponse;
 import com.iis.backend.dto.MatchResponse;
 import com.iis.backend.model.MatchEvent;
 import com.iis.backend.model.MatchStatus;
+import com.iis.backend.model.EventType;
+import com.iis.backend.model.PlayerStatus;
 import com.iis.backend.repository.MatchEventRepository;
 import com.iis.backend.repository.MatchRepository;
 import com.iis.backend.repository.OpponentPlayerRepository;
 import com.iis.backend.repository.UserRepository;
 import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -40,6 +43,7 @@ public class MatchService {
         return MatchResponse.fromEntity(match, getRecentEvents(match.getId()));
     }
 
+    @Transactional
     public MatchEventResponse addEvent(Long matchId, MatchEventRequest request) {
         var match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utakmica nije pronadjena."));
@@ -60,14 +64,22 @@ public class MatchService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Igrac za izmenu ne pripada timovima na ovoj utakmici.");
         }
 
+        validateEventPlayers(request, primaryPlayer, secondaryPlayer);
+
         var event = new MatchEvent();
         event.setMatch(match);
         event.setStatistician(statistician);
         event.setPrimaryPlayer(primaryPlayer);
         event.setSecondaryPlayer(secondaryPlayer);
         event.setEventType(request.eventType());
-        event.setDescription(normalizeDescription(request.description()));
         event.setEventTime(LocalDateTime.now());
+
+        if (request.eventType() == EventType.SUBSTITUTION) {
+            primaryPlayer.setPlayerStatus(PlayerStatus.BENCH);
+            secondaryPlayer.setPlayerStatus(PlayerStatus.IN_GAME);
+            opponentPlayerRepository.save(primaryPlayer);
+            opponentPlayerRepository.save(secondaryPlayer);
+        }
 
         return MatchEventResponse.fromEntity(matchEventRepository.save(event));
     }
@@ -93,11 +105,36 @@ public class MatchService {
         return match.getHomeTeam().getId().equals(teamId) || match.getAwayTeam().getId().equals(teamId);
     }
 
-    private String normalizeDescription(String description) {
-        if (description == null || description.isBlank()) {
-            return null;
+    private void validateEventPlayers(
+            MatchEventRequest request,
+            com.iis.backend.model.OpponentPlayer primaryPlayer,
+            com.iis.backend.model.OpponentPlayer secondaryPlayer) {
+        if (request.eventType() == EventType.SUBSTITUTION) {
+            if (secondaryPlayer == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Izaberite igraca koji ulazi.");
+            }
+
+            if (!primaryPlayer.getTeam().getId().equals(secondaryPlayer.getTeam().getId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Izmena mora biti u okviru istog tima.");
+            }
+
+            if (primaryPlayer.getPlayerStatus() != PlayerStatus.IN_GAME) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Igrac koji izlazi mora biti u igri.");
+            }
+
+            if (secondaryPlayer.getPlayerStatus() != PlayerStatus.BENCH) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Igrac koji ulazi mora biti na klupi.");
+            }
+
+            return;
         }
 
-        return description.trim();
+        if (secondaryPlayer != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Drugi igrac se koristi samo za izmenu.");
+        }
+
+        if (primaryPlayer.getPlayerStatus() != PlayerStatus.IN_GAME) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dogadjaj se moze uneti samo za igraca koji je u igri.");
+        }
     }
 }
