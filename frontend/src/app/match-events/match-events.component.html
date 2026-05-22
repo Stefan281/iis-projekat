@@ -1,0 +1,96 @@
+<section class="events-page">
+  @if (match(); as match) {
+    <header class="match-strip">
+      <div>
+        <h1>{{ title() }}</h1>
+        <p>{{ match.matchDate | date: 'dd.MM.yyyy.' }} · {{ statusText(match.status) }} · {{ match.result }}</p>
+      </div>
+      <a class="back-link" href="/dashboard">Pocetni ekran -></a>
+    </header>
+
+    @if (errorMessage()) {
+      <p class="error-message">{{ errorMessage() }}</p>
+    }
+
+    <section class="entry-panel">
+      <h2>Unos dogadjaja</h2>
+
+      <div class="entry-grid">
+        <div class="team-column">
+          <h3>{{ match.homeTeam.name }}</h3>
+          @for (player of match.homeTeam.players; track trackPlayer($index, player)) {
+            <button
+              class="player-button"
+              type="button"
+              [class.active]="selectedPlayer()?.player?.id === player.id"
+              (click)="selectPlayer(match.homeTeam, player)"
+            >
+              <span>{{ player.jerseyNumber }}</span>
+              <strong>{{ player.fullName }}</strong>
+            </button>
+          }
+          <button class="substitution-button" type="button" disabled>Izmena igraca</button>
+        </div>
+
+        <div class="event-actions">
+          @for (eventType of eventTypes; track eventType.type) {
+            <button
+              class="event-type-button"
+              type="button"
+              [class]="eventType.className"
+              [class.selected]="selectedEventType() === eventType.type"
+              (click)="selectEventType(eventType.type)"
+            >
+              {{ eventType.label }}
+            </button>
+          }
+
+          <button class="add-button" type="button" [disabled]="isSaving()" (click)="addEvent()">
+            Dodaj dogadjaj
+          </button>
+        </div>
+
+        <div class="team-column">
+          <h3>{{ match.awayTeam.name }}</h3>
+          @for (player of match.awayTeam.players; track trackPlayer($index, player)) {
+            <button
+              class="player-button"
+              type="button"
+              [class.active]="selectedPlayer()?.player?.id === player.id"
+              (click)="selectPlayer(match.awayTeam, player)"
+            >
+              <span>{{ player.jerseyNumber }}</span>
+              <strong>{{ player.fullName }}</strong>
+            </button>
+          }
+          <button class="substitution-button" type="button" disabled>Izmena igraca</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="recent-panel">
+      <h2>Poslednji dogadjaji</h2>
+      @if (match.events.length === 0) {
+        <p class="empty-state">Nema zabelezenih dogadjaja.</p>
+      } @else {
+        <div class="events-list">
+          @for (event of match.events; track event.id) {
+            <div [class]="eventClass(event)">
+              <span>{{ event.teamName }}</span>
+              <strong>#{{ event.jerseyNumber }} {{ event.playerName }}</strong>
+              <span>{{ eventLabel(event.eventType) }}</span>
+              <time>{{ event.eventTime | date: 'HH:mm:ss' }}</time>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  } @else {
+    <section class="entry-panel">
+      <h1>Ucitavanje utakmice...</h1>
+      @if (errorMessage()) {
+        <p class="error-message">{{ errorMessage() }}</p>
+      }
+    </section>
+  }
+</section>
