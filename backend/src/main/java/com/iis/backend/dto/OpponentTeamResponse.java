@@ -12,6 +12,7 @@ public record OpponentTeamResponse(
         String coach,
         String playStyle,
         String note,
+        String teamType,
         List<OpponentPlayerResponse> players) {
 
     public static OpponentTeamResponse fromEntity(OpponentTeam team) {
@@ -24,6 +25,7 @@ public record OpponentTeamResponse(
                 team.getCoach(),
                 team.getPlayStyle(),
                 team.getNote(),
+                team.getTeamType() == null ? "OPPONENT" : team.getTeamType().name(),
                 team.getPlayers().stream()
                         .map(OpponentPlayerResponse::fromEntity)
                         .toList());

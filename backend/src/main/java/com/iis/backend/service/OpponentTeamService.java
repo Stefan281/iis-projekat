@@ -6,6 +6,7 @@ import com.iis.backend.dto.OpponentTeamResponse;
 import com.iis.backend.model.OpponentPlayer;
 import com.iis.backend.model.OpponentTeam;
 import com.iis.backend.model.PlayerStatus;
+import com.iis.backend.model.TeamType;
 import com.iis.backend.repository.MatchEventRepository;
 import com.iis.backend.repository.OpponentTeamRepository;
 import java.util.HashSet;
@@ -62,8 +63,10 @@ public class OpponentTeamService {
     }
 
     public void delete(Long id) {
-        if (!opponentTeamRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Protivnik nije pronadjen.");
+        var team = findOpponent(id);
+
+        if (team.getTeamType() == TeamType.HOME) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nas tim ne moze biti obrisan.");
         }
 
         opponentTeamRepository.deleteById(id);
@@ -108,6 +111,7 @@ public class OpponentTeamService {
         team.setCoach(request.coach().trim());
         team.setPlayStyle(normalizeOptionalText(request.playStyle(), ""));
         team.setNote(normalizeOptionalText(request.note()));
+        team.setTeamType(resolveTeamType(team, request.teamType()));
         syncPlayers(team, request.players());
     }
 
@@ -182,5 +186,21 @@ public class OpponentTeamService {
         }
 
         return PlayerStatus.valueOf(playerStatus);
+    }
+
+    private TeamType parseTeamType(String teamType, TeamType fallback) {
+        if (teamType == null || teamType.isBlank()) {
+            return fallback == null ? TeamType.OPPONENT : fallback;
+        }
+
+        return TeamType.valueOf(teamType);
+    }
+
+    private TeamType resolveTeamType(OpponentTeam team, String requestedTeamType) {
+        if (team.getTeamType() == TeamType.HOME) {
+            return TeamType.HOME;
+        }
+
+        return parseTeamType(requestedTeamType, team.getTeamType());
     }
 }

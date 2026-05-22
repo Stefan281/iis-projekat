@@ -21,6 +21,28 @@
   margin-bottom: 18px;
 }
 
+.team-tabs {
+  display: inline-flex;
+  gap: 6px;
+  margin: 0 0 18px;
+  border: 1px solid #c7d1dc;
+  border-radius: 6px;
+  padding: 4px;
+  background: #ffffff;
+}
+
+.team-tabs button {
+  min-width: 110px;
+  background: transparent;
+  color: #536171;
+}
+
+.team-tabs button.active,
+.team-tabs button:hover {
+  background: #0C7FDA;
+  color: #ffffff;
+}
+
 .page-header p,
 .panel-header p {
   margin: 0 0 6px;

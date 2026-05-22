@@ -1,10 +1,5 @@
 package com.iis.backend.config;
 
-import com.iis.backend.model.Match;
-import com.iis.backend.model.MatchStatus;
-import com.iis.backend.model.OpponentPlayer;
-import com.iis.backend.model.OpponentTeam;
-import com.iis.backend.model.PlayerStatus;
 import com.iis.backend.model.Role;
 import com.iis.backend.model.User;
 import com.iis.backend.repository.MatchRepository;
@@ -29,6 +24,17 @@ public class DataSeeder {
             PasswordEncoder passwordEncoder) {
         return args -> {
             jdbcTemplate.execute("ALTER TABLE IF EXISTS match_events DROP COLUMN IF EXISTS description");
+            jdbcTemplate.execute("ALTER TABLE IF EXISTS opponent_teams ADD COLUMN IF NOT EXISTS team_type varchar(30)");
+            jdbcTemplate.execute("UPDATE opponent_teams SET team_type = 'OPPONENT' WHERE team_type IS NULL");
+            jdbcTemplate.execute("""
+                    UPDATE opponent_teams
+                    SET team_type = 'HOME'
+                    WHERE id IN (
+                        SELECT home_team_id
+                        FROM matches
+                        WHERE status = 'IN_PROGRESS'
+                    )
+                    """);
             jdbcTemplate.execute("""
                     DO $$
                     DECLARE

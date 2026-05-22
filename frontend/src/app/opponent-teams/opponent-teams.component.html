@@ -1,24 +1,35 @@
 <section class="opponents-page">
   <header class="page-header">
     <div>
-      <p>Protivnicki timovi</p>
-      <h1>Priprema za naredne protivnike</h1>
+      <p>Timovi</p>
+      <h1>Podaci o nasem timu i protivnicima</h1>
     </div>
-    <button class="primary-button" type="button" (click)="startCreate()">Novi protivnik</button>
+    @if (activeTeamType() === 'OPPONENT') {
+      <button class="primary-button" type="button" (click)="startCreate()">Novi protivnik</button>
+    }
   </header>
+
+  <div class="team-tabs" role="tablist" aria-label="Tip tima">
+    <button type="button" [class.active]="activeTeamType() === 'HOME'" (click)="selectTeamType('HOME')">
+      Nas tim
+    </button>
+    <button type="button" [class.active]="activeTeamType() === 'OPPONENT'" (click)="selectTeamType('OPPONENT')">
+      Protivnici
+    </button>
+  </div>
 
   @if (errorMessage()) {
     <p class="error-message">{{ errorMessage() }}</p>
   }
 
   <div class="opponents-layout">
-    <aside class="team-list" aria-label="Lista protivnickih timova">
+    <aside class="team-list" aria-label="Lista timova">
       @if (isLoading()) {
         <p class="muted">Ucitavanje...</p>
-      } @else if (teams().length === 0) {
-        <p class="muted">Nema unetih protivnika.</p>
+      } @else if (visibleTeams().length === 0) {
+        <p class="muted">{{ activeTeamType() === 'HOME' ? 'Nema unetog naseg tima.' : 'Nema unetih protivnika.' }}</p>
       } @else {
-        @for (team of teams(); track team.id) {
+        @for (team of visibleTeams(); track team.id) {
           <button
             class="team-list-item"
             type="button"
@@ -38,7 +49,7 @@
           <div class="panel-header">
             <div>
               <p>{{ mode() === 'create' ? 'Novi zapis' : 'Izmena zapisa' }}</p>
-              <h2>{{ mode() === 'create' ? 'Dodaj protivnika' : 'Izmeni protivnika' }}</h2>
+              <h2>{{ mode() === 'create' ? 'Dodaj protivnika' : 'Izmeni tim' }}</h2>
             </div>
             <div class="action-row">
               <button class="secondary-button" type="button" (click)="cancelForm()">Odustani</button>
@@ -115,12 +126,14 @@
       } @else if (selectedTeam(); as team) {
         <div class="panel-header">
           <div>
-            <p>Pregled protivnika</p>
+            <p>{{ activeTeamType() === 'HOME' ? 'Pregled naseg tima' : 'Pregled protivnika' }}</p>
             <h2>{{ team.name }}</h2>
           </div>
           <div class="action-row">
             <button class="secondary-button" type="button" (click)="startEdit()">Izmeni</button>
-            <button class="danger-button" type="button" (click)="deleteSelected()">Obrisi zapis</button>
+            @if (canDeleteSelected()) {
+              <button class="danger-button" type="button" (click)="deleteSelected()">Obrisi zapis</button>
+            }
           </div>
         </div>
 
@@ -181,9 +194,11 @@
         }
       } @else {
         <div class="empty-state">
-          <h2>Nema izabranog protivnika</h2>
-          <p>Dodajte prvi protivnicki tim da biste pripremili podatke za utakmicu.</p>
-          <button class="primary-button" type="button" (click)="startCreate()">Dodaj protivnika</button>
+          <h2>Nema izabranog tima</h2>
+          <p>{{ activeTeamType() === 'HOME' ? 'Nas tim jos nije evidentiran.' : 'Dodajte prvi protivnicki tim da biste pripremili podatke za utakmicu.' }}</p>
+          @if (activeTeamType() === 'OPPONENT') {
+            <button class="primary-button" type="button" (click)="startCreate()">Dodaj protivnika</button>
+          }
         </div>
       }
     </section>

@@ -16,5 +16,6 @@ public record OpponentTeamRequest(
         @NotBlank @Size(max = 120) String coach,
         @Size(max = 500) String playStyle,
         @Size(max = 1000) String note,
+        String teamType,
         @Valid List<OpponentPlayerRequest> players) {
 }

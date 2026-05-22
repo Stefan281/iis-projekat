@@ -5,6 +5,7 @@ import { OpponentPlayer, OpponentTeam } from './opponent-team.models';
 import { OpponentTeamsService } from './opponent-teams.service';
 
 type ViewMode = 'view' | 'create' | 'edit';
+type TeamType = 'HOME' | 'OPPONENT';
 
 @Component({
   selector: 'app-opponent-teams',
@@ -18,11 +19,17 @@ export class OpponentTeamsComponent {
 
   readonly teams = signal<OpponentTeam[]>([]);
   readonly selectedTeam = signal<OpponentTeam | null>(null);
+  readonly activeTeamType = signal<TeamType>('OPPONENT');
   readonly mode = signal<ViewMode>('view');
   readonly isLoading = signal(false);
   readonly errorMessage = signal('');
 
   readonly isFormMode = computed(() => this.mode() === 'create' || this.mode() === 'edit');
+  readonly visibleTeams = computed(() => this.teams().filter((team) => this.getTeamType(team) === this.activeTeamType()));
+  readonly canDeleteSelected = computed(() => {
+    const team = this.selectedTeam();
+    return !!team?.id && this.getTeamType(team) !== 'HOME';
+  });
 
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', Validators.required],
@@ -49,7 +56,15 @@ export class OpponentTeamsComponent {
     this.errorMessage.set('');
   }
 
+  selectTeamType(teamType: TeamType): void {
+    this.activeTeamType.set(teamType);
+    this.mode.set('view');
+    this.errorMessage.set('');
+    this.selectedTeam.set(this.visibleTeams()[0] ?? null);
+  }
+
   startCreate(): void {
+    this.activeTeamType.set('OPPONENT');
     this.selectedTeam.set(null);
     this.mode.set('create');
     this.errorMessage.set('');
@@ -116,6 +131,7 @@ export class OpponentTeamsComponent {
     }
 
     const payload = this.form.getRawValue();
+    const selected = this.selectedTeam();
     const team: OpponentTeam = {
       name: payload.name.trim(),
       wins: payload.wins,
@@ -124,6 +140,7 @@ export class OpponentTeamsComponent {
       coach: payload.coach.trim(),
       playStyle: payload.playStyle.trim(),
       note: payload.note.trim() || null,
+      teamType: this.mode() === 'edit' ? this.getTeamType(selected) : 'OPPONENT',
       players: payload.players
         .filter((player) => this.hasPlayerData(player))
         .map((player) => ({
@@ -138,8 +155,6 @@ export class OpponentTeamsComponent {
     };
 
     if (this.mode() === 'edit') {
-      const selected = this.selectedTeam();
-
       if (!selected?.id) {
         return;
       }
@@ -164,7 +179,12 @@ export class OpponentTeamsComponent {
       return;
     }
 
-    const confirmed = confirm(`Obrisati kompletan zapis za protivnika ${team.name}?`);
+    if (!this.canDeleteSelected()) {
+      this.errorMessage.set('Nas tim ne moze biti obrisan.');
+      return;
+    }
+
+    const confirmed = confirm(`Obrisati kompletan zapis za tim ${team.name}?`);
 
     if (!confirmed) {
       return;
@@ -174,10 +194,10 @@ export class OpponentTeamsComponent {
       next: () => {
         const remainingTeams = this.teams().filter((item) => item.id !== team.id);
         this.teams.set(remainingTeams);
-        this.selectedTeam.set(remainingTeams[0] ?? null);
+        this.selectedTeam.set(this.visibleTeams()[0] ?? null);
         this.mode.set('view');
       },
-      error: () => this.errorMessage.set('Nije moguce obrisati protivnika.')
+      error: () => this.errorMessage.set('Nije moguce obrisati tim.')
     });
   }
 
@@ -186,11 +206,11 @@ export class OpponentTeamsComponent {
     this.opponentTeamsService.getAll().subscribe({
       next: (teams) => {
         this.teams.set(teams);
-        this.selectedTeam.set(teams[0] ?? null);
+        this.selectedTeam.set(this.visibleTeams()[0] ?? null);
         this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Nije moguce ucitati protivnicke timove.');
+        this.errorMessage.set('Nije moguce ucitati timove.');
         this.isLoading.set(false);
       }
     });
@@ -206,6 +226,7 @@ export class OpponentTeamsComponent {
       this.teams.set([...teams, savedTeam]);
     }
 
+    this.activeTeamType.set(this.getTeamType(savedTeam));
     this.selectedTeam.set(savedTeam);
     this.mode.set('view');
   }
@@ -247,7 +268,7 @@ export class OpponentTeamsComponent {
     }
 
     if (this.hasDuplicateTeamName(payload.name)) {
-      return 'Vec postoji protivnicki tim sa tim nazivom.';
+      return 'Vec postoji tim sa tim nazivom.';
     }
 
     if (payload.wins < 0 || payload.losses < 0 || payload.wins > 99 || payload.losses > 99) {
@@ -316,6 +337,10 @@ export class OpponentTeamsComponent {
   }
 
   private getApiErrorMessage(error: HttpErrorResponse): string {
-    return error.error?.message ?? 'Nije moguce sacuvati protivnika.';
+    return error.error?.message ?? 'Nije moguce sacuvati tim.';
+  }
+
+  private getTeamType(team: OpponentTeam | null | undefined): TeamType {
+    return team?.teamType ?? 'OPPONENT';
   }
 }

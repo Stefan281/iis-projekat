@@ -3,6 +3,8 @@ package com.iis.backend.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,6 +42,10 @@ public class OpponentTeam {
 
     @Column(length = 1000)
     private String note;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "team_type", length = 30)
+    private TeamType teamType = TeamType.OPPONENT;
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("jerseyNumber ASC")
@@ -103,6 +109,14 @@ public class OpponentTeam {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public TeamType getTeamType() {
+        return teamType;
+    }
+
+    public void setTeamType(TeamType teamType) {
+        this.teamType = teamType;
     }
 
     public List<OpponentPlayer> getPlayers() {

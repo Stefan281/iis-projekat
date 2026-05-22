@@ -17,5 +17,6 @@ export interface OpponentTeam {
   coach: string;
   playStyle?: string | null;
   note?: string | null;
+  teamType?: 'HOME' | 'OPPONENT';
   players: OpponentPlayer[];
 }
