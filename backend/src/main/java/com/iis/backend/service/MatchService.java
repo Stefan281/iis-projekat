@@ -72,6 +72,17 @@ public class MatchService {
         return MatchEventResponse.fromEntity(matchEventRepository.save(event));
     }
 
+    public void deleteEvent(Long matchId, Long eventId) {
+        var event = matchEventRepository.findById(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dogadjaj nije pronadjen."));
+
+        if (!event.getMatch().getId().equals(matchId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dogadjaj ne pripada izabranoj utakmici.");
+        }
+
+        matchEventRepository.delete(event);
+    }
+
     private java.util.List<MatchEventResponse> getRecentEvents(Long matchId) {
         return matchEventRepository.findTop10ByMatchIdOrderByEventTimeDesc(matchId).stream()
                 .map(MatchEventResponse::fromEntity)

@@ -16,4 +16,8 @@ export class MatchEventsService {
   addEvent(matchId: number, request: MatchEventRequest) {
     return this.http.post<MatchEvent>(`${this.apiUrl}/${matchId}/events`, request);
   }
+
+  deleteEvent(matchId: number, eventId: number) {
+    return this.http.delete<void>(`${this.apiUrl}/${matchId}/events/${eventId}`);
+  }
 }

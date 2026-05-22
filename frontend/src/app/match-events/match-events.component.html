@@ -79,7 +79,10 @@
               <span>{{ event.teamName }}</span>
               <strong>#{{ event.jerseyNumber }} {{ event.playerName }}</strong>
               <span>{{ eventLabel(event.eventType) }}</span>
-              <time>{{ event.eventTime | date: 'HH:mm:ss' }}</time>
+              <time><span class="clock-icon" aria-hidden="true"></span>{{ event.eventTime | date: 'HH:mm:ss' }}</time>
+              <button class="delete-event-button" type="button" aria-label="Obrisi dogadjaj" (click)="deleteEvent(event)">
+                x
+              </button>
             </div>
           }
         </div>

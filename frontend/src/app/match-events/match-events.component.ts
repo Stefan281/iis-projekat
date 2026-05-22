@@ -92,6 +92,32 @@ export class MatchEventsComponent {
     });
   }
 
+  deleteEvent(event: MatchEvent): void {
+    const match = this.match();
+
+    if (!match) {
+      return;
+    }
+
+    this.matchEventsService.deleteEvent(match.id, event.id).subscribe({
+      next: () => {
+        this.match.update((currentMatch) => {
+          if (!currentMatch) {
+            return currentMatch;
+          }
+
+          return {
+            ...currentMatch,
+            events: currentMatch.events.filter((item) => item.id !== event.id)
+          };
+        });
+      },
+      error: (error: HttpErrorResponse) => {
+        this.errorMessage.set(error.error?.message ?? 'Nije moguce obrisati dogadjaj.');
+      }
+    });
+  }
+
   eventLabel(eventType: MatchEventType): string {
     return this.eventTypes.find((item) => item.type === eventType)?.label ?? eventType;
   }

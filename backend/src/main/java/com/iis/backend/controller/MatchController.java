@@ -6,6 +6,7 @@ import com.iis.backend.dto.MatchResponse;
 import com.iis.backend.service.MatchService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,5 +36,11 @@ public class MatchController {
             @PathVariable Long matchId,
             @Valid @RequestBody MatchEventRequest request) {
         return matchService.addEvent(matchId, request);
+    }
+
+    @DeleteMapping("/{matchId}/events/{eventId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteEvent(@PathVariable Long matchId, @PathVariable Long eventId) {
+        matchService.deleteEvent(matchId, eventId);
     }
 }
