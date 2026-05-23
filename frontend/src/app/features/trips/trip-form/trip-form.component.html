@@ -1,40 +1,42 @@
 <div class="form-page">
   <div class="page-header">
-    <a routerLink="/putovanja" class="back-link">← Putovanja</a>
     @if (putovanje()) {
       <span class="page-title">Putovanje: {{ putovanje()!.name }}</span>
     } @else if (isNew()) {
       <span class="page-title">Novo putovanje</span>
     }
+    <a routerLink="/putovanja" class="back-link">← Putovanja</a>
   </div>
 
-  <div class="tabs-nav">
-    @for (tab of tabs; track tab.key) {
-      <button
-        class="tab-btn"
-        [class.active]="activeTab() === tab.key"
-        [disabled]="isNew() && tab.key !== 'osnovno'"
-        (click)="setTab(tab.key)"
-      >{{ tab.label }}</button>
-    }
-  </div>
+  <div class="form-content-wrapper">
+    <div class="tabs-nav">
+      @for (tab of tabs; track tab.key) {
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === tab.key"
+          [disabled]="isNew() && tab.key !== 'osnovno'"
+          (click)="setTab(tab.key)"
+        >{{ tab.label }}</button>
+      }
+    </div>
 
-  <div class="tab-content">
-    @if (activeTab() === 'osnovno') {
-      <app-basic-tab
-        [putovanje]="putovanje()"
-        [isNew]="isNew()"
-        (saved)="onPutovanjeSaved($event)"
-      />
-    }
-    @if (activeTab() === 'smestaj' && putovanjeId()) {
-      <app-accommodation-tab [putovanjeId]="putovanjeId()!" />
-    }
-    @if (activeTab() === 'prevoz' && putovanjeId()) {
-      <app-transport-tab [putovanjeId]="putovanjeId()!" />
-    }
-    @if (activeTab() === 'putnici' && putovanjeId()) {
-      <app-passengers-tab [putovanjeId]="putovanjeId()!" />
-    }
+    <div class="tab-content">
+      @if (activeTab() === 'osnovno') {
+        <app-basic-tab
+          [putovanje]="putovanje()"
+          [isNew]="isNew()"
+          (saved)="onPutovanjeSaved($event)"
+        />
+      }
+      @if (activeTab() === 'smestaj' && putovanjeId()) {
+        <app-accommodation-tab [putovanjeId]="putovanjeId()!" />
+      }
+      @if (activeTab() === 'prevoz' && putovanjeId()) {
+        <app-transport-tab [putovanjeId]="putovanjeId()!" />
+      }
+      @if (activeTab() === 'putnici' && putovanjeId()) {
+        <app-passengers-tab [putovanjeId]="putovanjeId()!" />
+      }
+    </div>
   </div>
 </div>

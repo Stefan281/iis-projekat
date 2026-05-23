@@ -1,29 +1,48 @@
 .tab-panel { padding: 0; }
 
-.form-grid { display: flex; flex-direction: column; gap: 16px; max-width: 600px; }
+.form-grid { display: flex; flex-direction: column; gap: 18px; max-width: 560px; }
 
 .form-field { display: flex; flex-direction: column; gap: 6px; }
-.form-field label { font-size: 13px; font-weight: 600; color: #374151; }
+
+.form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #37474F;
+}
+
 .form-field input, .form-field select {
-  padding: 9px 12px;
-  border: 1px solid #d1d5db;
+  padding: 10px 12px;
+  border: 1px solid #E0E0E0;
   border-radius: 6px;
   font-size: 14px;
-  color: #1e2a3a;
+  color: #212121;
   background: #fff;
-  transition: border-color 0.15s;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.form-field input:focus, .form-field select:focus { outline: none; border-color: #2563eb; }
-.form-field input.invalid { border-color: #ef4444; }
+.form-field input:focus, .form-field select:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.10);
+}
+.form-field input.invalid { border-color: #F44336; }
 
-.optional { font-weight: 400; color: #9ca3af; }
+.optional { font-weight: 400; color: #9E9E9E; }
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 .form-actions { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
-.success-msg { color: #16a34a; font-size: 13px; font-weight: 600; }
+.success-msg { color: #4CAF50; font-size: 13px; font-weight: 600; }
 
-.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: opacity 0.15s; }
+.btn {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
 .btn:hover { opacity: 0.85; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background: #2563eb; color: #fff; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: #1976D2; color: #fff; }

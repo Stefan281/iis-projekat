@@ -1,33 +1,35 @@
 <div class="list-page">
-  <div class="page-header">
-    <h1>Putovanja</h1>
-    <a routerLink="/putovanja/novo" class="btn btn-primary">+ Novo putovanje</a>
-  </div>
-
-  @if (putovanja().length === 0) {
-    <div class="card empty-state">
-      <p>Nema putovanja. Kliknite "+ Novo putovanje" da dodate prvo putovanje.</p>
+  <div class="list-content-wrapper">
+    <div class="page-header">
+      <h1>Putovanja</h1>
+      <a routerLink="/putovanja/novo" class="btn btn-primary">+ Novo putovanje</a>
     </div>
-  }
 
-  <div class="trip-list">
-    @for (p of putovanja(); track p.id) {
-      <div class="trip-row">
-        <div class="trip-info">
-          <div class="trip-top">
-            <span class="trip-name">{{ p.name }}</span>
-            <span class="status-badge" [class]="'status-' + p.status.toLowerCase()">{{ statusLabel(p.status) }}</span>
-          </div>
-          <div class="trip-meta">
-            <span>📍 {{ p.location }}</span>
-            <span>📅 {{ formatDateRange(p) }}</span>
-          </div>
-          @if (showWarning(p)) {
-            <div class="warning">⚠ Ostalo jos manje od mesec dana</div>
-          }
-        </div>
-        <a [routerLink]="['/putovanja', p.id]" class="edit-link">Pritisni za izmenu putovanja</a>
+    @if (putovanja().length === 0) {
+      <div class="card empty-state">
+        <p>Nema putovanja. Kliknite "+ Novo putovanje" da dodate prvo putovanje.</p>
       </div>
     }
+
+    <div class="trip-list">
+      @for (p of putovanja(); track p.id) {
+        <div class="trip-row">
+          <div class="trip-info">
+            <div class="trip-top">
+              <span class="trip-name">{{ p.name }}</span>
+              <span class="status-badge" [class]="'status-' + p.status.toLowerCase()">{{ statusLabel(p.status) }}</span>
+            </div>
+            <div class="trip-meta">
+              <span>📍 {{ p.location }}</span>
+              <span>📅 {{ formatDateRange(p) }}</span>
+            </div>
+            @if (showWarning(p)) {
+              <div class="warning">⚠ Ostalo jos manje od mesec dana</div>
+            }
+          </div>
+          <a [routerLink]="['/putovanja', p.id]" class="edit-link">Pritisni za izmenu putovanja</a>
+        </div>
+      }
+    </div>
   </div>
 </div>

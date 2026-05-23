@@ -1,53 +1,62 @@
 .tab-panel { }
 
-.empty-msg { color: #9ca3af; font-size: 14px; padding: 20px 0; }
+.empty-msg { color: #9E9E9E; font-size: 14px; padding: 20px 0; }
 
 .putnici-table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 
 .putnici-table th {
-  background: #f9fafb;
+  background: #ECEFF1;
   padding: 12px 16px;
   text-align: left;
   font-size: 12px;
   font-weight: 700;
-  color: #6b7280;
+  color: #546E7A;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #E0E0E0;
 }
 
 .putnici-table td {
   padding: 13px 16px;
   font-size: 14px;
-  color: #374151;
-  border-bottom: 1px solid #f1f1f1;
+  color: #212121;
+  border-bottom: 1px solid #F5F5F5;
 }
 
 .putnici-table tr:last-child td { border-bottom: none; }
-.putnici-table tr:hover td { background: #f9fafb; }
+.putnici-table tbody tr:hover td { background: #F5F5F5; }
 
 .igrac-name { font-weight: 500; }
-.soba { color: #6b7280; }
+.soba { color: #757575; }
 
 .dok-badge {
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 12px;
 }
-.dok-badge.kompletno { background: #dcfce7; color: #16a34a; }
-.dok-badge.proveriti { background: #f3f4f6; color: #6b7280; cursor: pointer; text-decoration: underline; }
+.dok-badge.kompletno { background: #E8F5E9; color: #388E3C; }
+.dok-badge.proveriti { background: #E3F2FD; color: #1565C0; cursor: pointer; text-decoration: underline; }
+.dok-badge.nedostaje { background: #FFEBEE; color: #D32F2F; }
 
 .table-actions { margin-top: 16px; display: flex; justify-content: flex-end; }
 
-.btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: opacity 0.15s; }
+.btn {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
 .btn:hover:not(:disabled) { opacity: 0.85; }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-primary { background: #2563eb; color: #fff; }
+.btn:disabled { opacity: 0.38; cursor: not-allowed; }
+.btn-primary { background: #1976D2; color: #fff; }
