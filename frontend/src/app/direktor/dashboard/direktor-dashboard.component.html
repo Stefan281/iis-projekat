@@ -6,27 +6,12 @@
   <div class="dashboard-grid">
     <!-- Left column -->
     <div class="left-col">
-      <!-- Notifications -->
+      <!-- Notifications – read only for director -->
       <div class="card obavestenja-card">
         <div class="card-header">
           <h2>Obaveštenja</h2>
-          <button class="btn btn-success" (click)="showForm.set(!showForm())">+ Novo obaveštenje</button>
         </div>
-
-        @if (showForm()) {
-          <div class="obav-form">
-            <p class="form-label">Novo obaveštenje:</p>
-            <form [formGroup]="novoObavestenjeForm" (ngSubmit)="submitObavestenje()">
-              <textarea formControlName="tekst" rows="4" placeholder="Unesite tekst obaveštenja..."></textarea>
-              <div class="form-actions">
-                <button type="button" class="btn btn-danger" (click)="showForm.set(false); novoObavestenjeForm.reset()">Poništi</button>
-                <button type="submit" class="btn btn-success" [disabled]="isSaving()">Postavi</button>
-              </div>
-            </form>
-          </div>
-        }
-
-        @if (obavestenja().length === 0 && !showForm()) {
+        @if (obavestenja().length === 0) {
           <p class="empty-msg">Nema obaveštenja.</p>
         }
         @for (o of obavestenja(); track o.id) {
@@ -67,19 +52,75 @@
             }
           </div>
         } @else {
+          <!-- Trip detail panel -->
           <div class="trip-detail">
             <h3>Putovanje: {{ selectedPutovanje()!.name }}</h3>
+
             <div class="detail-rows">
               <div class="detail-row"><span>🏐</span><span>{{ selectedPutovanje()!.purpose }}</span></div>
               <div class="detail-row"><span>📍</span><span>{{ selectedPutovanje()!.location }}</span></div>
-              <div class="detail-row"><span>📅</span><span>{{ formatDateRange(selectedPutovanje()!) }}</span></div>
-              <div class="detail-row"><span>🏨</span><span>{{ selectedPutovanje()!.smestajId ? 'Smeštaj dodat' : 'Nema noćenja' }}</span></div>
-              <div class="detail-row"><span>🚌</span><span>{{ selectedPutovanje()!.transportId ? 'Transport dodat' : 'Nije definisan' }}</span></div>
+              <div class="detail-row"><span>📅</span><span>{{ formatDatumKratko(selectedPutovanje()!.departureDate) }}</span></div>
             </div>
+
+            @if (loadingDetail()) {
+              <p class="loading-msg">Učitavanje detalja...</p>
+            } @else {
+              <div class="detail-section">
+                <div class="section-title">── Smeštaj ──</div>
+                @if (selectedSmestaj()) {
+                  <div class="detail-row"><span>🏨</span><span class="detail-info">
+                    <strong>{{ selectedSmestaj()!.ime }}</strong><br>
+                    {{ selectedSmestaj()!.adresa }}<br>
+                    Cena: {{ selectedSmestaj()!.cena | number:'1.0-0' }} €
+                  </span></div>
+                } @else {
+                  <p class="empty-msg">Nema izabranog smeštaja.</p>
+                }
+              </div>
+
+              <div class="detail-section">
+                <div class="section-title">── Prevoz ──</div>
+                @if (selectedTransport()) {
+                  <div class="detail-row"><span>🚌</span><span class="detail-info">
+                    <strong>{{ selectedTransport()!.naziv }}</strong><br>
+                    Vrsta: {{ selectedTransport()!.vrsta }}<br>
+                    Cena: {{ selectedTransport()!.cena | number:'1.0-0' }} €
+                  </span></div>
+                } @else {
+                  <p class="empty-msg">Nema izabranog prevoza.</p>
+                }
+              </div>
+
+              @if (selectedSmestaj() || selectedTransport()) {
+                <div class="ukupni-trosak">
+                  Ukupni trošak: <strong>{{ ukupniTrosak() | number:'1.0-0' }} €</strong>
+                </div>
+              }
+            }
+
             <div class="detail-actions">
-              <button class="btn btn-secondary" (click)="backToCalendar()">Nazad na kalendar</button>
-              <a class="btn btn-primary" [routerLink]="['/putovanja', selectedPutovanje()!.id]">Otvori putovanje</a>
+              <button class="btn btn-secondary" (click)="backToCalendar()">← Nazad na kalendar</button>
             </div>
+
+            @if (selectedPutovanje()!.status === 'AWAITING_APPROVAL') {
+              <div class="approve-section">
+                @if (!showRejectForm()) {
+                  <button class="btn btn-approve" [disabled]="isActing()" (click)="odobri()">✓ Odobri putovanje</button>
+                  <button class="btn btn-reject-outline" [disabled]="isActing()" (click)="showRejectForm.set(true)">✗ Odbij putovanje</button>
+                }
+
+                @if (showRejectForm()) {
+                  <div class="reject-form">
+                    <label class="form-label">Razlog odbijanja:</label>
+                    <textarea rows="3" placeholder="Unesi razlog..." [(ngModel)]="rejectReason"></textarea>
+                    <div class="form-actions">
+                      <button class="btn btn-secondary" (click)="showRejectForm.set(false); rejectReason = ''">Odustani</button>
+                      <button class="btn btn-reject" [disabled]="isActing() || !rejectReason.trim()" (click)="odbij()">Pošalji i odbij</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
         }
       </div>
@@ -93,7 +134,7 @@
           <p class="empty-msg">Nema predstojećih putovanja.</p>
         }
         @for (p of predstojecaPutovanja(); track p.id) {
-          <div class="trip-card">
+          <div class="trip-card" (click)="openDetail(p)">
             <div class="trip-card-header">
               <div class="trip-name-row">
                 <span class="trip-dot" [style.background-color]="getTripColor(p.id).solid"></span>
@@ -105,10 +146,7 @@
               <span>📍 {{ p.location }}</span>
               <span>📅 {{ formatDateRange(p) }}</span>
             </div>
-            @if (showWarning(p)) {
-              <div class="warning-msg">⚠ Ostalo jos manje od mesec dana</div>
-            }
-            <a class="detail-link" [routerLink]="['/putovanja', p.id]" (click)="selectPutovanjeForDetail(p)">Pritisni za detalje putovanja</a>
+            <span class="detail-link">Pritisni za detalje putovanja</span>
           </div>
         }
       </div>

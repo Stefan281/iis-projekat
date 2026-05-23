@@ -32,7 +32,21 @@ export class LoginComponent {
 
     this.isSubmitting.set(true);
     this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigateByUrl('/dashboard'),
+      next: () => {
+        const user = this.authService.currentUser();
+        switch (user?.role) {
+          case 'ORGANIZATOR':
+            this.router.navigateByUrl('/dashboard');
+            break;
+          case 'GENERALNI_DIREKTOR':
+            this.router.navigateByUrl('/direktor/dashboard');
+            break;
+          default:
+            this.authService.logout();
+            this.errorMessage.set('Nemate dozvolu pristupa ovom sistemu.');
+            this.isSubmitting.set(false);
+        }
+      },
       error: () => {
         this.errorMessage.set('Pogresno korisnicko ime ili lozinka.');
         this.isSubmitting.set(false);

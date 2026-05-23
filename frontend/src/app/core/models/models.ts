@@ -12,6 +12,7 @@ export interface Putovanje {
   status: PutovanjeStatus;
   smestajId?: number;
   transportId?: number;
+  organizatorId?: number;
 }
 
 export interface PonudaSmestaja {

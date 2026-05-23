@@ -1,14 +1,18 @@
 <div class="form-page">
-  <div class="page-header">
+
+  <!-- B3: "Putovanja →" link, absolutely positioned top-right -->
+  <a class="back-link" routerLink="/putovanja">Putovanja →</a>
+
+  <div class="form-content-wrapper">
+
+    <!-- B3: centered title -->
     @if (putovanje()) {
       <span class="page-title">Putovanje: {{ putovanje()!.name }}</span>
     } @else if (isNew()) {
       <span class="page-title">Novo putovanje</span>
     }
-    <a routerLink="/putovanja" class="back-link">← Putovanja</a>
-  </div>
 
-  <div class="form-content-wrapper">
+    <!-- B2: grid tab bar -->
     <div class="tabs-nav">
       @for (tab of tabs; track tab.key) {
         <button
@@ -38,5 +42,6 @@
         <app-passengers-tab [putovanjeId]="putovanjeId()!" />
       }
     </div>
+
   </div>
 </div>

@@ -1,4 +1,4 @@
-export type UserRole = 'ORGANIZATOR' | 'DIREKTOR' | 'CLAN_TIMA';
+export type UserRole = 'ORGANIZATOR' | 'GENERALNI_DIREKTOR' | 'IGRAC' | 'STATISTICAR' | 'STRUCNI_STAB' | 'ADMIN';
 
 export interface LoginRequest {
   username: string;
