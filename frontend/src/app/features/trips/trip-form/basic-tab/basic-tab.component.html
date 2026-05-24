@@ -1,5 +1,11 @@
 <div class="tab-panel">
-  <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+  @if (putovanje && putovanje.status === 'REJECTED' && putovanje.razlogOdbijanja) {
+    <div class="reject-notice">
+      <strong>Putovanje je odbijeno.</strong>
+      <span>Razlog: {{ putovanje.razlogOdbijanja }}</span>
+    </div>
+  }
+  <form [formGroup]="form" (ngSubmit)="submit()" class="osnovno-form">
     <div class="form-field">
       <label>Ime putovanja</label>
       <input type="text" formControlName="name" [class.invalid]="form.controls.name.invalid && form.controls.name.touched" />
@@ -15,16 +21,17 @@
       <input type="text" formControlName="purpose" [class.invalid]="form.controls.purpose.invalid && form.controls.purpose.touched" />
     </div>
 
-    <div class="form-row">
-      <div class="form-field">
-        <label>Datum polaska</label>
-        <input type="date" formControlName="departureDate" [class.invalid]="form.controls.departureDate.invalid && form.controls.departureDate.touched" />
-      </div>
-      <div class="form-field">
-        <label>Datum povratka <span class="optional">(prazno za jednodnevna)</span></label>
-        <input type="date" formControlName="returnDate" />
-      </div>
+    <div class="form-field">
+      <label>Datum polaska</label>
+      <input type="date" formControlName="departureDate" [class.invalid]="form.controls.departureDate.invalid && form.controls.departureDate.touched" />
     </div>
+
+    <div class="form-field">
+      <label>Datum povratka <span class="optional">(prazno za jednodnevna)</span></label>
+      <input type="date" formControlName="returnDate" />
+    </div>
+
+    <p class="field-hint">Za jednodnevna putovanja uneti samo datum polaska</p>
 
     <div class="form-field">
       <label>Status putovanja</label>
@@ -39,7 +46,7 @@
       @if (saveSuccess()) {
         <span class="success-msg">✓ Sačuvano!</span>
       }
-      <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+      <button type="submit" class="btn btn-primary save-btn" [disabled]="isSaving()">
         {{ isSaving() ? 'Čuvanje...' : (isNew ? 'Kreiraj putovanje' : 'Sačuvaj izmene') }}
       </button>
     </div>

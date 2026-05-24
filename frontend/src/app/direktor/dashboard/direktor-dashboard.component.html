@@ -39,14 +39,17 @@
                 class="cal-day"
                 [class.other-month]="!day.currentMonth"
                 [class.has-trip]="day.tripIds.length > 0"
-                [style.background-color]="getDayCellBg(day)"
+                [class.trip-start]="day.tripIds.length > 0 && day.isTripStart && !day.isTripEnd"
+                [class.trip-end]="day.tripIds.length > 0 && day.isTripEnd && !day.isTripStart"
+                [class.trip-middle]="day.tripIds.length > 0 && !day.isTripStart && !day.isTripEnd"
+                [class.trip-single]="day.tripIds.length > 0 && day.isTripStart && day.isTripEnd"
+                [style.--trip-color-bg]="getDayColorBg(day)"
+                [style.--trip-color-solid]="getDayColorSolid(day)"
                 (click)="clickDay(day)"
               >
                 <span
                   class="cal-day-number"
-                  [class.today-num]="day.isToday"
-                  [style.background-color]="getDayCircleBg(day)"
-                  [style.color]="getDayCircleBg(day) ? 'white' : null"
+                  [class.today-num]="day.isToday && day.tripIds.length === 0"
                 >{{ day.dayNum }}</span>
               </div>
             }

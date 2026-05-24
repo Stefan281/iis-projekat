@@ -120,6 +120,16 @@ export class DashboardComponent implements OnInit {
     return null;
   }
 
+  getDayColorBg(day: CalendarDay): string | null {
+    if (day.tripIds.length === 0) return null;
+    return this.getTripColor(day.tripIds[0]).bg;
+  }
+
+  getDayColorSolid(day: CalendarDay): string | null {
+    if (day.tripIds.length === 0) return null;
+    return this.getTripColor(day.tripIds[0]).solid;
+  }
+
   predstojecaPutovanja = computed(() => {
     const today = new Date();
     today.setHours(0,0,0,0);

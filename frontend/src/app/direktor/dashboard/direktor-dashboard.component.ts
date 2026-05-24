@@ -5,7 +5,6 @@ import { NotificationsService } from '../../core/services/notifications.service'
 import { TripsService } from '../../core/services/trips.service';
 import { AccommodationService } from '../../core/services/accommodation.service';
 import { TransportService } from '../../core/services/transport.service';
-import { InboxService } from '../../core/services/inbox.service';
 import { Obavestenje, PonudaSmestaja, PonudaTransporta, Putovanje } from '../../core/models/models';
 
 interface CalendarDay {
@@ -30,7 +29,6 @@ export class DirektorDashboardComponent implements OnInit {
   private putovanjaService = inject(TripsService);
   private smestajService = inject(AccommodationService);
   private transportService = inject(TransportService);
-  private inboxService = inject(InboxService);
 
   readonly MESECI = [
     'Januar', 'Februar', 'Mart', 'April', 'Maj', 'Jun',
@@ -162,6 +160,16 @@ export class DirektorDashboardComponent implements OnInit {
     return null;
   }
 
+  getDayColorBg(day: CalendarDay): string | null {
+    if (day.tripIds.length === 0) return null;
+    return this.getTripColor(day.tripIds[0]).bg;
+  }
+
+  getDayColorSolid(day: CalendarDay): string | null {
+    if (day.tripIds.length === 0) return null;
+    return this.getTripColor(day.tripIds[0]).solid;
+  }
+
   prevMonth() {
     const d = new Date(this.calendarViewDate());
     d.setMonth(d.getMonth() - 1);
@@ -223,15 +231,12 @@ export class DirektorDashboardComponent implements OnInit {
   odbij() {
     const p = this.selectedPutovanje();
     if (!p || !this.rejectReason.trim()) return;
+    const reason = this.rejectReason.trim();
     this.isActing.set(true);
-    this.putovanjaService.updateStatus(p.id, 'REJECTED').subscribe({
+    this.putovanjaService.updateStatus(p.id, 'REJECTED', reason).subscribe({
       next: () => {
-        // TODO: send rejection message when backend inbox endpoint is ready
-        if (p.organizatorId) {
-          this.inboxService.posalji({ primalacId: p.organizatorId, tekst: this.rejectReason, putovanjeId: p.id }).subscribe({ error: () => {} });
-        }
-        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'REJECTED' } : t));
-        this.selectedPutovanje.set({ ...p, status: 'REJECTED' });
+        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'REJECTED', razlogOdbijanja: reason } : t));
+        this.selectedPutovanje.set({ ...p, status: 'REJECTED', razlogOdbijanja: reason });
         this.showRejectForm.set(false);
         this.rejectReason = '';
         this.isActing.set(false);

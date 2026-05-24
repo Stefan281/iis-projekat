@@ -2,6 +2,8 @@ package com.iis.backend.service;
 
 import com.iis.backend.dto.TripRequest;
 import com.iis.backend.dto.TripResponse;
+import com.iis.backend.dto.TripStatusUpdateRequest;
+import com.iis.backend.enums.TripStatus;
 import com.iis.backend.exception.ResourceNotFoundException;
 import com.iis.backend.model.Trip;
 import com.iis.backend.repository.TripRepository;
@@ -52,6 +54,19 @@ public class TripService {
     public void deleteTrip(Long id) {
         Trip trip = findTripOrThrow(id);
         tripRepository.delete(trip);
+    }
+
+    @Transactional
+    public TripResponse updateStatus(Long id, TripStatusUpdateRequest request) {
+        Trip trip = findTripOrThrow(id);
+        trip.setStatus(request.getStatus());
+        if (request.getStatus() == TripStatus.REJECTED) {
+            trip.setRazlogOdbijanja(request.getRazlogOdbijanja());
+        } else {
+            trip.setRazlogOdbijanja(null);
+        }
+        Trip saved = tripRepository.save(trip);
+        return TripResponse.from(saved);
     }
 
     private Trip findTripOrThrow(Long id) {

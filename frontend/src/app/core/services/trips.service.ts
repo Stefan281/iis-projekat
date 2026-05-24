@@ -12,5 +12,7 @@ export class TripsService {
   create(p: Partial<Putovanje>) { return this.http.post<Putovanje>(this.base, p); }
   update(id: number, p: Partial<Putovanje>) { return this.http.put<Putovanje>(`${this.base}/${id}`, p); }
   delete(id: number) { return this.http.delete<void>(`${this.base}/${id}`); }
-  updateStatus(id: number, status: string) { return this.http.put<void>(`${this.base}/${id}/status`, { status }); }
+  updateStatus(id: number, status: string, razlogOdbijanja?: string) {
+    return this.http.put<Putovanje>(`${this.base}/${id}/status`, { status, razlogOdbijanja });
+  }
 }

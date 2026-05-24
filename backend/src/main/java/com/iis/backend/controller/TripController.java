@@ -2,6 +2,7 @@ package com.iis.backend.controller;
 
 import com.iis.backend.dto.TripRequest;
 import com.iis.backend.dto.TripResponse;
+import com.iis.backend.dto.TripStatusUpdateRequest;
 import com.iis.backend.service.TripService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -53,5 +54,11 @@ public class TripController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         tripService.deleteTrip(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<TripResponse> updateStatus(@PathVariable Long id,
+                                                     @Valid @RequestBody TripStatusUpdateRequest request) {
+        return ResponseEntity.ok(tripService.updateStatus(id, request));
     }
 }

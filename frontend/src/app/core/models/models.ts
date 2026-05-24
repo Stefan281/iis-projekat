@@ -13,6 +13,7 @@ export interface Putovanje {
   smestajId?: number;
   transportId?: number;
   organizatorId?: number;
+  razlogOdbijanja?: string;
 }
 
 export interface PonudaSmestaja {
