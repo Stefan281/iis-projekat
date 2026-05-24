@@ -106,16 +106,7 @@ export class MatchEventsComponent {
 
     this.matchEventsService.deleteEvent(match.id, event.id).subscribe({
       next: () => {
-        this.match.update((currentMatch) => {
-          if (!currentMatch) {
-            return currentMatch;
-          }
-
-          return {
-            ...currentMatch,
-            events: currentMatch.events.filter((item) => item.id !== event.id)
-          };
-        });
+        this.loadMatch();
       },
       error: (error: HttpErrorResponse) => {
         this.errorMessage.set(error.error?.message ?? 'Nije moguce obrisati dogadjaj.');

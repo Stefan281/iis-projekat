@@ -1,6 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatchDetails } from '../match-events/match-events.models';
+import { MatchEventsService } from '../match-events/match-events.service';
 import { OpponentPlayer, OpponentTeam } from './opponent-team.models';
 import { OpponentTeamsService } from './opponent-teams.service';
 
@@ -16,9 +18,11 @@ type TeamType = 'HOME' | 'OPPONENT';
 export class OpponentTeamsComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly opponentTeamsService = inject(OpponentTeamsService);
+  private readonly matchEventsService = inject(MatchEventsService);
 
   readonly teams = signal<OpponentTeam[]>([]);
   readonly selectedTeam = signal<OpponentTeam | null>(null);
+  readonly currentMatch = signal<MatchDetails | null>(null);
   readonly activeTeamType = signal<TeamType>('OPPONENT');
   readonly mode = signal<ViewMode>('view');
   readonly isLoading = signal(false);
@@ -44,6 +48,7 @@ export class OpponentTeamsComponent {
 
   constructor() {
     this.loadTeams();
+    this.loadCurrentMatch();
   }
 
   get players(): FormArray {
@@ -201,6 +206,13 @@ export class OpponentTeamsComponent {
     });
   }
 
+  isCurrentMatchTeam(team: OpponentTeam): boolean {
+    const match = this.currentMatch();
+
+    return !!team.id
+      && (match?.homeTeam.id === team.id || match?.awayTeam.id === team.id);
+  }
+
   private loadTeams(): void {
     this.isLoading.set(true);
     this.opponentTeamsService.getAll().subscribe({
@@ -213,6 +225,13 @@ export class OpponentTeamsComponent {
         this.errorMessage.set('Nije moguce ucitati timove.');
         this.isLoading.set(false);
       }
+    });
+  }
+
+  private loadCurrentMatch(): void {
+    this.matchEventsService.getCurrentMatch().subscribe({
+      next: (match) => this.currentMatch.set(match),
+      error: () => this.currentMatch.set(null)
     });
   }
 

@@ -4,12 +4,12 @@ import { MatchDetails } from '../match-events/match-events.models';
 import { MatchEventsService } from '../match-events/match-events.service';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-staff-dashboard',
   imports: [RouterLink],
-  templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  templateUrl: './staff-dashboard.component.html',
+  styleUrl: './staff-dashboard.component.css'
 })
-export class DashboardComponent {
+export class StaffDashboardComponent {
   private readonly matchEventsService = inject(MatchEventsService);
 
   readonly match = signal<MatchDetails | null>(null);

@@ -11,6 +11,11 @@ import { AuthService } from '../auth/auth.service';
 export class StatisticianLayoutComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly currentUser = this.authService.currentUser;
+
+  isStaff(): boolean {
+    return this.currentUser()?.role === 'STRUCNI_STAB';
+  }
 
   logout(): void {
     this.authService.logout();

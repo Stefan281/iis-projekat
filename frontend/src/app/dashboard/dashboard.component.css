@@ -108,6 +108,17 @@
   text-align: center;
 }
 
+.error-message {
+  width: min(100%, 760px);
+  margin: 0 auto 14px;
+  border: 1px solid #f0b4b7;
+  border-radius: 4px;
+  padding: 10px 12px;
+  background: #fff1f2;
+  color: #9c1c22;
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
   .dashboard-content {
     padding: 16px;

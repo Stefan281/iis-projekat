@@ -3,6 +3,8 @@ package com.iis.backend.controller;
 import com.iis.backend.dto.MatchEventRequest;
 import com.iis.backend.dto.MatchEventResponse;
 import com.iis.backend.dto.MatchResponse;
+import com.iis.backend.dto.MatchStatisticsResponse;
+import com.iis.backend.service.MatchStatisticsService;
 import com.iis.backend.service.MatchService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,14 +22,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class MatchController {
 
     private final MatchService matchService;
+    private final MatchStatisticsService matchStatisticsService;
 
-    public MatchController(MatchService matchService) {
+    public MatchController(MatchService matchService, MatchStatisticsService matchStatisticsService) {
         this.matchService = matchService;
+        this.matchStatisticsService = matchStatisticsService;
     }
 
     @GetMapping("/current")
     public MatchResponse getCurrentMatch() {
         return matchService.getCurrentMatch();
+    }
+
+    @GetMapping("/current/statistics")
+    public MatchStatisticsResponse getCurrentMatchStatistics() {
+        return matchStatisticsService.getCurrentMatchStatistics();
     }
 
     @PostMapping("/{matchId}/events")

@@ -52,6 +52,10 @@
   cursor: default;
 }
 
+.nav-item.disabled:hover {
+  color: #6d7684;
+}
+
 .nav-icon,
 .logout-icon {
   position: relative;
@@ -114,6 +118,67 @@
   background: currentColor;
   clip-path: polygon(50% 0%, 88% 16%, 82% 62%, 50% 100%, 18% 62%, 12% 16%);
   content: "";
+}
+
+.current-match-icon {
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.current-match-icon::before,
+.current-match-icon::after {
+  position: absolute;
+  background: currentColor;
+  content: "";
+}
+
+.current-match-icon::before {
+  top: 3px;
+  left: 8px;
+  width: 2px;
+  height: 8px;
+}
+
+.current-match-icon::after {
+  top: 8px;
+  left: 8px;
+  width: 6px;
+  height: 2px;
+}
+
+.face-icon {
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.face-icon::before {
+  position: absolute;
+  top: 5px;
+  left: 4px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 7px 0 0 currentColor;
+  content: "";
+}
+
+.face-icon::after {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 4px;
+  border-bottom: 2px solid currentColor;
+  border-radius: 0 0 10px 10px;
+  content: "";
+}
+
+.face-icon.sad::after {
+  bottom: 2px;
+  border-top: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
 }
 
 .logout-button {

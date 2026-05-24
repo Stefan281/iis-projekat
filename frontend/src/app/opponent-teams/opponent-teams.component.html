@@ -38,6 +38,9 @@
           >
             <span>{{ team.name }}</span>
             <small>{{ team.city }} - {{ team.wins }}-{{ team.losses }}</small>
+            @if (isCurrentMatchTeam(team)) {
+              <em>Aktuelna utakmica</em>
+            }
           </button>
         }
       }
@@ -128,6 +131,9 @@
           <div>
             <p>{{ activeTeamType() === 'HOME' ? 'Pregled naseg tima' : 'Pregled protivnika' }}</p>
             <h2>{{ team.name }}</h2>
+            @if (isCurrentMatchTeam(team)) {
+              <span class="current-match-label">Ucestvuje u aktuelnoj utakmici</span>
+            }
           </div>
           <div class="action-row">
             <button class="secondary-button" type="button" (click)="startEdit()">Izmeni</button>

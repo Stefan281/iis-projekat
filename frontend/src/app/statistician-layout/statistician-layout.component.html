@@ -6,23 +6,51 @@
     </div>
 
     <nav class="nav-list">
-      <a
-        class="nav-item"
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        <span class="nav-icon home-icon" aria-hidden="true"></span>
-        <span>Pocetni ekran</span>
-      </a>
-      <a class="nav-item" routerLink="/unos-dogadjaja" routerLinkActive="active">
-        <span class="nav-icon event-icon" aria-hidden="true"></span>
-        <span>Unos dogadjaja</span>
-      </a>
-      <a class="nav-item" routerLink="/protivnicki-timovi" routerLinkActive="active">
-        <span class="nav-icon shield-icon" aria-hidden="true"></span>
-        <span>Timovi</span>
-      </a>
+      @if (isStaff()) {
+        <a
+          class="nav-item"
+          routerLink="/strucni-stab"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <span class="nav-icon home-icon" aria-hidden="true"></span>
+          <span>Pocetni ekran</span>
+        </a>
+        <a class="nav-item" routerLink="/strucni-stab/utakmica" routerLinkActive="active">
+          <span class="nav-icon current-match-icon" aria-hidden="true"></span>
+          <span>Otvori aktuelnu utakmicu</span>
+        </a>
+        <a class="nav-item" routerLink="/strucni-stab/timovi" routerLinkActive="active">
+          <span class="nav-icon shield-icon" aria-hidden="true"></span>
+          <span>Timovi u utakmici</span>
+        </a>
+        <span class="nav-item disabled">
+          <span class="nav-icon face-icon" aria-hidden="true"></span>
+          <span>Performanse naseg tima</span>
+        </span>
+        <span class="nav-item disabled">
+          <span class="nav-icon face-icon sad" aria-hidden="true"></span>
+          <span>Performanse protivnickog tima</span>
+        </span>
+      } @else {
+        <a
+          class="nav-item"
+          routerLink="/dashboard"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <span class="nav-icon home-icon" aria-hidden="true"></span>
+          <span>Pocetni ekran</span>
+        </a>
+        <a class="nav-item" routerLink="/unos-dogadjaja" routerLinkActive="active">
+          <span class="nav-icon event-icon" aria-hidden="true"></span>
+          <span>Unos dogadjaja</span>
+        </a>
+        <a class="nav-item" routerLink="/protivnicki-timovi" routerLinkActive="active">
+          <span class="nav-icon shield-icon" aria-hidden="true"></span>
+          <span>Timovi</span>
+        </a>
+      }
     </nav>
 
     <button class="logout-button" type="button" (click)="logout()">

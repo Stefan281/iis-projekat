@@ -3,7 +3,7 @@
     <header class="match-strip">
       <div>
         <h1>{{ title() }}</h1>
-        <p>{{ match.matchDate | date: 'dd.MM.yyyy.' }} · {{ statusText(match.status) }} · {{ match.result }}</p>
+        <p>{{ match.matchDate | date: 'dd.MM.yyyy.' }} - {{ statusText(match.status) }} - {{ match.result }}</p>
       </div>
       <a class="back-link" href="/dashboard">Pocetni ekran -></a>
     </header>

@@ -1,28 +1,34 @@
 <section class="dashboard-content">
-  <a class="match-card" routerLink="/unos-dogadjaja" aria-labelledby="match-title">
-    <header class="match-card-header">
-      <h1 id="match-title">Aktuelna utakmica</h1>
-    </header>
+  @if (errorMessage()) {
+    <p class="error-message">{{ errorMessage() }}</p>
+  }
 
-    <div class="match-card-body">
-      <div class="team">
-        <div class="team-badge home-team">NT</div>
-        <h2>Nas tim</h2>
+  @if (match(); as currentMatch) {
+    <a class="match-card" routerLink="/unos-dogadjaja" aria-labelledby="match-title">
+      <header class="match-card-header">
+        <h1 id="match-title">Aktuelna utakmica</h1>
+      </header>
+
+      <div class="match-card-body">
+        <div class="team">
+          <div class="team-badge home-team">{{ initials(currentMatch.homeTeam.name) }}</div>
+          <h2>{{ currentMatch.homeTeam.name }}</h2>
+        </div>
+
+        <div class="scoreboard" aria-label="Trenutni rezultat">
+          <span class="versus">VS</span>
+          <strong>{{ currentMatch.result || '0 : 0' }}</strong>
+        </div>
+
+        <div class="team">
+          <div class="team-badge away-team">{{ initials(currentMatch.awayTeam.name) }}</div>
+          <h2>{{ currentMatch.awayTeam.name }}</h2>
+        </div>
       </div>
 
-      <div class="scoreboard" aria-label="Trenutni rezultat">
-        <span class="versus">VS</span>
-        <strong>{{ currentScore() }}</strong>
-      </div>
-
-      <div class="team">
-        <div class="team-badge away-team">P</div>
-        <h2>Partizan</h2>
-      </div>
-    </div>
-
-    <p class="match-description">
-      Prati poene, greske, servise, blokove i izmene igraca u realnom vremenu tokom utakmice
-    </p>
-  </a>
+      <p class="match-description">
+        Prati poene, greske, servise, blokove i izmene igraca u realnom vremenu tokom utakmice
+      </p>
+    </a>
+  }
 </section>

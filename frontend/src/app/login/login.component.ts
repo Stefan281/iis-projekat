@@ -32,7 +32,7 @@ export class LoginComponent {
 
     this.isSubmitting.set(true);
     this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigateByUrl('/dashboard'),
+      next: (user) => this.router.navigateByUrl(user.role === 'STRUCNI_STAB' ? '/strucni-stab' : '/dashboard'),
       error: () => {
         this.errorMessage.set('Pogresno korisnicko ime ili lozinka.');
         this.isSubmitting.set(false);

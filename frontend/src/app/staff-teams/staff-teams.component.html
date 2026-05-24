@@ -1,0 +1,109 @@
+<section class="staff-teams-page">
+  <header class="page-header">
+    <div>
+      <p>Timovi</p>
+      <h1>Timovi u aktuelnoj utakmici</h1>
+    </div>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="error-message">{{ errorMessage() }}</p>
+  }
+
+  <div class="teams-layout">
+    <aside class="team-list" aria-label="Timovi aktuelne utakmice">
+      @if (isLoading()) {
+        <p class="muted">Ucitavanje...</p>
+      } @else if (match(); as currentMatch) {
+        <button
+          class="team-list-item"
+          type="button"
+          [class.active]="selectedTeam()?.id === currentMatch.homeTeam.id"
+          (click)="selectTeam(currentMatch.homeTeam)"
+        >
+          <span>{{ currentMatch.homeTeam.name }}</span>
+          <small>{{ currentMatch.homeTeam.city }} - {{ currentMatch.homeTeam.wins }}-{{ currentMatch.homeTeam.losses }}</small>
+          <em>Nas tim</em>
+        </button>
+        <button
+          class="team-list-item"
+          type="button"
+          [class.active]="selectedTeam()?.id === currentMatch.awayTeam.id"
+          (click)="selectTeam(currentMatch.awayTeam)"
+        >
+          <span>{{ currentMatch.awayTeam.name }}</span>
+          <small>{{ currentMatch.awayTeam.city }} - {{ currentMatch.awayTeam.wins }}-{{ currentMatch.awayTeam.losses }}</small>
+          <em>Protivnik</em>
+        </button>
+      }
+    </aside>
+
+    <section class="details-panel">
+      @if (selectedTeam(); as team) {
+        <div class="panel-header">
+          <div>
+            <p>{{ team.teamType === 'HOME' ? 'Pregled naseg tima' : 'Pregled protivnika' }}</p>
+            <h2>{{ team.name }}</h2>
+            <span class="current-match-label">Ucestvuje u aktuelnoj utakmici</span>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div>
+            <span>Sezona</span>
+            <strong>{{ team.wins }} pobeda - {{ team.losses }} poraza</strong>
+          </div>
+          <div>
+            <span>Grad</span>
+            <strong>{{ team.city }}</strong>
+          </div>
+          <div>
+            <span>Trener</span>
+            <strong>{{ team.coach }}</strong>
+          </div>
+          <div class="wide-field">
+            <span>Stil igre</span>
+            <p>{{ team.playStyle || 'Nema unetog stila igre.' }}</p>
+          </div>
+          <div class="wide-field">
+            <span>Napomena</span>
+            <p>{{ team.note || 'Nema napomene.' }}</p>
+          </div>
+        </div>
+
+        <div class="players-header">
+          <h3>Igraci</h3>
+        </div>
+
+        @if (team.players.length === 0) {
+          <p class="muted">Nema unetih igraca za ovaj tim.</p>
+        } @else {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ime i prezime</th>
+                  <th>Broj</th>
+                  <th>Pozicija</th>
+                  <th>Visina</th>
+                  <th>Godina</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (player of team.players; track player.id) {
+                  <tr>
+                    <td>{{ player.fullName }}</td>
+                    <td>{{ player.jerseyNumber }}</td>
+                    <td>{{ player.position }}</td>
+                    <td>{{ player.height }} cm</td>
+                    <td>{{ player.age }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</section>

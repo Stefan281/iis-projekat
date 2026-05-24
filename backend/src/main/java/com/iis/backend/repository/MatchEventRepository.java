@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 public interface MatchEventRepository extends JpaRepository<MatchEvent, Long> {
     List<MatchEvent> findTop10ByMatchIdOrderByEventTimeDesc(Long matchId);
 
+    List<MatchEvent> findByMatchIdOrderByEventTimeAsc(Long matchId);
+
     @Modifying
     void deleteByPrimaryPlayerIdOrSecondaryPlayerId(Long primaryPlayerId, Long secondaryPlayerId);
 }

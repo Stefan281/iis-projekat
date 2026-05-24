@@ -24,16 +24,19 @@ public class MatchService {
     private final MatchEventRepository matchEventRepository;
     private final OpponentPlayerRepository opponentPlayerRepository;
     private final UserRepository userRepository;
+    private final MatchStatisticsService matchStatisticsService;
 
     public MatchService(
             MatchRepository matchRepository,
             MatchEventRepository matchEventRepository,
             OpponentPlayerRepository opponentPlayerRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            MatchStatisticsService matchStatisticsService) {
         this.matchRepository = matchRepository;
         this.matchEventRepository = matchEventRepository;
         this.opponentPlayerRepository = opponentPlayerRepository;
         this.userRepository = userRepository;
+        this.matchStatisticsService = matchStatisticsService;
     }
 
     public MatchResponse getCurrentMatch() {
@@ -81,9 +84,13 @@ public class MatchService {
             opponentPlayerRepository.save(secondaryPlayer);
         }
 
-        return MatchEventResponse.fromEntity(matchEventRepository.save(event));
+        var savedEvent = matchEventRepository.save(event);
+        matchStatisticsService.applyEvent(savedEvent);
+
+        return MatchEventResponse.fromEntity(savedEvent);
     }
 
+    @Transactional
     public void deleteEvent(Long matchId, Long eventId) {
         var event = matchEventRepository.findById(eventId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dogadjaj nije pronadjen."));
@@ -92,6 +99,14 @@ public class MatchService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dogadjaj ne pripada izabranoj utakmici.");
         }
 
+        if (event.getEventType() == EventType.SUBSTITUTION) {
+            event.getPrimaryPlayer().setPlayerStatus(PlayerStatus.IN_GAME);
+            event.getSecondaryPlayer().setPlayerStatus(PlayerStatus.BENCH);
+            opponentPlayerRepository.save(event.getPrimaryPlayer());
+            opponentPlayerRepository.save(event.getSecondaryPlayer());
+        }
+
+        matchStatisticsService.revertEvent(event);
         matchEventRepository.delete(event);
     }
 

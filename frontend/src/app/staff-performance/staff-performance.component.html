@@ -1,0 +1,111 @@
+<section class="performance-page">
+  @if (errorMessage()) {
+    <p class="error-message">{{ errorMessage() }}</p>
+  }
+
+  @if (statistics(); as stats) {
+    <header class="match-strip">
+      <div>
+        <strong>{{ stats.homeTeam.teamName }} vs {{ stats.awayTeam.teamName }}</strong>
+        <span> {{ stats.matchDate }} - 18:00 - Set 3 </span>
+      </div>
+      <a routerLink="/strucni-stab">Pocetni ekran -></a>
+    </header>
+
+    <div class="team-stat-grid">
+      <article class="team-stat-card">
+        <div class="team-title">
+          <span>{{ initials(stats.homeTeam.teamName) }}</span>
+          <h2>{{ stats.homeTeam.teamName }}</h2>
+        </div>
+
+        @for (row of rows(stats.homeTeam); track row.label) {
+          <div class="stat-row">
+            <span>{{ row.label }}</span>
+            <strong>{{ row.value }}</strong>
+          </div>
+        }
+
+        <div class="card-actions">
+          <button type="button" (click)="openPlayers('home')">Prikazi igrace</button>
+          <button type="button">Prikazi analizu tima</button>
+        </div>
+      </article>
+
+      <article class="team-stat-card">
+        <div class="team-title">
+          <span>{{ initials(stats.awayTeam.teamName) }}</span>
+          <h2>{{ stats.awayTeam.teamName }}</h2>
+        </div>
+
+        @for (row of rows(stats.awayTeam); track row.label) {
+          <div class="stat-row">
+            <span>{{ row.label }}</span>
+            <strong>{{ row.value }}</strong>
+          </div>
+        }
+
+        <div class="card-actions">
+          <button type="button" (click)="openPlayers('away')">Prikazi igrace</button>
+          <button type="button">Prikazi analizu tima</button>
+        </div>
+      </article>
+    </div>
+
+    <section class="recommendations">
+      <h2><span aria-hidden="true">!</span> Preporuke</h2>
+      <div class="recommendation-card">
+        <strong>Preporuke ce biti prikazane ovde</strong>
+        <p>Za sada je ovaj deo ostavljen kao placeholder.</p>
+      </div>
+    </section>
+
+    @if (openPlayerTeam()) {
+      <div class="modal-backdrop" aria-modal="true" role="dialog">
+        @if (selectedPlayer(); as player) {
+          <section class="player-modal player-detail-modal">
+            <button class="modal-close" type="button" aria-label="Nazad na spisak igraca" (click)="closePlayerDetails()">x</button>
+            <header class="player-detail-header">
+              <h2>{{ player.playerName }}</h2>
+              <strong>Broj: {{ player.jerseyNumber }}</strong>
+              <strong>Status: {{ playerStatusLabel(player) }}</strong>
+            </header>
+
+            <div class="player-detail-content">
+              <section>
+                <h3>Statistika</h3>
+                @for (row of playerRows(player); track row.label) {
+                  <div class="player-stat-row">
+                    <span>{{ row.label }}</span>
+                    <strong>{{ row.value }}</strong>
+                  </div>
+                }
+              </section>
+            </div>
+          </section>
+        } @else {
+          <section class="player-modal">
+            <div class="modal-header">
+              <h2>Igraci - {{ currentTeamName() }}</h2>
+              <button class="modal-close" type="button" aria-label="Zatvori spisak igraca" (click)="closePlayers()">x</button>
+            </div>
+
+            <div class="player-list">
+              @for (player of currentPlayers(); track player.playerId) {
+                <button class="player-list-item" type="button" (click)="selectPlayer(player)">
+                  <span class="player-number">{{ player.jerseyNumber }}</span>
+                  <span>
+                    <strong>{{ player.playerName }}</strong>
+                    <small>Poeni: {{ player.points }} - Greske: {{ player.errors }} - Blokovi: {{ player.blocks }}</small>
+                  </span>
+                </button>
+              } @empty {
+                <p class="empty-players">Nema unetih igraca za ovaj tim.</p>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
+  }
+</section>

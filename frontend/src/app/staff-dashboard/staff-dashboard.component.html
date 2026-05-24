@@ -1,0 +1,51 @@
+<section class="staff-dashboard">
+  @if (errorMessage()) {
+    <p class="error-message">{{ errorMessage() }}</p>
+  }
+
+  @if (match(); as currentMatch) {
+    <a class="match-card" routerLink="/strucni-stab/utakmica" aria-label="Otvori aktuelnu utakmicu">
+      <header class="match-card-header">
+        <h1>Aktuelna utakmica</h1>
+      </header>
+
+      <div class="match-card-body">
+        <div class="team">
+          <div class="team-badge home-team">{{ initials(currentMatch.homeTeam.name) }}</div>
+          <h2>{{ currentMatch.homeTeam.name }}</h2>
+        </div>
+
+        <div class="scoreboard">
+          <span>VS</span>
+          <strong>{{ currentMatch.result || '0 : 0' }}</strong>
+        </div>
+
+        <div class="team">
+          <div class="team-badge away-team">{{ initials(currentMatch.awayTeam.name) }}</div>
+          <h2>{{ currentMatch.awayTeam.name }}</h2>
+        </div>
+      </div>
+
+      <div class="match-meta">
+        <div>
+          <span>Datum</span>
+          <strong>{{ currentMatch.matchDate }}</strong>
+        </div>
+        <div>
+          <span>Vreme</span>
+          <strong>18:00</strong>
+        </div>
+        <div>
+          <span>Lokacija</span>
+          <strong>Sportska hala</strong>
+        </div>
+      </div>
+    </a>
+
+    <div class="performance-links">
+      <a routerLink="/strucni-stab/utakmica">Performanse naseg tima</a>
+      <a routerLink="/strucni-stab/utakmica">Performanse protivnickog tima</a>
+      <a routerLink="/strucni-stab/timovi">Pregled timova u utakmici</a>
+    </div>
+  }
+</section>
