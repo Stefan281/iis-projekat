@@ -41,6 +41,11 @@ export class LoginComponent {
           case 'GENERALNI_DIREKTOR':
             this.router.navigateByUrl('/direktor/dashboard');
             break;
+          case 'IGRAC':
+          case 'STATISTICAR':
+          case 'STRUCNI_STAB':
+            this.router.navigateByUrl('/team/dashboard');
+            break;
           default:
             this.authService.logout();
             this.errorMessage.set('Nemate dozvolu pristupa ovom sistemu.');

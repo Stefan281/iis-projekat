@@ -25,7 +25,7 @@ export class InboxComponent implements OnInit {
   ngOnInit() { this.load(); }
 
   load() {
-    this.inboxService.getInbox().subscribe({
+    this.inboxService.getMessages().subscribe({
       next: (list) => this.poruke.set(list),
       error: () => {}
     });
@@ -34,20 +34,20 @@ export class InboxComponent implements OnInit {
   openReply(id: number) {
     this.replyTo.set(id);
     this.replyForm.reset();
-    this.inboxService.oznacProcitano(id).subscribe({ error: () => {} });
+    this.inboxService.markAsRead(id).subscribe({ error: () => {} });
   }
 
   sendReply() {
     if (this.replyForm.invalid || !this.replyTo()) return;
     this.isSending.set(true);
     const tekst = this.replyForm.getRawValue().tekst;
-    this.inboxService.odgovori(this.replyTo()!, tekst).subscribe({
+    this.inboxService.reply(this.replyTo()!, tekst).subscribe({
       next: () => { this.replyTo.set(null); this.replyForm.reset(); this.load(); this.isSending.set(false); },
       error: () => this.isSending.set(false)
     });
   }
 
-  formatDatum(dateStr: string): string {
+  formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 

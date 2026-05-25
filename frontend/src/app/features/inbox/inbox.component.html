@@ -17,7 +17,7 @@
       <div class="message-card" [class.unread]="!p.procitana">
         <div class="msg-header">
           <span class="msg-sender">{{ p.posiljacIme }}</span>
-          <span class="msg-date">{{ formatDatum(p.datum) }}</span>
+          <span class="msg-date">{{ formatDate(p.datum) }}</span>
         </div>
         <div class="msg-body">{{ p.tekst }}</div>
 

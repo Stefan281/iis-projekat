@@ -29,7 +29,7 @@
         <app-basic-tab
           [putovanje]="putovanje()"
           [isNew]="isNew()"
-          (saved)="onPutovanjeSaved($event)"
+          (saved)="onTripSaved($event)"
         />
       }
       @if (activeTab() === 'smestaj' && putovanjeId()) {

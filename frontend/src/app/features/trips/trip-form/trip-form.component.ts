@@ -50,7 +50,7 @@ export class TripFormComponent implements OnInit {
     this.activeTab.set(tab);
   }
 
-  onPutovanjeSaved(p: Putovanje) {
+  onTripSaved(p: Putovanje) {
     this.putovanje.set(p);
     this.putovanjeId.set(p.id);
     this.isNew.set(false);

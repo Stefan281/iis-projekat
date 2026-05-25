@@ -7,16 +7,16 @@
     <!-- Left column -->
     <div class="left-col">
       <!-- Notifications -->
-      <div class="card obavestenja-card">
+      <div class="card announcements-card">
         <div class="card-header">
           <h2>Obaveštenja</h2>
           <button class="btn btn-success" (click)="showForm.set(!showForm())">+ Novo obaveštenje</button>
         </div>
 
         @if (showForm()) {
-          <div class="obav-form">
+          <div class="announcement-form">
             <p class="form-label">Novo obaveštenje:</p>
-            <form [formGroup]="novoObavestenjeForm" (ngSubmit)="submitObavestenje()">
+            <form [formGroup]="novoObavestenjeForm" (ngSubmit)="submitAnnouncement()">
               <textarea formControlName="tekst" rows="4" placeholder="Unesite tekst obaveštenja..."></textarea>
               <div class="form-actions">
                 <button type="button" class="btn btn-danger" (click)="showForm.set(false); novoObavestenjeForm.reset()">Poništi</button>
@@ -30,9 +30,9 @@
           <p class="empty-msg">Nema obaveštenja.</p>
         }
         @for (o of obavestenja(); track o.id) {
-          <div class="obav-item">
-            <span class="obav-tekst">{{ o.tekst }}</span>
-            <span class="obav-datum">{{ formatDatum(o.datum) }}</span>
+          <div class="announcement-item">
+            <span class="announcement-text">{{ o.tekst }}</span>
+            <span class="announcement-date">{{ formatDate(o.datum) }}</span>
           </div>
         }
       </div>
@@ -111,7 +111,7 @@
             @if (showWarning(p)) {
               <div class="warning-msg">⚠ Ostalo jos manje od mesec dana</div>
             }
-            <a class="detail-link" [routerLink]="['/putovanja', p.id]" (click)="selectPutovanjeForDetail(p)">Pritisni za detalje putovanja</a>
+            <a class="detail-link" [routerLink]="['/putovanja', p.id]" (click)="selectTripForDetail(p)">Pritisni za detalje putovanja</a>
           </div>
         }
       </div>

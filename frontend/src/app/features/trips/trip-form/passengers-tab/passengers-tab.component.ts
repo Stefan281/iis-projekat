@@ -20,20 +20,20 @@ export class PassengersTabComponent implements OnInit {
   ngOnInit() { this.load(); }
 
   load() {
-    this.passengersService.getPutnici(this.putovanjeId).subscribe({
+    this.passengersService.getPassengers(this.putovanjeId).subscribe({
       next: (list) => this.putnici.set(list),
       error: () => this.loadFromAll()
     });
   }
 
   loadFromAll() {
-    this.passengersService.getSvi().subscribe({
+    this.passengersService.getAll().subscribe({
       next: (list) => this.putnici.set(list.map(p => ({ ...p, dodat: false }))),
       error: () => {}
     });
   }
 
-  togglePutnik(id: number) {
+  togglePassenger(id: number) {
     this.putnici.update(list =>
       list.map(p => p.id === id ? { ...p, dodat: !p.dodat } : p)
     );
@@ -48,16 +48,16 @@ export class PassengersTabComponent implements OnInit {
     return this.putnici().length > 0 && this.putnici().every(p => p.dodat);
   }
 
-  sacuvaj() {
+  save() {
     this.isSaving.set(true);
     const ids = this.putnici().filter(p => p.dodat).map(p => p.id);
-    this.passengersService.sacuvaj(this.putovanjeId, ids).subscribe({
+    this.passengersService.save(this.putovanjeId, ids).subscribe({
       next: () => { this.isSaving.set(false); this.load(); },
       error: () => this.isSaving.set(false)
     });
   }
 
   statusClass(s: string): string {
-    return s === 'KOMPLETNO' ? 'kompletno' : 'proveriti';
+    return s === 'KOMPLETNO' ? 'complete' : 'review';
   }
 }

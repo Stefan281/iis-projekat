@@ -1,8 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { NotificationsService } from '../../core/services/notifications.service';
-import { TripsService } from '../../core/services/trips.service';
+import { TripsService, RoomInfo } from '../../core/services/trips.service';
 import { AccommodationService } from '../../core/services/accommodation.service';
 import { TransportService } from '../../core/services/transport.service';
 import { Obavestenje, PonudaSmestaja, PonudaTransporta, Putovanje } from '../../core/models/models';
@@ -18,13 +17,13 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-direktor-dashboard',
+  selector: 'app-team-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './direktor-dashboard.component.html',
-  styleUrl: './direktor-dashboard.component.css'
+  imports: [CommonModule],
+  templateUrl: './team-dashboard.component.html',
+  styleUrl: './team-dashboard.component.css'
 })
-export class DirektorDashboardComponent implements OnInit {
+export class TeamDashboardComponent implements OnInit {
   private obavestenjaService = inject(NotificationsService);
   private putovanjaService = inject(TripsService);
   private smestajService = inject(AccommodationService);
@@ -51,11 +50,8 @@ export class DirektorDashboardComponent implements OnInit {
 
   selectedSmestaj = signal<PonudaSmestaja | null>(null);
   selectedTransport = signal<PonudaTransporta | null>(null);
+  roomInfo = signal<RoomInfo | null>(null);
   loadingDetail = signal(false);
-
-  showRejectForm = signal(false);
-  rejectReason = '';
-  isActing = signal(false);
 
   tripColorMap = new Map<number, number>();
 
@@ -149,17 +145,6 @@ export class DirektorDashboardComponent implements OnInit {
     return this.TRIP_COLORS[idx];
   }
 
-  getDayCellBg(day: CalendarDay): string | null {
-    if (day.tripIds.length === 0) return null;
-    return this.getTripColor(day.tripIds[0]).bg;
-  }
-
-  getDayCircleBg(day: CalendarDay): string | null {
-    if (day.tripIds.length === 0) return null;
-    if (day.isTripStart || day.isTripEnd) return this.getTripColor(day.tripIds[0]).solid;
-    return null;
-  }
-
   getDayColorBg(day: CalendarDay): string | null {
     if (day.tripIds.length === 0) return null;
     return this.getTripColor(day.tripIds[0]).bg;
@@ -193,8 +178,7 @@ export class DirektorDashboardComponent implements OnInit {
     this.selectedPutovanje.set(p);
     this.selectedSmestaj.set(null);
     this.selectedTransport.set(null);
-    this.showRejectForm.set(false);
-    this.rejectReason = '';
+    this.roomInfo.set(null);
     this.loadingDetail.set(true);
 
     this.smestajService.getSelected(p.id).subscribe({
@@ -206,49 +190,14 @@ export class DirektorDashboardComponent implements OnInit {
       next: (t) => { this.selectedTransport.set(t); this.loadingDetail.set(false); },
       error: () => this.loadingDetail.set(false)
     });
+
+    this.putovanjaService.getRoomAssignment(p.id).subscribe({
+      next: (r) => this.roomInfo.set(r)
+    });
   }
 
   backToCalendar() {
     this.selectedPutovanje.set(null);
-    this.showRejectForm.set(false);
-    this.rejectReason = '';
-  }
-
-  approve() {
-    const p = this.selectedPutovanje();
-    if (!p) return;
-    this.isActing.set(true);
-    this.putovanjaService.updateStatus(p.id, 'CONFIRMED').subscribe({
-      next: () => {
-        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'CONFIRMED' } : t));
-        this.selectedPutovanje.set({ ...p, status: 'CONFIRMED' });
-        this.isActing.set(false);
-      },
-      error: () => this.isActing.set(false)
-    });
-  }
-
-  reject() {
-    const p = this.selectedPutovanje();
-    if (!p || !this.rejectReason.trim()) return;
-    const reason = this.rejectReason.trim();
-    this.isActing.set(true);
-    this.putovanjaService.updateStatus(p.id, 'REJECTED', reason).subscribe({
-      next: () => {
-        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'REJECTED', razlogOdbijanja: reason } : t));
-        this.selectedPutovanje.set({ ...p, status: 'REJECTED', razlogOdbijanja: reason });
-        this.showRejectForm.set(false);
-        this.rejectReason = '';
-        this.isActing.set(false);
-      },
-      error: () => this.isActing.set(false)
-    });
-  }
-
-  totalCost(): number {
-    const s = this.selectedSmestaj();
-    const t = this.selectedTransport();
-    return (s?.cena ?? 0) + (t?.cena ?? 0);
   }
 
   statusLabel(status: string): string {
@@ -275,13 +224,5 @@ export class DirektorDashboardComponent implements OnInit {
 
   formatDateShort(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric', year: 'numeric' });
-  }
-
-  getDaysUntil(dateStr: string): number {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const d = new Date(dateStr);
-    d.setHours(0, 0, 0, 0);
-    return Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 }

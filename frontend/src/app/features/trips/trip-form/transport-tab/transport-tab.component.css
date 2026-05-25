@@ -45,12 +45,12 @@
 }
 .offer-card:hover { border-color: #90CAF9; box-shadow: 0 2px 8px rgba(25,118,210,0.08); }
 .offer-card.selected { border-color: #1976D2; box-shadow: 0 2px 8px rgba(25,118,210,0.12); }
-.offer-card.izabran { border-color: #4CAF50; }
+.offer-card.chosen { border-color: #4CAF50; }
 
 .offer-name { font-size: 15px; font-weight: 600; color: #212121; margin-bottom: 6px; }
 .offer-meta { font-size: 13px; color: #757575; margin-top: 3px; }
 
-.izabran-badge {
+.chosen-badge {
   position: absolute;
   top: 12px;
   right: 12px;

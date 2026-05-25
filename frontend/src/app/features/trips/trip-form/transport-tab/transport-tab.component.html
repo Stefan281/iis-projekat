@@ -2,7 +2,7 @@
   @if (showForm()) {
     <div class="card form-card">
       <h3>Nova ponuda</h3>
-      <form [formGroup]="form" (ngSubmit)="addPonuda()" class="offer-form">
+      <form [formGroup]="form" (ngSubmit)="addOffer()" class="offer-form">
         <div class="form-field">
           <label>Naziv prevoznika</label>
           <input type="text" formControlName="naziv" [class.invalid]="form.controls.naziv.invalid && form.controls.naziv.touched" />
@@ -11,7 +11,7 @@
           <label>Vrsta prevoza</label>
           <select formControlName="vrsta">
             @for (v of vrstePrevoze; track v) {
-              <option [value]="v">{{ vrstaIcon(v) }} {{ v }}</option>
+              <option [value]="v">{{ typeIcon(v) }} {{ v }}</option>
             }
           </select>
         </div>
@@ -32,14 +32,14 @@
       <div
         class="offer-card"
         [class.selected]="selectedPonudaId() === p.id"
-        [class.izabran]="p.izabran"
+        [class.chosen]="p.izabran"
         (click)="selectedPonudaId.set(p.id)"
       >
         <div class="offer-name">{{ p.naziv }}</div>
-        <div class="offer-meta">{{ vrstaIcon(p.vrsta) }} {{ p.vrsta }}</div>
+        <div class="offer-meta">{{ typeIcon(p.vrsta) }} {{ p.vrsta }}</div>
         <div class="offer-meta">💲 {{ p.cena }}€</div>
         @if (p.izabran) {
-          <span class="izabran-badge">✓ Izabran</span>
+          <span class="chosen-badge">✓ Izabran</span>
         }
       </div>
     }
@@ -50,7 +50,7 @@
     <button
       class="btn btn-success"
       [disabled]="!selectedPonudaId() || showForm()"
-      (click)="izaberiPrevoz()"
-    >{{ izabranaJedna ? 'Izmeni izbor' : 'Izaberi prevoz' }}</button>
+      (click)="selectTransport()"
+    >{{ hasSelection ? 'Izmeni izbor' : 'Izaberi prevoz' }}</button>
   </div>
 </div>

@@ -145,18 +145,18 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadObavestenja();
-    this.loadPutovanja();
+    this.loadAnnouncements();
+    this.loadTrips();
   }
 
-  loadObavestenja() {
+  loadAnnouncements() {
     this.obavestenjaService.getAll().subscribe({
       next: (list) => this.obavestenja.set(list),
       error: () => {}
     });
   }
 
-  loadPutovanja() {
+  loadTrips() {
     this.putovanjaService.getAll().subscribe({
       next: (list) => {
         this.putovanja.set(list);
@@ -185,7 +185,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  selectPutovanjeForDetail(p: Putovanje) {
+  selectTripForDetail(p: Putovanje) {
     this.selectedPutovanje.set(p);
   }
 
@@ -193,7 +193,7 @@ export class DashboardComponent implements OnInit {
     this.selectedPutovanje.set(null);
   }
 
-  submitObavestenje() {
+  submitAnnouncement() {
     if (this.novoObavestenjeForm.invalid) return;
     this.isSaving.set(true);
     const tekst = this.novoObavestenjeForm.getRawValue().tekst;
@@ -201,7 +201,7 @@ export class DashboardComponent implements OnInit {
       next: () => {
         this.showForm.set(false);
         this.novoObavestenjeForm.reset();
-        this.loadObavestenja();
+        this.loadAnnouncements();
         this.isSaving.set(false);
       },
       error: () => this.isSaving.set(false)
@@ -238,7 +238,7 @@ export class DashboardComponent implements OnInit {
     return map[status] ?? status;
   }
 
-  formatDatum(dateStr: string): string {
+  formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString('sr-RS', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 }

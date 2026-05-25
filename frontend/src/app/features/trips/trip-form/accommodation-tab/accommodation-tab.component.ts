@@ -30,7 +30,7 @@ export class AccommodationTabComponent implements OnInit {
   ngOnInit() { this.load(); }
 
   load() {
-    this.accommodationService.getPonude(this.putovanjeId).subscribe({
+    this.accommodationService.getOffers(this.putovanjeId).subscribe({
       next: (list) => {
         this.ponude.set(list);
         const izabrana = list.find(p => p.izabran);
@@ -40,23 +40,23 @@ export class AccommodationTabComponent implements OnInit {
     });
   }
 
-  addPonuda() {
+  addOffer() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.isSaving.set(true);
     const val = this.form.getRawValue();
-    this.accommodationService.addPonuda(this.putovanjeId, val).subscribe({
+    this.accommodationService.addOffer(this.putovanjeId, val).subscribe({
       next: () => { this.showForm.set(false); this.form.reset(); this.load(); this.isSaving.set(false); },
       error: () => this.isSaving.set(false)
     });
   }
 
-  izaberiSmestaj() {
+  selectAccommodation() {
     if (!this.selectedPonudaId()) return;
-    this.accommodationService.izaberi(this.putovanjeId, this.selectedPonudaId()!).subscribe({
+    this.accommodationService.select(this.putovanjeId, this.selectedPonudaId()!).subscribe({
       next: () => this.load(),
       error: () => {}
     });
   }
 
-  get izabranaJedna() { return this.ponude().some(p => p.izabran); }
+  get hasSelection() { return this.ponude().some(p => p.izabran); }
 }

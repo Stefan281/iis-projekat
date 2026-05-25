@@ -2,7 +2,7 @@
   @if (showForm()) {
     <div class="card form-card">
       <h3>Nova ponuda</h3>
-      <form [formGroup]="form" (ngSubmit)="addPonuda()" class="offer-form">
+      <form [formGroup]="form" (ngSubmit)="addOffer()" class="offer-form">
         <div class="form-field">
           <label>Ime smeštaja</label>
           <input type="text" formControlName="ime" [class.invalid]="form.controls.ime.invalid && form.controls.ime.touched" />
@@ -28,14 +28,14 @@
       <div
         class="offer-card"
         [class.selected]="selectedPonudaId() === p.id"
-        [class.izabran]="p.izabran"
+        [class.chosen]="p.izabran"
         (click)="selectedPonudaId.set(p.id)"
       >
         <div class="offer-name">{{ p.ime }}</div>
         <div class="offer-meta">📍 {{ p.adresa }}</div>
         <div class="offer-meta">💲 {{ p.cena }}€</div>
         @if (p.izabran) {
-          <span class="izabran-badge">✓ Izabran</span>
+          <span class="chosen-badge">✓ Izabran</span>
         }
       </div>
     }
@@ -46,7 +46,7 @@
     <button
       class="btn btn-success"
       [disabled]="!selectedPonudaId() || showForm()"
-      (click)="izaberiSmestaj()"
-    >{{ izabranaJedna ? 'Izmeni izbor' : 'Izaberi smeštaj' }}</button>
+      (click)="selectAccommodation()"
+    >{{ hasSelection ? 'Izmeni izbor' : 'Izaberi smeštaj' }}</button>
   </div>
 </div>

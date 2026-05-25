@@ -32,7 +32,7 @@ export class TransportTabComponent implements OnInit {
   ngOnInit() { this.load(); }
 
   load() {
-    this.transportService.getPonude(this.putovanjeId).subscribe({
+    this.transportService.getOffers(this.putovanjeId).subscribe({
       next: (list) => {
         this.ponude.set(list);
         const izabrana = list.find(p => p.izabran);
@@ -42,28 +42,28 @@ export class TransportTabComponent implements OnInit {
     });
   }
 
-  addPonuda() {
+  addOffer() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.isSaving.set(true);
     const val = this.form.getRawValue();
-    this.transportService.addPonuda(this.putovanjeId, val).subscribe({
+    this.transportService.addOffer(this.putovanjeId, val).subscribe({
       next: () => { this.showForm.set(false); this.form.reset({ vrsta: 'AUTOBUS' }); this.load(); this.isSaving.set(false); },
       error: () => this.isSaving.set(false)
     });
   }
 
-  izaberiPrevoz() {
+  selectTransport() {
     if (!this.selectedPonudaId()) return;
-    this.transportService.izaberi(this.putovanjeId, this.selectedPonudaId()!).subscribe({
+    this.transportService.select(this.putovanjeId, this.selectedPonudaId()!).subscribe({
       next: () => this.load(),
       error: () => {}
     });
   }
 
-  vrstaIcon(vrsta: string): string {
+  typeIcon(vrsta: string): string {
     const icons: Record<string, string> = { AUTOBUS: '🚌', KOMBI: '🚐', AVION: '✈️', VOZ: '🚆' };
     return icons[vrsta] ?? '🚗';
   }
 
-  get izabranaJedna() { return this.ponude().some(p => p.izabran); }
+  get hasSelection() { return this.ponude().some(p => p.izabran); }
 }

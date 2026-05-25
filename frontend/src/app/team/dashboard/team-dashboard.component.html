@@ -4,9 +4,7 @@
   </div>
 
   <div class="dashboard-grid">
-    <!-- Left column -->
     <div class="left-col">
-      <!-- Notifications – read only for director -->
       <div class="card announcements-card">
         <div class="card-header">
           <h2>Obaveštenja</h2>
@@ -22,7 +20,6 @@
         }
       </div>
 
-      <!-- Calendar or Detail -->
       <div class="card calendar-card">
         @if (!selectedPutovanje()) {
           <div class="cal-header">
@@ -55,7 +52,6 @@
             }
           </div>
         } @else {
-          <!-- Trip detail panel -->
           <div class="trip-detail">
             <h3>Putovanje: {{ selectedPutovanje()!.name }}</h3>
 
@@ -73,8 +69,7 @@
                 @if (selectedSmestaj()) {
                   <div class="detail-row"><span>🏨</span><span class="detail-info">
                     <strong>{{ selectedSmestaj()!.ime }}</strong><br>
-                    {{ selectedSmestaj()!.adresa }}<br>
-                    Cena: {{ selectedSmestaj()!.cena | number:'1.0-0' }} €
+                    {{ selectedSmestaj()!.adresa }}
                   </span></div>
                 } @else {
                   <p class="empty-msg">Nema izabranog smeštaja.</p>
@@ -86,50 +81,39 @@
                 @if (selectedTransport()) {
                   <div class="detail-row"><span>🚌</span><span class="detail-info">
                     <strong>{{ selectedTransport()!.naziv }}</strong><br>
-                    Vrsta: {{ selectedTransport()!.vrsta }}<br>
-                    Cena: {{ selectedTransport()!.cena | number:'1.0-0' }} €
+                    Vrsta: {{ selectedTransport()!.vrsta }}
                   </span></div>
                 } @else {
                   <p class="empty-msg">Nema izabranog prevoza.</p>
                 }
               </div>
 
-              @if (selectedSmestaj() || selectedTransport()) {
-                <div class="cost-total">
-                  Ukupni trošak: <strong>{{ totalCost() | number:'1.0-0' }} €</strong>
-                </div>
-              }
+              <div class="detail-section">
+                <h4>Vaša soba</h4>
+                @if (roomInfo()) {
+                  <p>Soba {{ roomInfo()!.roomNumber }}</p>
+                  @if (roomInfo()!.roommates.length) {
+                    <p class="section-subtitle">Saigrači u sobi:</p>
+                    <ul>
+                      @for (r of roomInfo()!.roommates; track r.id) {
+                        <li>{{ r.name }}</li>
+                      }
+                    </ul>
+                  }
+                } @else {
+                  <p class="placeholder-text">Raspored po sobama još nije dostupan.</p>
+                }
+              </div>
             }
 
             <div class="detail-actions">
               <button class="btn btn-secondary" (click)="backToCalendar()">← Nazad na kalendar</button>
             </div>
-
-            @if (selectedPutovanje()!.status === 'AWAITING_APPROVAL') {
-              <div class="approve-section">
-                @if (!showRejectForm()) {
-                  <button class="btn btn-approve" [disabled]="isActing()" (click)="approve()">✓ Odobri putovanje</button>
-                  <button class="btn btn-reject-outline" [disabled]="isActing()" (click)="showRejectForm.set(true)">✗ Odbij putovanje</button>
-                }
-
-                @if (showRejectForm()) {
-                  <div class="reject-form">
-                    <label class="form-label">Razlog odbijanja:</label>
-                    <textarea rows="3" placeholder="Unesi razlog..." [(ngModel)]="rejectReason"></textarea>
-                    <div class="form-actions">
-                      <button class="btn btn-secondary" (click)="showRejectForm.set(false); rejectReason = ''">Odustani</button>
-                      <button class="btn btn-reject" [disabled]="isActing() || !rejectReason.trim()" (click)="reject()">Pošalji i odbij</button>
-                    </div>
-                  </div>
-                }
-              </div>
-            }
           </div>
         }
       </div>
     </div>
 
-    <!-- Right column: upcoming trips -->
     <div class="right-col">
       <div class="card">
         <h2 class="upcoming-title">Predstojeca putovanja</h2>

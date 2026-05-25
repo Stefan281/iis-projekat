@@ -24,7 +24,6 @@
   gap: 20px;
 }
 
-/* Card base */
 .card {
   background: #fff;
   border-radius: 8px;
@@ -53,7 +52,6 @@
   margin: 0 0 16px 0;
 }
 
-/* Buttons */
 .btn {
   padding: 8px 16px;
   border: none;
@@ -66,42 +64,12 @@
   align-items: center;
   gap: 4px;
   transition: opacity 0.15s;
+  font-family: inherit;
 }
 .btn:hover { opacity: 0.85; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-success  { background: #4CAF50; color: #fff; }
-.btn-danger   { background: #F44336; color: #fff; }
-.btn-primary  { background: #1976D2; color: #fff; }
 .btn-secondary { background: #ECEFF1; color: #37474F; border: 1px solid #CFD8DC; }
 
-/* Announcements form */
-.announcement-form {
-  background: #F5F5F5;
-  border-radius: 6px;
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid #E0E0E0;
-}
-.form-label { font-size: 13px; font-weight: 600; color: #37474F; margin-bottom: 8px; }
-
-textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #E0E0E0;
-  border-radius: 6px;
-  resize: vertical;
-  font-size: 13px;
-  box-sizing: border-box;
-  background: #fff;
-  font-family: inherit;
-  color: #212121;
-  transition: border-color 0.15s;
-}
-textarea:focus { outline: none; border-color: #1976D2; }
-
-.form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
-
-/* Announcements list */
 .announcement-item {
   display: flex;
   justify-content: space-between;
@@ -114,7 +82,14 @@ textarea:focus { outline: none; border-color: #1976D2; }
 .announcement-text { font-size: 14px; color: #212121; flex: 1; line-height: 1.45; }
 .announcement-date { font-size: 12px; color: #9E9E9E; white-space: nowrap; }
 
-.empty-msg { color: #9E9E9E; font-size: 13px; padding: 8px 0; }
+.empty-msg { color: #9E9E9E; font-size: 13px; padding: 4px 0; }
+.loading-msg { color: #9E9E9E; font-size: 13px; padding: 8px 0; }
+.placeholder-text { color: #9E9E9E; font-size: 13px; font-style: italic; }
+.section-subtitle { font-size: 13px; font-weight: 600; color: #37474F; margin-top: 8px; margin-bottom: 4px; }
+
+.detail-section ul { margin: 4px 0 0 16px; padding: 0; font-size: 13px; color: #37474F; }
+.detail-section ul li { padding: 2px 0; }
+.detail-section h4 { font-size: 13px; font-weight: 700; color: #212121; margin: 0 0 8px 0; }
 
 /* Calendar */
 .cal-header {
@@ -181,9 +156,6 @@ textarea:focus { outline: none; border-color: #1976D2; }
   z-index: 1;
 }
 
-.cal-day.other-month .cal-day-number { color: #ccc; }
-
-/* Today (without trip) = outline only */
 .cal-day-number.today-num {
   border: 2px solid #1976D2;
   color: #1976D2;
@@ -191,25 +163,22 @@ textarea:focus { outline: none; border-color: #1976D2; }
   background: transparent;
 }
 
-.cal-day.has-trip {
-  cursor: pointer;
-}
+.cal-day.other-month .cal-day-number { color: #ccc; }
+
+.cal-day.has-trip { cursor: pointer; }
 
 .cal-day:hover:not(.has-trip) .cal-day-number {
   background: #f5f5f5;
 }
 
-/* Trip start: right half of cell has trip bg, left transparent */
 .cal-day.trip-start {
   background: linear-gradient(to right, transparent 50%, var(--trip-color-bg) 50%);
 }
 
-/* Trip end: left half of cell has trip bg, right transparent */
 .cal-day.trip-end {
   background: linear-gradient(to left, transparent 50%, var(--trip-color-bg) 50%);
 }
 
-/* Pill / circle around the number on start and end days */
 .cal-day.trip-start .cal-day-number,
 .cal-day.trip-end .cal-day-number,
 .cal-day.trip-single .cal-day-number {
@@ -221,16 +190,8 @@ textarea:focus { outline: none; border-color: #1976D2; }
   font-weight: 600;
 }
 
-/* Single-day trip: only the circle, no half-cell band */
-.cal-day.trip-single {
-  background: transparent;
-}
-
-/* Middle of a trip: solid soft band across the cell */
-.cal-day.trip-middle {
-  background: var(--trip-color-bg);
-}
-
+.cal-day.trip-single { background: transparent; }
+.cal-day.trip-middle { background: var(--trip-color-bg); }
 .cal-day.trip-middle .cal-day-number {
   background: transparent;
   color: var(--trip-color-solid);
@@ -238,19 +199,27 @@ textarea:focus { outline: none; border-color: #1976D2; }
   font-weight: 500;
 }
 
-/* Trip detail panel */
+/* Trip detail */
 .trip-detail h3 { font-size: 16px; font-weight: 700; color: #212121; margin-bottom: 16px; }
-.detail-rows { display: flex; flex-direction: column; gap: 10px; }
+
+.detail-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 .detail-row { display: flex; gap: 10px; font-size: 14px; color: #37474F; align-items: flex-start; }
 .detail-row span:first-child { font-size: 16px; min-width: 22px; }
-.detail-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.detail-info { line-height: 1.5; }
+
+.detail-section { margin-bottom: 16px; }
+.section-title { font-size: 12px; font-weight: 700; color: #9E9E9E; margin-bottom: 8px; letter-spacing: 0.3px; }
+
+.detail-actions { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 
 /* Upcoming trips */
 .trip-card {
   padding: 14px 0;
   border-bottom: 1px solid #F0F0F0;
+  cursor: pointer;
 }
 .trip-card:last-child { border-bottom: none; }
+.trip-card:hover { opacity: 0.85; }
 
 .trip-card-header {
   display: flex;
@@ -275,7 +244,6 @@ textarea:focus { outline: none; border-color: #1976D2; }
 
 .trip-name { font-size: 14px; font-weight: 600; color: #212121; }
 
-/* Status badges – consistent across app */
 .status-badge {
   font-size: 11px;
   font-weight: 700;
@@ -285,11 +253,8 @@ textarea:focus { outline: none; border-color: #1976D2; }
   flex-shrink: 0;
 }
 .status-confirmed    { background: #E8F5E9; color: #388E3C; }
-.status-odobreno     { background: #E8F5E9; color: #388E3C; }
 .status-awaiting_approval { background: #FFF3E0; color: #F57C00; }
-.status-ceka_odobrenje    { background: #FFF3E0; color: #F57C00; }
 .status-in_processing     { background: #FFEBEE; color: #D32F2F; }
-.status-u_fazi_obrade     { background: #FFEBEE; color: #D32F2F; }
 .status-rejected     { background: #FFEBEE; color: #D32F2F; }
 .status-completed    { background: #F5F5F5; color: #757575; }
 
@@ -302,5 +267,4 @@ textarea:focus { outline: none; border-color: #1976D2; }
   margin-bottom: 6px;
 }
 
-.warning-msg { font-size: 12px; color: #D32F2F; font-weight: 600; margin-bottom: 6px; }
 .detail-link { font-size: 12px; color: #1976D2; text-decoration: underline; cursor: pointer; }

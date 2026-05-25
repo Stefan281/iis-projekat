@@ -39,7 +39,7 @@ export class AuthService {
     return !!this.getToken();
   }
 
-  private getStoredUser(): LoginResponse | null {
+  getStoredUser(): LoginResponse | null {
     var rawUser = localStorage.getItem(USER_KEY);
 
     if (!rawUser) {

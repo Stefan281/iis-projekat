@@ -2,7 +2,7 @@
   @if (putnici().length === 0) {
     <div class="empty-msg">Učitavanje putnika...</div>
   } @else {
-    <table class="putnici-table">
+    <table class="passengers-table">
       <thead>
         <tr>
           <th>
@@ -17,12 +17,12 @@
         @for (p of putnici(); track p.id) {
           <tr>
             <td>
-              <input type="checkbox" [checked]="p.dodat" (change)="togglePutnik(p.id)" />
+              <input type="checkbox" [checked]="p.dodat" (change)="togglePassenger(p.id)" />
             </td>
-            <td class="igrac-name">{{ p.ime }} {{ p.prezime }}</td>
-            <td class="soba">{{ p.sobaBroj ?? '–' }}</td>
+            <td class="passenger-name">{{ p.ime }} {{ p.prezime }}</td>
+            <td class="room">{{ p.sobaBroj ?? '–' }}</td>
             <td>
-              <span class="dok-badge" [class]="statusClass(p.dokumentacijaStatus)">
+              <span class="doc-badge" [class]="statusClass(p.dokumentacijaStatus)">
                 {{ p.dokumentacijaStatus === 'KOMPLETNO' ? 'KOMPLETNO' : 'PROVERITI' }}
               </span>
             </td>
@@ -32,7 +32,7 @@
     </table>
 
     <div class="table-actions">
-      <button class="btn btn-primary" [disabled]="isSaving()" (click)="sacuvaj()">
+      <button class="btn btn-primary" [disabled]="isSaving()" (click)="save()">
         {{ isSaving() ? 'Čuvanje...' : 'Sačuvaj raspored putnika' }}
       </button>
     </div>

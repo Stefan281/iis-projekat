@@ -19,7 +19,7 @@ export class DirektorLayoutComponent implements OnInit {
   unreadCount = signal(0);
 
   ngOnInit() {
-    this.inboxService.oznaciBroj().subscribe({
+    this.inboxService.getUnreadCount().subscribe({
       next: (r) => this.unreadCount.set(r.count),
       error: () => {}
     });

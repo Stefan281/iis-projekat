@@ -4,13 +4,13 @@ import { AuthService } from '../../auth/auth.service';
 import { InboxService } from '../../core/services/inbox.service';
 
 @Component({
-  selector: 'app-org-layout',
+  selector: 'app-team-layout',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
-  templateUrl: './org-layout.component.html',
-  styleUrl: './org-layout.component.css'
+  templateUrl: './team-layout.component.html',
+  styleUrl: './team-layout.component.css'
 })
-export class OrgLayoutComponent implements OnInit {
+export class TeamLayoutComponent implements OnInit {
   private authService = inject(AuthService);
   private inboxService = inject(InboxService);
   private router = inject(Router);
@@ -23,6 +23,15 @@ export class OrgLayoutComponent implements OnInit {
       next: (r) => this.unreadCount.set(r.count),
       error: () => {}
     });
+  }
+
+  getRoleLabel(role: string | undefined): string {
+    const map: Record<string, string> = {
+      'IGRAC': 'Igrač',
+      'STATISTICAR': 'Statističar',
+      'STRUCNI_STAB': 'Stručni štab'
+    };
+    return map[role ?? ''] ?? 'Član tima';
   }
 
   logout() {
