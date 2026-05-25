@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-analiza-troskova',
+  selector: 'app-cost-analysis',
   standalone: true,
   template: `
     <div class="placeholder-page">
@@ -25,4 +25,4 @@ import { Component } from '@angular/core';
     p { font-size: 14px; margin: 0; }
   `]
 })
-export class AnalizaTroskovaComponent {}
+export class CostAnalysisComponent {}

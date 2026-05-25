@@ -18,13 +18,13 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-direktor-dashboard',
+  selector: 'app-director-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './direktor-dashboard.component.html',
-  styleUrl: './direktor-dashboard.component.css'
+  templateUrl: './director-dashboard.component.html',
+  styleUrl: './director-dashboard.component.css'
 })
-export class DirektorDashboardComponent implements OnInit {
+export class DirectorDashboardComponent implements OnInit {
   private obavestenjaService = inject(NotificationsService);
   private putovanjaService = inject(TripsService);
   private smestajService = inject(AccommodationService);

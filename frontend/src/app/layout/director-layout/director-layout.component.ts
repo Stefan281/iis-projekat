@@ -4,13 +4,13 @@ import { AuthService } from '../../auth/auth.service';
 import { InboxService } from '../../core/services/inbox.service';
 
 @Component({
-  selector: 'app-direktor-layout',
+  selector: 'app-director-layout',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
-  templateUrl: './direktor-layout.component.html',
-  styleUrl: './direktor-layout.component.css'
+  templateUrl: './director-layout.component.html',
+  styleUrl: './director-layout.component.css'
 })
-export class DirektorLayoutComponent implements OnInit {
+export class DirectorLayoutComponent implements OnInit {
   private authService = inject(AuthService);
   private inboxService = inject(InboxService);
   private router = inject(Router);
