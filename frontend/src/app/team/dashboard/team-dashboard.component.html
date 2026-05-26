@@ -12,12 +12,14 @@
         @if (obavestenja().length === 0) {
           <p class="empty-msg">Nema obaveštenja.</p>
         }
-        @for (o of obavestenja(); track o.id) {
-          <div class="announcement-item">
-            <span class="announcement-text">{{ o.tekst }}</span>
-            <span class="announcement-date">{{ formatDate(o.datum) }}</span>
-          </div>
-        }
+        <div class="announcements-list">
+          @for (o of obavestenja(); track o.id) {
+            <div class="announcement-item">
+              <span class="announcement-text">{{ o.tekst }}</span>
+              <span class="announcement-date">{{ formatDate(o.datum) }}</span>
+            </div>
+          }
+        </div>
       </div>
 
       <div class="card calendar-card">

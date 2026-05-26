@@ -73,6 +73,15 @@
 .btn-reject { background: #F44336; color: #fff; }
 .btn-reject-outline { background: #fff; color: #D32F2F; border: 1px solid #D32F2F; }
 
+.announcements-list {
+  max-height: 140px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.announcements-list::-webkit-scrollbar { width: 4px; }
+.announcements-list::-webkit-scrollbar-track { background: transparent; }
+.announcements-list::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
+
 .announcement-item {
   display: flex;
   justify-content: space-between;
