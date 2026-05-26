@@ -1,7 +1,7 @@
 package com.iis.backend.controller;
 
-import com.iis.backend.dto.ObavestenjeRequest;
-import com.iis.backend.dto.ObavestenjeResponse;
+import com.iis.backend.dto.NotificationRequest;
+import com.iis.backend.dto.NotificationResponse;
 import com.iis.backend.model.Notification;
 import com.iis.backend.model.Role;
 import com.iis.backend.model.User;
@@ -35,16 +35,16 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ObavestenjeResponse>> getAll() {
-        List<ObavestenjeResponse> body = notificationRepository.findAllByOrderByCreatedAtDesc()
+    public ResponseEntity<List<NotificationResponse>> getAll() {
+        List<NotificationResponse> body = notificationRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
-                .map(ObavestenjeResponse::from)
+                .map(NotificationResponse::from)
                 .toList();
         return ResponseEntity.ok(body);
     }
 
     @PostMapping
-    public ResponseEntity<ObavestenjeResponse> create(@Valid @RequestBody ObavestenjeRequest request,
+    public ResponseEntity<NotificationResponse> create(@Valid @RequestBody NotificationRequest request,
                                                        Authentication authentication) {
         if (authentication == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
@@ -55,15 +55,15 @@ public class NotificationController {
 
         if (author.getRole() != Role.ORGANIZATOR) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Samo organizator moze da postavlja obavestenja");
+                    "Only an organizer can post notifications");
         }
 
         Notification n = new Notification();
-        n.setText(request.getTekst());
+        n.setText(request.getText());
         n.setCreatedAt(LocalDateTime.now());
         n.setAuthor(author);
         Notification saved = notificationRepository.save(n);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ObavestenjeResponse.from(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(NotificationResponse.from(saved));
     }
 }

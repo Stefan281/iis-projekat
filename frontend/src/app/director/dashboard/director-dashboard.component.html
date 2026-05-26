@@ -17,8 +17,8 @@
         <div class="announcements-list">
           @for (o of obavestenja(); track o.id) {
             <div class="announcement-item">
-              <span class="announcement-text">{{ o.tekst }}</span>
-              <span class="announcement-date">{{ formatDate(o.datum) }}</span>
+              <span class="announcement-text">{{ o.text }}</span>
+              <span class="announcement-date">{{ formatDate(o.createdAt) }}</span>
             </div>
           }
         </div>

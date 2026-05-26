@@ -8,5 +8,5 @@ export class NotificationsService {
   private base = 'http://localhost:8080/api/obavestenja';
 
   getAll() { return this.http.get<Obavestenje[]>(this.base); }
-  create(tekst: string) { return this.http.post<Obavestenje>(this.base, { tekst }); }
+  create(text: string) { return this.http.post<Obavestenje>(this.base, { text }); }
 }

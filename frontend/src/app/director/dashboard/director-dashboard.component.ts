@@ -235,8 +235,8 @@ export class DirectorDashboardComponent implements OnInit {
     this.isActing.set(true);
     this.putovanjaService.updateStatus(p.id, 'REJECTED', reason).subscribe({
       next: () => {
-        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'REJECTED', razlogOdbijanja: reason } : t));
-        this.selectedPutovanje.set({ ...p, status: 'REJECTED', razlogOdbijanja: reason });
+        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'REJECTED', rejectionReason: reason } : t));
+        this.selectedPutovanje.set({ ...p, status: 'REJECTED', rejectionReason: reason });
         this.showRejectForm.set(false);
         this.rejectReason = '';
         this.isActing.set(false);

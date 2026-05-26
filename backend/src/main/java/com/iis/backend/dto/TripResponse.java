@@ -14,14 +14,14 @@ public class TripResponse {
     private LocalDate departureDate;
     private LocalDate returnDate;
     private TripStatus status;
-    private String razlogOdbijanja;
+    private String rejectionReason;
 
     public TripResponse() {
     }
 
     public TripResponse(Long id, String name, String location, String purpose,
                         LocalDate departureDate, LocalDate returnDate, TripStatus status,
-                        String razlogOdbijanja) {
+                        String rejectionReason) {
         this.id = id;
         this.name = name;
         this.location = location;
@@ -29,7 +29,7 @@ public class TripResponse {
         this.departureDate = departureDate;
         this.returnDate = returnDate;
         this.status = status;
-        this.razlogOdbijanja = razlogOdbijanja;
+        this.rejectionReason = rejectionReason;
     }
 
     public static TripResponse from(Trip trip) {
@@ -41,12 +41,12 @@ public class TripResponse {
                 trip.getDepartureDate(),
                 trip.getReturnDate(),
                 trip.getStatus(),
-                trip.getRazlogOdbijanja()
+                trip.getRejectionReason()
         );
     }
 
-    public String getRazlogOdbijanja() { return razlogOdbijanja; }
-    public void setRazlogOdbijanja(String razlogOdbijanja) { this.razlogOdbijanja = razlogOdbijanja; }
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 
     public Long getId() {
         return id;

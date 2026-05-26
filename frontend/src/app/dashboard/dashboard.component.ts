@@ -52,7 +52,7 @@ export class DashboardComponent implements OnInit {
   isSaving = signal(false);
 
   novoObavestenjeForm = this.fb.nonNullable.group({
-    tekst: ['', Validators.required]
+    text: ['', Validators.required]
   });
 
   get calendarDays(): CalendarDay[] {
@@ -196,8 +196,8 @@ export class DashboardComponent implements OnInit {
   submitAnnouncement() {
     if (this.novoObavestenjeForm.invalid) return;
     this.isSaving.set(true);
-    const tekst = this.novoObavestenjeForm.getRawValue().tekst;
-    this.obavestenjaService.create(tekst).subscribe({
+    const text = this.novoObavestenjeForm.getRawValue().text;
+    this.obavestenjaService.create(text).subscribe({
       next: () => {
         this.showForm.set(false);
         this.novoObavestenjeForm.reset();

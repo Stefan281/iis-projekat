@@ -13,7 +13,7 @@ export interface Putovanje {
   smestajId?: number;
   transportId?: number;
   organizatorId?: number;
-  razlogOdbijanja?: string;
+  rejectionReason?: string;
 }
 
 export interface PonudaSmestaja {
@@ -45,9 +45,9 @@ export interface Putnik {
 
 export interface Obavestenje {
   id: number;
-  tekst: string;
-  datum: string;
-  autorId: number;
+  text: string;
+  createdAt: string;
+  authorId: number;
 }
 
 export interface Poruka {

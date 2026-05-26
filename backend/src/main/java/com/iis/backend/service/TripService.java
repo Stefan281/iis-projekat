@@ -61,9 +61,9 @@ public class TripService {
         Trip trip = findTripOrThrow(id);
         trip.setStatus(request.getStatus());
         if (request.getStatus() == TripStatus.REJECTED) {
-            trip.setRazlogOdbijanja(request.getRazlogOdbijanja());
+            trip.setRejectionReason(request.getRejectionReason());
         } else {
-            trip.setRazlogOdbijanja(null);
+            trip.setRejectionReason(null);
         }
         Trip saved = tripRepository.save(trip);
         return TripResponse.from(saved);

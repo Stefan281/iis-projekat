@@ -19,8 +19,8 @@ export class TripsService {
   create(p: Partial<Putovanje>) { return this.http.post<Putovanje>(this.base, p); }
   update(id: number, p: Partial<Putovanje>) { return this.http.put<Putovanje>(`${this.base}/${id}`, p); }
   delete(id: number) { return this.http.delete<void>(`${this.base}/${id}`); }
-  updateStatus(id: number, status: string, razlogOdbijanja?: string) {
-    return this.http.put<Putovanje>(`${this.base}/${id}/status`, { status, razlogOdbijanja });
+  updateStatus(id: number, status: string, rejectionReason?: string) {
+    return this.http.put<Putovanje>(`${this.base}/${id}/status`, { status, rejectionReason });
   }
   getRoomAssignment(tripId: number): Observable<RoomInfo | null> {
     return this.http.get<RoomInfo>(`${this.base}/${tripId}/my-room`).pipe(

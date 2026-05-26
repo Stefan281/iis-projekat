@@ -17,7 +17,7 @@
           <div class="announcement-form">
             <p class="form-label">Novo obaveštenje:</p>
             <form [formGroup]="novoObavestenjeForm" (ngSubmit)="submitAnnouncement()">
-              <textarea formControlName="tekst" rows="4" placeholder="Unesite tekst obaveštenja..."></textarea>
+              <textarea formControlName="text" rows="4" placeholder="Unesite tekst obaveštenja..."></textarea>
               <div class="form-actions">
                 <button type="button" class="btn btn-danger" (click)="showForm.set(false); novoObavestenjeForm.reset()">Poništi</button>
                 <button type="submit" class="btn btn-success" [disabled]="isSaving()">Postavi</button>
@@ -32,8 +32,8 @@
         <div class="announcements-list">
           @for (o of obavestenja(); track o.id) {
             <div class="announcement-item">
-              <span class="announcement-text">{{ o.tekst }}</span>
-              <span class="announcement-date">{{ formatDate(o.datum) }}</span>
+              <span class="announcement-text">{{ o.text }}</span>
+              <span class="announcement-date">{{ formatDate(o.createdAt) }}</span>
             </div>
           }
         </div>

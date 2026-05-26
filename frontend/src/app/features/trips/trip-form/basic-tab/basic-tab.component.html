@@ -1,8 +1,8 @@
 <div class="tab-panel">
-  @if (putovanje && putovanje.status === 'REJECTED' && putovanje.razlogOdbijanja) {
+  @if (putovanje && putovanje.status === 'REJECTED' && putovanje.rejectionReason) {
     <div class="reject-notice">
       <strong>Putovanje je odbijeno.</strong>
-      <span>Razlog: {{ putovanje.razlogOdbijanja }}</span>
+      <span>Razlog: {{ putovanje.rejectionReason }}</span>
     </div>
   }
   <form [formGroup]="form" (ngSubmit)="submit()" class="osnovno-form">
