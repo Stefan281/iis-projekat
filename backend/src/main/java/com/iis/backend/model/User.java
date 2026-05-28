@@ -20,6 +20,9 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String username;
 
+    @Column(unique = true, length = 150)
+    private String email;
+
     @Column(nullable = false)
     private String password;
 
@@ -44,6 +47,15 @@ public class User {
         this.role = role;
     }
 
+    public User(String username, String email, String password, String firstName, String lastName, Role role) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+    }
+
     public Long getId() {
         return id;
     }
@@ -54,6 +66,14 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {

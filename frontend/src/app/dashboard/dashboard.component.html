@@ -1,22 +1,250 @@
 <main class="dashboard-page">
-  <header class="topbar">
-    <div>
-      <p>Odbojkaski klub</p>
-      <h1>Pocetna stranica</h1>
-    </div>
-    <button type="button" (click)="logout()">Odjavi se</button>
-  </header>
+  <aside class="sidebar" aria-label="Glavna navigacija">
+    <h1>{{ roleTitle }}</h1>
 
-  <section class="content">
-    <div class="summary">
-      <span>Ulogovani korisnik</span>
-      <h2>{{ user()?.firstName }} {{ user()?.lastName }}</h2>
-    </div>
+    <nav>
+      @for (item of navItems; track item.label) {
+        <button type="button" class="nav-button" [class.active]="isActiveNav(item.label)" (click)="handleNav(item.label)">
+          <span class="nav-icon">{{ item.icon }}</span>
+          {{ item.label }}
+        </button>
+      }
+    </nav>
 
-    <div class="summary">
-      <span>Provera backend veze</span>
-      <h2>{{ backendMessage() || 'Ucitavanje...' }}</h2>
-      <p>Ovaj poziv prolazi samo kada Angular posalje validan JWT token.</p>
-    </div>
-  </section>
+    <button type="button" class="logout-button" (click)="logout()">
+      <span class="nav-icon">O</span>
+      Logout
+    </button>
+  </aside>
+
+  @if (activeView() === 'dashboard') {
+    <section class="dashboard-content">
+      <header class="welcome">
+        <p>Dobrodosli, {{ user()?.firstName }} {{ user()?.lastName }}</p>
+        <span>{{ backendMessage() || 'Povezivanje sa backendom...' }}</span>
+      </header>
+
+      <section class="notice-card" aria-labelledby="notice-title">
+        <h2 id="notice-title">Obavestenja</h2>
+
+        <div class="stats-grid">
+          @for (stat of stats; track stat.label) {
+            <div>
+              <span>{{ stat.label }}</span>
+              <strong>{{ stat.value }}</strong>
+            </div>
+          }
+        </div>
+
+        <div class="recent-block">
+          <h3>Poslednji dodati igraci</h3>
+          <div class="recent-list">
+            @for (player of recentPlayers(); track player.id) {
+              <article>
+                <strong>{{ player.firstName }} {{ player.lastName }}</strong>
+                <span>{{ player.position || '-' }}</span>
+                <span>{{ player.club || '-' }}</span>
+              </article>
+            } @empty {
+              <p class="empty-state">Jos nema dodatih igraca u bazi.</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      @if (isScout) {
+        <section class="quick-actions" aria-label="Brze akcije">
+          <button type="button" (click)="showAddPlayer()">
+            <span class="action-icon">+</span>
+            Dodaj igraca
+          </button>
+          <button type="button">
+            <span class="action-icon">+</span>
+            Novo posmatranje
+          </button>
+        </section>
+      }
+    </section>
+  }
+
+  @if (activeView() === 'players') {
+    <section class="players-page">
+      <section class="page-card players-hero">
+        <div>
+          <h2>Igraci</h2>
+          <p>Pregled i pretraga evidentiranih igraca</p>
+        </div>
+
+        @if (isScout) {
+          <button type="button" class="inline-action" (click)="showAddPlayer()">
+            <span class="action-icon">+</span>
+            Dodaj igraca
+          </button>
+        }
+      </section>
+
+      @if (playerMessage()) {
+        <p class="success-message compact">{{ playerMessage() }}</p>
+      }
+
+      <section class="filters-row" aria-label="Filteri igraca">
+        <input type="search" placeholder="Pretrazi igraca po imenu" [value]="searchTerm()" (input)="updateSearch($any($event.target).value)" />
+
+        <select [value]="positionFilter()" (change)="updatePosition($any($event.target).value)">
+          <option value="">Pozicija</option>
+          @for (position of positions(); track position) {
+            <option [value]="position">{{ position }}</option>
+          }
+        </select>
+
+        <select [value]="clubFilter()" (change)="updateClub($any($event.target).value)">
+          <option value="">Klub</option>
+          @for (club of clubs(); track club) {
+            <option [value]="club">{{ club }}</option>
+          }
+        </select>
+
+        <select [value]="sortBy()" (change)="updateSort($any($event.target).value)">
+          <option value="newest">Najnoviji prvo</option>
+          <option value="oldest">Najstariji prvo</option>
+          <option value="name">Ime i prezime</option>
+          <option value="position">Pozicija</option>
+          <option value="club">Klub</option>
+        </select>
+      </section>
+
+      <section class="players-table-card">
+        <div class="players-table header-row">
+          <span>Ime i prezime</span>
+          <span>Pozicija</span>
+          <span>Godiste</span>
+          <span>Klub</span>
+          <span>Akcije</span>
+        </div>
+
+        @for (player of filteredPlayers(); track player.id) {
+          <div class="players-table">
+            <strong>{{ player.firstName }} {{ player.lastName }}</strong>
+            <span>{{ player.position || '-' }}</span>
+            <span>{{ player.birthYear || '-' }}</span>
+            <span>{{ player.club || '-' }}</span>
+            <div class="table-actions">
+              <button type="button" (click)="showPlayerDetails(player)">Detalji</button>
+              @if (isScout) {
+                <button type="button" (click)="showEditPlayer(player)">Izmeni igraca</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Nema igraca za izabrane filtere.</p>
+        }
+      </section>
+
+      <p class="results-count">Prikazano {{ filteredPlayers().length }} od {{ playerCount() }} igraca</p>
+    </section>
+  }
+
+  @if (activeView() === 'add-player' || activeView() === 'edit-player') {
+    <section class="player-form-page">
+      <header class="form-topbar">
+        <div>
+          <span>{{ activeView() === 'edit-player' ? 'Izmeni igraca' : 'Dodaj igraca' }}</span>
+          <h2>{{ activeView() === 'edit-player' ? 'Izmeni igraca' : 'Dodaj igraca' }}</h2>
+          <p>Unos osnovnih podataka o igracu</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="showPlayers()">Nazad</button>
+      </header>
+
+      <form class="player-form" [formGroup]="playerForm" (ngSubmit)="savePlayer()">
+        <label>
+          Ime
+          <input type="text" formControlName="firstName" placeholder="Unesite ime" />
+        </label>
+
+        <label>
+          Prezime
+          <input type="text" formControlName="lastName" placeholder="Unesite prezime" />
+        </label>
+
+        <label>
+          Godiste
+          <input type="number" formControlName="birthYear" placeholder="Npr. 2000" />
+        </label>
+
+        <label>
+          Visina
+          <input type="number" formControlName="height" placeholder="Npr. 186" />
+        </label>
+
+        <label>
+          Pozicija
+          <input type="text" formControlName="position" placeholder="Npr. libero, primac, korektor" />
+        </label>
+
+        <label>
+          Klub
+          <input type="text" formControlName="club" placeholder="Unesite klub" />
+        </label>
+
+        <label>
+          Napomena
+          <textarea formControlName="note" rows="4" placeholder="Npr. dobar prijem, stabilan servis"></textarea>
+        </label>
+
+        @if (playerError()) {
+          <p class="error-message">{{ playerError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="showPlayers()">Otkazi</button>
+          <button type="submit" class="primary-button" [disabled]="isSavingPlayer()">
+            {{ isSavingPlayer() ? 'Cuvanje...' : 'Sacuvaj igraca' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (activeView() === 'player-details' && selectedPlayer(); as player) {
+    <section class="details-page">
+      <header class="details-header">
+        <div>
+          <h2>Profil igraca</h2>
+          <p>Pregled osnovnih podataka i performansi igraca</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="showPlayers()">Nazad</button>
+      </header>
+
+      <section class="details-grid">
+        <article class="profile-card">
+          <h3>Osnovni podaci</h3>
+          <p><strong>Ime i prezime:</strong> {{ player.firstName }} {{ player.lastName }}</p>
+          <p><strong>Godiste:</strong> {{ player.birthYear || '-' }}</p>
+          <p><strong>Visina:</strong> {{ player.height ? player.height + 'cm' : '-' }}</p>
+          <p><strong>Pozicija:</strong> {{ player.position || '-' }}</p>
+          <p><strong>Klub:</strong> {{ player.club || '-' }}</p>
+          <p><strong>Napomena:</strong> {{ player.note || 'Nema unete napomene.' }}</p>
+        </article>
+
+        <div class="details-actions">
+          @if (isScout) {
+            <button type="button" class="secondary-button" (click)="showEditPlayer(player)">Izmeni podatke</button>
+          }
+          <button type="button" class="secondary-button">Unesi performanse</button>
+        </div>
+
+        <article class="profile-card performance-card">
+          <h3>Poslednje unete performanse</h3>
+          <div class="performance-table">
+            <strong>Metrika</strong>
+            <strong>Vrednost</strong>
+            <strong>Komentar</strong>
+            <span colspan="3">Metrike cemo povezati u sledecem koraku.</span>
+          </div>
+        </article>
+      </section>
+    </section>
+  }
 </main>

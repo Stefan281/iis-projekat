@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'STATISTICAR' | 'STRUCNI_STAB';
+export type UserRole = 'ADMIN' | 'SKAUT' | 'STATISTICAR' | 'STRUCNI_STAB' | 'SPORTSKI_DIREKTOR';
 
 export interface LoginRequest {
   username: string;

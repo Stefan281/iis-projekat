@@ -103,4 +103,11 @@ button:disabled {
 
 .demo-users p {
   margin: 4px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.demo-users strong {
+  color: #152018;
 }
