@@ -33,6 +33,9 @@ public class Observation {
     @Column(name = "date_to")
     private LocalDate dateTo;
 
+    @Column(name = "observation_period", length = 100)
+    private String observationPeriod;
+
     @Column
     private Integer grade;
 
@@ -48,6 +51,14 @@ public class Observation {
         this.dateFrom = dateFrom;
         this.dateTo = dateTo;
         this.grade = grade;
+        this.note = note;
+    }
+
+    public Observation(Player player, User scout, LocalDate dateFrom, String observationPeriod, String note) {
+        this.player = player;
+        this.scout = scout;
+        this.dateFrom = dateFrom;
+        this.observationPeriod = observationPeriod;
         this.note = note;
     }
 
@@ -85,6 +96,14 @@ public class Observation {
 
     public void setDateTo(LocalDate dateTo) {
         this.dateTo = dateTo;
+    }
+
+    public String getObservationPeriod() {
+        return observationPeriod;
+    }
+
+    public void setObservationPeriod(String observationPeriod) {
+        this.observationPeriod = observationPeriod;
     }
 
     public Integer getGrade() {

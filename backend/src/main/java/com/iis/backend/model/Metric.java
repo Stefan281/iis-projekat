@@ -33,6 +33,9 @@ public class Metric {
     @Column(name = "unit_of_measure", length = 50)
     private String unitOfMeasure;
 
+    @Column(name = "standard_metric", nullable = false)
+    private boolean standardMetric;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "defined_by_user_id", nullable = false)
     private User definedBy;
@@ -45,6 +48,16 @@ public class Metric {
         this.metricType = metricType;
         this.description = description;
         this.unitOfMeasure = unitOfMeasure;
+        this.standardMetric = true;
+        this.definedBy = definedBy;
+    }
+
+    public Metric(String name, MetricType metricType, String description, String unitOfMeasure, boolean standardMetric, User definedBy) {
+        this.name = name;
+        this.metricType = metricType;
+        this.description = description;
+        this.unitOfMeasure = unitOfMeasure;
+        this.standardMetric = standardMetric;
         this.definedBy = definedBy;
     }
 
@@ -82,6 +95,14 @@ public class Metric {
 
     public void setUnitOfMeasure(String unitOfMeasure) {
         this.unitOfMeasure = unitOfMeasure;
+    }
+
+    public boolean isStandardMetric() {
+        return standardMetric;
+    }
+
+    public void setStandardMetric(boolean standardMetric) {
+        this.standardMetric = standardMetric;
     }
 
     public User getDefinedBy() {

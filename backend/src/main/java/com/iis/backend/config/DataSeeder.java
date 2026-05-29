@@ -1,7 +1,10 @@
 package com.iis.backend.config;
 
+import com.iis.backend.model.Metric;
+import com.iis.backend.model.MetricType;
 import com.iis.backend.model.Role;
 import com.iis.backend.model.User;
+import com.iis.backend.repository.MetricRepository;
 import com.iis.backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +41,21 @@ public class DataSeeder {
         };
     }
 
+    @Bean
+    @Order(2)
+    CommandLineRunner seedMetrics(MetricRepository metricRepository, UserRepository userRepository) {
+        return args -> {
+            var definedBy = userRepository.findByUsername("skaut")
+                    .orElseGet(() -> userRepository.findAll().getFirst());
+
+            createMetricIfMissing(metricRepository, definedBy, "Uspešnost servisa", "%", "Procenat uspesno izvedenih servisa igraca tokom posmatranja");
+            createMetricIfMissing(metricRepository, definedBy, "Uspešnost prijema", "%", "Procenat uspesnih prijema servisa");
+            createMetricIfMissing(metricRepository, definedBy, "Broj grešaka", "broj", "Ukupan broj gresaka igraca");
+            createMetricIfMissing(metricRepository, definedBy, "Uspešnost napada", "%", "Procenat uspesno zavrsenih napada");
+            createMetricIfMissing(metricRepository, definedBy, "Blokovi", "broj", "Broj uspesnih blokova");
+        };
+    }
+
     private void createUserIfMissing(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -53,5 +71,18 @@ public class DataSeeder {
 
         var user = new User(username, email, passwordEncoder.encode(rawPassword), firstName, lastName, role);
         userRepository.save(user);
+    }
+
+    private void createMetricIfMissing(
+            MetricRepository metricRepository,
+            User definedBy,
+            String name,
+            String unitOfMeasure,
+            String description) {
+        if (metricRepository.findByNameIgnoreCase(name).isPresent()) {
+            return;
+        }
+
+        metricRepository.save(new Metric(name, MetricType.OSTALO, description, unitOfMeasure, true, definedBy));
     }
 }

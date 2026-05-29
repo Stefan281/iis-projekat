@@ -3,7 +3,7 @@
     <h1>{{ roleTitle }}</h1>
 
     <nav>
-      @for (item of navItems; track item.label) {
+      @for (item of navItems(); track item.label) {
         <button type="button" class="nav-button" [class.active]="isActiveNav(item.label)" (click)="handleNav(item.label)">
           <span class="nav-icon">{{ item.icon }}</span>
           {{ item.label }}
@@ -58,9 +58,35 @@
             <span class="action-icon">+</span>
             Dodaj igraca
           </button>
-          <button type="button">
+          <button type="button" (click)="showAddObservation()">
             <span class="action-icon">+</span>
             Novo posmatranje
+          </button>
+        </section>
+      }
+
+      @if (user()?.role === 'STRUCNI_STAB') {
+        <section class="quick-actions" aria-label="Akcije strucnog staba">
+          <button type="button" (click)="showAnalyses()">
+            <span class="action-icon">A</span>
+            Pregled analiza
+          </button>
+          <button type="button" (click)="showAddAnalysis()">
+            <span class="action-icon">+</span>
+            Nova analiza
+          </button>
+        </section>
+      }
+
+      @if (user()?.role === 'SPORTSKI_DIREKTOR') {
+        <section class="quick-actions" aria-label="Akcije sportskog direktora">
+          <button type="button" (click)="showRecommendations()">
+            <span class="action-icon">P</span>
+            Pregled preporuka
+          </button>
+          <button type="button" (click)="showAddRecommendation()">
+            <span class="action-icon">+</span>
+            Nova preporuka
           </button>
         </section>
       }
@@ -157,6 +183,17 @@
       </header>
 
       <form class="player-form" [formGroup]="playerForm" (ngSubmit)="savePlayer()">
+        @if (activeView() === 'edit-player') {
+          <label>
+            Izaberi igraca
+            <select formControlName="selectedPlayerId" (change)="selectPlayerForEdit($any($event.target).value)">
+              @for (player of players(); track player.id) {
+                <option [value]="player.id">{{ player.firstName }} {{ player.lastName }}</option>
+              }
+            </select>
+          </label>
+        }
+
         <label>
           Ime
           <input type="text" formControlName="firstName" placeholder="Unesite ime" />
@@ -232,7 +269,7 @@
           @if (isScout) {
             <button type="button" class="secondary-button" (click)="showEditPlayer(player)">Izmeni podatke</button>
           }
-          <button type="button" class="secondary-button">Unesi performanse</button>
+          <button type="button" class="secondary-button" (click)="showAddPerformance(player)">Unesi performanse</button>
         </div>
 
         <article class="profile-card performance-card">
@@ -241,10 +278,608 @@
             <strong>Metrika</strong>
             <strong>Vrednost</strong>
             <strong>Komentar</strong>
-            <span colspan="3">Metrike cemo povezati u sledecem koraku.</span>
+            @for (performance of playerPerformances(); track performance.id) {
+              <span>{{ performance.metricName }}</span>
+              <span>{{ formatPerformanceValue(performance) }}</span>
+              <span>{{ performance.comment || '-' }}</span>
+            } @empty {
+              <span class="full-row">Nema unetih performansi za ovog igraca.</span>
+            }
+          </div>
+        </article>
+
+        <article class="profile-card observation-card">
+          <h3>Posmatranja igraca</h3>
+          <div class="observation-detail-table">
+            <strong>Datum</strong>
+            <strong>Period</strong>
+            <strong>Napomena</strong>
+            @for (observation of selectedPlayerObservations(); track observation.id) {
+              <span>{{ observation.observationDate }}</span>
+              <span>{{ observation.period }}</span>
+              <span>{{ observation.note || '-' }}</span>
+            } @empty {
+              <span class="full-row">Nema unetih posmatranja za ovog igraca.</span>
+            }
           </div>
         </article>
       </section>
+    </section>
+  }
+
+  @if (activeView() === 'observations') {
+    <section class="observations-page">
+      <section class="page-card observations-hero">
+        <div>
+          <h2>Posmatranje</h2>
+          <p>Pregled svih posmatranja igraca koje je uneo skaut</p>
+        </div>
+
+        @if (isScout) {
+          <button type="button" class="inline-action" (click)="showAddObservation()">
+            <span class="action-icon">+</span>
+            Novo posmatranje
+          </button>
+        }
+      </section>
+
+      @if (observationMessage()) {
+        <p class="success-message compact">{{ observationMessage() }}</p>
+      }
+
+      <section class="filters-row" aria-label="Filteri posmatranja">
+        <input type="search" placeholder="Pretrazi igraca" [value]="observationSearchTerm()" (input)="updateObservationSearch($any($event.target).value)" />
+
+        <select [value]="observationPositionFilter()" (change)="updateObservationPosition($any($event.target).value)">
+          <option value="">Pozicija</option>
+          @for (position of positions(); track position) {
+            <option [value]="position">{{ position }}</option>
+          }
+        </select>
+
+        <input type="date" [value]="observationDateFilter()" (input)="updateObservationDate($any($event.target).value)" />
+      </section>
+
+      <section class="observations-table-card">
+        <div class="observations-table header-row">
+          <span>Ime i prezime</span>
+          <span>Pozicija</span>
+          <span>Datum</span>
+          <span>Period</span>
+          <span>Akcije</span>
+        </div>
+
+        @for (observation of filteredObservations(); track observation.id) {
+          <div class="observations-table">
+            <strong>{{ observation.playerName }}</strong>
+            <span>{{ observation.position || '-' }}</span>
+            <span>{{ observation.observationDate }}</span>
+            <span>{{ observation.period }}</span>
+            <div class="table-actions">
+              <button type="button" (click)="showObservationPlayerDetails(observation)">Detalji</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Nema posmatranja za izabrane filtere.</p>
+        }
+      </section>
+
+      <p class="results-count">Prikazano {{ filteredObservations().length }} od {{ observations().length }} posmatranja</p>
+    </section>
+  }
+
+  @if (activeView() === 'add-observation') {
+    <section class="observation-form-page">
+      <header class="form-topbar metric-topbar">
+        <div>
+          <span>Novo posmatranje</span>
+          <h2>Novo posmatranje</h2>
+          <p>Izbor igraca, period pracenja i pregled postojecih performansi</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="showObservations()">Nazad</button>
+      </header>
+
+      <form class="observation-form" [formGroup]="observationForm" (ngSubmit)="saveObservation()">
+        <label>
+          Igrac
+          <select formControlName="playerId" (change)="selectObservationPlayer($any($event.target).value)">
+            @for (player of players(); track player.id) {
+              <option [value]="player.id">{{ player.firstName }} {{ player.lastName }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Period pracenja
+          <select formControlName="period">
+            <option value="Cela utakmica">Cela utakmica</option>
+            <option value="Pola utakmice">Pola utakmice</option>
+            <option value="Trening">Trening</option>
+            <option value="Prvi set">Prvi set</option>
+            <option value="Drugi set">Drugi set</option>
+          </select>
+        </label>
+
+        <label>
+          Datum posmatranja
+          <input type="date" formControlName="observationDate" />
+        </label>
+
+        <label>
+          Napomena
+          <textarea formControlName="note" rows="4" placeholder="Kratka napomena posmatranja"></textarea>
+        </label>
+
+        @if (observationError()) {
+          <p class="error-message">{{ observationError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="showObservations()">Otkazi</button>
+          <button type="submit" class="primary-button" [disabled]="isSavingObservation()">
+            {{ isSavingObservation() ? 'Cuvanje...' : 'Sacuvaj posmatranje' }}
+          </button>
+        </div>
+      </form>
+
+      <section class="edit-performance-card">
+        <h3>Unete performanse za izabranog igraca</h3>
+        <div class="edit-performance-table header-row">
+          <span>Metrika</span>
+          <span>Vrednost</span>
+          <span>Komentar</span>
+          <span>Akcije</span>
+        </div>
+
+        @for (performance of playerPerformances(); track performance.id) {
+          <div class="edit-performance-table">
+            <strong>{{ performance.metricName }}</strong>
+            <input type="number" [value]="performanceDraftValue(performance)" (input)="updatePerformanceDraft(performance, 'value', $any($event.target).value)" />
+            <input type="text" [value]="performanceDraftComment(performance)" (input)="updatePerformanceDraft(performance, 'comment', $any($event.target).value)" />
+            <button type="button" class="secondary-button mini-button" (click)="savePerformanceDraft(performance)">Sacuvaj</button>
+          </div>
+        } @empty {
+          <p class="empty-state">Ovaj igrac jos nema unete performanse.</p>
+        }
+
+        @if (performanceMessage()) {
+          <p class="success-message compact">{{ performanceMessage() }}</p>
+        }
+        @if (performanceError()) {
+          <p class="error-message">{{ performanceError() }}</p>
+        }
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'performances') {
+    <section class="performances-page">
+      <section class="page-card performances-hero">
+        <div>
+          <h2>Performanse</h2>
+          <p>Pregled evidentiranih performansi igraca</p>
+        </div>
+      </section>
+
+      @if (performanceMessage()) {
+        <p class="success-message compact">{{ performanceMessage() }}</p>
+      }
+
+      <section class="filters-row" aria-label="Filteri performansi">
+        <input type="search" placeholder="Pretrazi igrace" [value]="performanceSearchTerm()" (input)="updatePerformanceSearch($any($event.target).value)" />
+
+        <select [value]="performancePositionFilter()" (change)="updatePerformancePosition($any($event.target).value)">
+          <option value="">Pozicija</option>
+          @for (position of positions(); track position) {
+            <option [value]="position">{{ position }}</option>
+          }
+        </select>
+
+        <select [value]="performanceMetricFilter()" (change)="updatePerformanceMetric($any($event.target).value)">
+          <option value="">Metrika</option>
+          @for (metric of metrics(); track metric.id) {
+            <option [value]="metric.id">{{ metric.name }}</option>
+          }
+        </select>
+      </section>
+
+      <section class="performances-table-card">
+        <div class="performances-table header-row">
+          <span>Igrac</span>
+          <span>Pozicija</span>
+          <span>Metrika</span>
+          <span>Vrednost</span>
+        </div>
+
+        @for (performance of filteredPerformances(); track performance.id) {
+          <div class="performances-table">
+            <strong>{{ performance.playerName }}</strong>
+            <span>{{ performance.position || '-' }}</span>
+            <span>{{ performance.metricName }}</span>
+            <span>{{ formatPerformanceValue(performance) }}</span>
+          </div>
+        } @empty {
+          <p class="empty-state">Nema performansi za izabrane filtere.</p>
+        }
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'add-performance' && selectedPlayer(); as player) {
+    <section class="performance-form-page">
+      <header class="form-topbar metric-topbar">
+        <div>
+          <span>Dodaj performanse</span>
+          <h2>Dodaj performanse</h2>
+          <p>Unos vrednosti metrika za igraca {{ player.firstName }} {{ player.lastName }}</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="showPlayerDetails(player)">Nazad</button>
+      </header>
+
+      <form class="performance-form" [formGroup]="performanceForm" (ngSubmit)="savePerformance()">
+        <label>
+          Igrac
+          <select formControlName="playerId">
+            @for (playerOption of players(); track playerOption.id) {
+              <option [value]="playerOption.id">{{ playerOption.firstName }} {{ playerOption.lastName }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Metrika
+          <select formControlName="metricId">
+            <option [ngValue]="null">Izaberi metriku</option>
+            @for (metric of metrics(); track metric.id) {
+              <option [value]="metric.id">{{ metric.name }} ({{ metric.unitOfMeasure }})</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Vrednost
+          <input type="number" formControlName="value" placeholder="Npr. 82" />
+        </label>
+
+        <label>
+          Komentar
+          <textarea formControlName="comment" rows="4" placeholder="Npr. stabilan servis"></textarea>
+        </label>
+
+        @if (performanceError()) {
+          <p class="error-message">{{ performanceError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="showPlayerDetails(player)">Otkazi</button>
+          <button type="submit" class="primary-button" [disabled]="isSavingPerformance()">
+            {{ isSavingPerformance() ? 'Cuvanje...' : 'Sacuvaj performansu' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (activeView() === 'metrics') {
+    <section class="metrics-page">
+      <section class="page-card metrics-hero">
+        <div>
+          <h2>Metrike</h2>
+          <p>Pregled metrika koje se koriste za pracenje igraca</p>
+        </div>
+
+        <button type="button" class="inline-action" (click)="showAddMetric()">
+          <span class="action-icon">+</span>
+          Dodaj metriku
+        </button>
+      </section>
+
+      @if (metricMessage()) {
+        <p class="success-message compact">{{ metricMessage() }}</p>
+      }
+
+      <section class="metric-search-row" aria-label="Pretraga metrika">
+        <input type="search" placeholder="Pretrazi metriku" [value]="metricSearchTerm()" (input)="updateMetricSearch($any($event.target).value)" />
+      </section>
+
+      <section class="metrics-table-card">
+        <div class="metrics-table header-row">
+          <span>Naziv metrike</span>
+          <span>Tip</span>
+          <span>Jedinica</span>
+          <span>Akcije</span>
+        </div>
+
+        @for (metric of filteredMetrics(); track metric.id) {
+          <div class="metrics-table">
+            <strong>{{ metric.name }}</strong>
+            <span>{{ metric.standardMetric ? 'Standardna' : 'Nestandardna' }}</span>
+            <span>{{ metric.unitOfMeasure }}</span>
+            <div class="table-actions">
+              <button type="button" (click)="showEditMetric(metric)">Izmeni</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Nema metrika za izabranu pretragu.</p>
+        }
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'add-metric' || activeView() === 'edit-metric') {
+    <section class="metric-form-page">
+      <header class="form-topbar metric-topbar">
+        <div>
+          <span>{{ activeView() === 'edit-metric' ? 'Izmeni metriku' : 'Dodaj metriku' }}</span>
+          <h2>{{ activeView() === 'edit-metric' ? 'Izmeni metriku' : 'Dodaj metriku' }}</h2>
+          <p>{{ activeView() === 'edit-metric' ? 'Azuriranje podataka o metrici za pracenje igraca' : 'Definisanje nove metrike za pracenje igraca' }}</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="showMetrics()">Nazad</button>
+      </header>
+
+      <form class="metric-form" [formGroup]="metricForm" (ngSubmit)="saveMetric()">
+        @if (activeView() === 'edit-metric') {
+          <label>
+            Izaberi metriku
+            <select formControlName="selectedMetricId" (change)="selectMetricForEdit($any($event.target).value)">
+              @for (metric of metrics(); track metric.id) {
+                <option [value]="metric.id">{{ metric.name }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        <label>
+          Naziv metrike
+          <input type="text" formControlName="name" placeholder="Npr. Uspesnost servisa" />
+        </label>
+
+        <label>
+          Tip metrike
+          <select formControlName="standardMetric">
+            <option [ngValue]="true">Standardna</option>
+            <option [ngValue]="false">Nestandardna</option>
+          </select>
+        </label>
+
+        <label>
+          Jedinica mere
+          <input type="text" formControlName="unitOfMeasure" placeholder="% / broj / ocena" />
+        </label>
+
+        <label>
+          Opis metrike
+          <textarea formControlName="description" rows="4" placeholder="Kratko objasnjenje metrike"></textarea>
+        </label>
+
+        @if (metricError()) {
+          <p class="error-message">{{ metricError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="showMetrics()">Otkazi</button>
+          <button type="submit" class="primary-button" [disabled]="isSavingMetric()">
+            {{ isSavingMetric() ? 'Cuvanje...' : activeView() === 'edit-metric' ? 'Sacuvaj izmene' : 'Sacuvaj metriku' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (activeView() === 'analyses') {
+    <section class="analyses-page">
+      <section class="page-card analyses-hero">
+        <div>
+          <h2>Analize igraca</h2>
+          <p>Strucni stab evidentira trenerske procene i zakljucke o igracima</p>
+        </div>
+
+        <button type="button" class="inline-action" (click)="showAddAnalysis()">
+          <span class="action-icon">+</span>
+          Nova analiza
+        </button>
+      </section>
+
+      @if (analysisMessage()) {
+        <p class="success-message compact">{{ analysisMessage() }}</p>
+      }
+      @if (analysisError()) {
+        <p class="error-message">{{ analysisError() }}</p>
+      }
+
+      <section class="analyses-table-card">
+        <div class="analyses-table header-row">
+          <span>Igrac</span>
+          <span>Pozicija</span>
+          <span>Datum</span>
+          <span>Zakljucak</span>
+          <span>Akcije</span>
+        </div>
+
+        @for (analysis of filteredAnalyses(); track analysis.id) {
+          <div class="analyses-table">
+            <strong>{{ analysis.playerName }}</strong>
+            <span>{{ analysis.position || '-' }}</span>
+            <span>{{ analysis.analysisDate }}</span>
+            <span>{{ analysis.conclusion }}</span>
+            <div class="table-actions">
+              <button type="button" (click)="showEditAnalysis(analysis)">Izmeni</button>
+              <button type="button" (click)="deleteAnalysis(analysis)">Obrisi</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Jos nema unetih analiza.</p>
+        }
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'add-analysis' || activeView() === 'edit-analysis') {
+    <section class="analysis-form-page">
+      <header class="form-topbar metric-topbar">
+        <div>
+          <span>{{ activeView() === 'edit-analysis' ? 'Izmeni analizu' : 'Nova analiza' }}</span>
+          <h2>{{ activeView() === 'edit-analysis' ? 'Izmeni analizu' : 'Nova analiza' }}</h2>
+          <p>Procena igraca na osnovu performansi, posmatranja i strucnog misljenja</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="showAnalyses()">Nazad</button>
+      </header>
+
+      <form class="analysis-form" [formGroup]="analysisForm" (ngSubmit)="saveAnalysis()">
+        <label>
+          Igrac
+          <select formControlName="playerId">
+            @for (player of players(); track player.id) {
+              <option [value]="player.id">{{ player.firstName }} {{ player.lastName }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Datum analize
+          <input type="date" formControlName="analysisDate" />
+        </label>
+
+        <label>
+          Zakljucak
+          <textarea formControlName="conclusion" rows="4" placeholder="Npr. igrac ima stabilan prijem i dobar potencijal za rotaciju"></textarea>
+        </label>
+
+        <label>
+          Napomena
+          <textarea formControlName="note" rows="4" placeholder="Dodatna napomena strucnog staba"></textarea>
+        </label>
+
+        @if (analysisError()) {
+          <p class="error-message">{{ analysisError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="showAnalyses()">Otkazi</button>
+          <button type="submit" class="primary-button" [disabled]="isSavingAnalysis()">
+            {{ isSavingAnalysis() ? 'Cuvanje...' : 'Sacuvaj analizu' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (activeView() === 'recommendations') {
+    <section class="recommendations-page">
+      <section class="page-card recommendations-hero">
+        <div>
+          <h2>Preporuke direktora</h2>
+          <p>Odluke i prioriteti na osnovu igraca, performansi i analiza strucnog staba</p>
+        </div>
+
+        <button type="button" class="inline-action" (click)="showAddRecommendation()">
+          <span class="action-icon">+</span>
+          Nova preporuka
+        </button>
+      </section>
+
+      @if (recommendationMessage()) {
+        <p class="success-message compact">{{ recommendationMessage() }}</p>
+      }
+      @if (recommendationError()) {
+        <p class="error-message">{{ recommendationError() }}</p>
+      }
+
+      <section class="metric-search-row" aria-label="Pretraga preporuka">
+        <input type="search" placeholder="Pretrazi po igracu, kriterijumu ili odluci" [value]="recommendationSearchTerm()" (input)="updateRecommendationSearch($any($event.target).value)" />
+      </section>
+
+      <section class="recommendations-table-card">
+        <div class="recommendations-table header-row">
+          <span>Igrac</span>
+          <span>Pozicija</span>
+          <span>Datum</span>
+          <span>Kriterijumi</span>
+          <span>Odluka</span>
+          <span>Akcije</span>
+        </div>
+
+        @for (recommendation of filteredRecommendations(); track recommendation.id) {
+          <div class="recommendations-table">
+            <strong>{{ recommendation.playerName }}</strong>
+            <span>{{ recommendation.position || '-' }}</span>
+            <span>{{ recommendation.recommendationDate }}</span>
+            <span>{{ recommendation.criteria || '-' }}</span>
+            <span>{{ recommendation.explanation }}</span>
+            <div class="table-actions">
+              <button type="button" (click)="showEditRecommendation(recommendation)">Izmeni</button>
+              <button type="button" (click)="deleteRecommendation(recommendation)">Obrisi</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Jos nema unetih preporuka direktora.</p>
+        }
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'add-recommendation' || activeView() === 'edit-recommendation') {
+    <section class="recommendation-form-page">
+      <header class="form-topbar metric-topbar">
+        <div>
+          <span>{{ activeView() === 'edit-recommendation' ? 'Izmeni preporuku' : 'Nova preporuka' }}</span>
+          <h2>{{ activeView() === 'edit-recommendation' ? 'Izmeni preporuku' : 'Nova preporuka' }}</h2>
+          <p>Sportski direktor upisuje konacnu procenu, prioritet ili odluku za igraca</p>
+        </div>
+
+        <button type="button" class="secondary-button" (click)="showRecommendations()">Nazad</button>
+      </header>
+
+      <form class="recommendation-form" [formGroup]="recommendationForm" (ngSubmit)="saveRecommendation()">
+        <label>
+          Igrac
+          <select formControlName="playerId">
+            @for (player of players(); track player.id) {
+              <option [value]="player.id">{{ player.firstName }} {{ player.lastName }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Povezana analiza
+          <select formControlName="analysisId">
+            <option [ngValue]="null">Bez povezane analize</option>
+            @for (analysis of analyses(); track analysis.id) {
+              <option [ngValue]="analysis.id">{{ analysis.playerName }} - {{ analysis.conclusion }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          Datum preporuke
+          <input type="date" formControlName="recommendationDate" />
+        </label>
+
+        <label>
+          Kriterijumi
+          <textarea formControlName="criteria" rows="4" placeholder="Npr. potencijal, pozicija, stabilnost prijema, potreba kluba"></textarea>
+        </label>
+
+        <label>
+          Odluka / obrazlozenje
+          <textarea formControlName="explanation" rows="5" placeholder="Npr. pozvati igraca na probu ili nastaviti pracenje jos mesec dana"></textarea>
+        </label>
+
+        @if (recommendationError()) {
+          <p class="error-message">{{ recommendationError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="showRecommendations()">Otkazi</button>
+          <button type="submit" class="primary-button" [disabled]="isSavingRecommendation()">
+            {{ isSavingRecommendation() ? 'Cuvanje...' : 'Sacuvaj preporuku' }}
+          </button>
+        </div>
+      </form>
     </section>
   }
 </main>
