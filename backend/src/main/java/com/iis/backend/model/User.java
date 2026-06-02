@@ -20,6 +20,9 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String username;
 
+    @Column(unique = true, length = 150)
+    private String email;
+
     @Column(nullable = false)
     private String password;
 
@@ -28,6 +31,24 @@ public class User {
 
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
+
+    @Column(length = 100)
+    private String country;
+
+    @Column(length = 100)
+    private String city;
+
+    @Column(length = 150)
+    private String street;
+
+    @Column(length = 30)
+    private String streetNumber;
+
+    @Column(length = 30)
+    private String postalCode;
+
+    @Column(length = 40)
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
@@ -56,6 +77,14 @@ public class User {
         this.username = username;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -78,6 +107,54 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getStreetNumber() {
+        return streetNumber;
+    }
+
+    public void setStreetNumber(String streetNumber) {
+        this.streetNumber = streetNumber;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public Role getRole() {

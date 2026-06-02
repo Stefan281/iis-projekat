@@ -1,11 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -18,7 +18,7 @@ export class LoginComponent {
   readonly isSubmitting = signal(false);
 
   readonly form = this.formBuilder.nonNullable.group({
-    username: ['', Validators.required],
+    email: ['', Validators.required],
     password: ['', Validators.required]
   });
 
@@ -34,7 +34,7 @@ export class LoginComponent {
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => this.router.navigateByUrl('/dashboard'),
       error: () => {
-        this.errorMessage.set('Pogresno korisnicko ime ili lozinka.');
+        this.errorMessage.set('Pogresan email/korisnicko ime ili lozinka.');
         this.isSubmitting.set(false);
       }
     });

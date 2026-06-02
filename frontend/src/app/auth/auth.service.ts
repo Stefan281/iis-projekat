@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { tap } from 'rxjs';
-import { LoginRequest, LoginResponse } from './auth.models';
+import { LoginRequest, LoginResponse, RegisterRequest } from './auth.models';
 
 const TOKEN_KEY = 'iis_auth_token';
 const USER_KEY = 'iis_auth_user';
@@ -17,6 +17,16 @@ export class AuthService {
 
   login(credentials: LoginRequest) {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      tap((response) => {
+        localStorage.setItem(TOKEN_KEY, response.token);
+        localStorage.setItem(USER_KEY, JSON.stringify(response));
+        this.currentUser.set(response);
+      })
+    );
+  }
+
+  register(request: RegisterRequest) {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, request).pipe(
       tap((response) => {
         localStorage.setItem(TOKEN_KEY, response.token);
         localStorage.setItem(USER_KEY, JSON.stringify(response));

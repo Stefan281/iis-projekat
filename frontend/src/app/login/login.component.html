@@ -1,14 +1,21 @@
-<main class="login-page">
+<main class="auth-page">
+  <section class="auth-brand">
+    <div>
+      <h1>Sistem za karte</h1>
+      <p>Platforma odbojkaskog kluba za prodaju karata i upravljanje utakmicama.</p>
+    </div>
+  </section>
+
   <section class="login-panel" aria-labelledby="login-title">
     <div class="brand-block">
-      <h1 id="login-title">Dobrodosli</h1>
-      <p>Prijavite se na svoj nalog</p>
+      <h1 id="login-title">Prijava</h1>
+      <p>Unesi podatke za pristup sistemu</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
       <label>
-        Korisnicko ime
-        <input type="text" formControlName="username" autocomplete="username" />
+        Email ili korisnicko ime
+        <input type="text" formControlName="email" autocomplete="email" />
       </label>
 
       <label>
@@ -27,9 +34,13 @@
 
     <div class="demo-users">
       <span>Demo korisnici</span>
+      <p>customer@example.com / customer123</p>
+      <p>menadzer / menadzer123</p>
       <p>admin / admin123</p>
       <p>statisticar / statisticar123</p>
       <p>stab / stab123</p>
     </div>
+
+    <p class="auth-link">Novi kupac? <a routerLink="/register">Napravi nalog</a></p>
   </section>
 </main>

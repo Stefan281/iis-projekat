@@ -1,22 +1,58 @@
-<main class="dashboard-page">
-  <header class="topbar">
-    <div>
-      <p>Odbojkaski klub</p>
-      <h1>Pocetna stranica</h1>
-    </div>
-    <button type="button" (click)="logout()">Odjavi se</button>
-  </header>
-
-  <section class="content">
-    <div class="summary">
-      <span>Ulogovani korisnik</span>
-      <h2>{{ user()?.firstName }} {{ user()?.lastName }}</h2>
+@if (role() === 'CUSTOMER') {
+  <section class="customer-layout">
+    <div class="section-heading">
+      <h2>Nadolazece utakmice</h2>
+      <a routerLink="/matches">Pogledaj sve</a>
     </div>
 
-    <div class="summary">
-      <span>Provera backend veze</span>
-      <h2>{{ backendMessage() || 'Ucitavanje...' }}</h2>
-      <p>Ovaj poziv prolazi samo kada Angular posalje validan JWT token.</p>
+    <div class="match-cards">
+      @for (match of customerMatches(); track match.id) {
+        <article class="match-card">
+          <div class="match-status">{{ match.status }}</div>
+          <strong>{{ match.homeTeam }} vs {{ match.awayTeam }}</strong>
+          <span>{{ match.date }} u {{ match.time }}</span>
+          <span>{{ match.location }}</span>
+          <div class="card-footer">
+            <b>od {{ match.basePrice }} RSD</b>
+            <a routerLink="/matches/{{ match.id }}">Pogledaj</a>
+          </div>
+        </article>
+      } @empty {
+        <article class="empty-card">Trenutno nema utakmica za prikaz.</article>
+      }
+    </div>
+
+    <div class="section-heading reservations-title">
+      <h2>Aktivne rezervacije</h2>
+    </div>
+
+    <div class="reservation-list">
+      @for (reservation of activeReservations(); track reservation.id) {
+        <article class="reservation-row">
+          <div class="reservation-icon">R</div>
+          <div>
+            <strong>{{ reservation.homeTeam }} vs {{ reservation.awayTeam }}</strong>
+            <span>Zona {{ reservation.zoneName }}, red {{ reservation.rowLabel }}, mesto {{ reservation.seatNumber }}</span>
+          </div>
+          <a routerLink="/my-reservations">Detalji</a>
+        </article>
+      } @empty {
+        <article class="empty-card small">Nema aktivnih rezervacija.</article>
+      }
     </div>
   </section>
-</main>
+} @else if (role() === 'ADMIN') {
+  <section class="empty-dashboard">
+    <div>
+      <h2>Administratorski panel</h2>
+    </div>
+    <a routerLink="/matches/new">Kreiraj utakmicu</a>
+  </section>
+} @else {
+  <section class="empty-dashboard">
+    <div>
+      <h2>Menadzerski panel</h2>
+    </div>
+    <a routerLink="/my-reservations">Pregled rezervacija</a>
+  </section>
+}

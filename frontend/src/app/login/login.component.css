@@ -1,18 +1,45 @@
-.login-page {
+.auth-page {
   min-height: 100vh;
   display: grid;
-  place-items: center;
-  padding: 32px 16px;
-  background: #f4f7f2;
+  grid-template-columns: 1fr 1fr;
+  background: #f8fafc;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.auth-brand div {
+  max-width: 440px;
+  text-align: center;
+}
+
+.auth-brand h1 {
+  margin: 0 0 16px;
+  color: #ffffff;
+  font-size: 2.6rem;
+}
+
+.auth-brand p {
+  margin: 0;
+  color: #dbeafe;
+  font-size: 1.05rem;
+  line-height: 1.6;
 }
 
 .login-panel {
-  width: min(100%, 420px);
-  padding: 32px;
-  border: 1px solid #d9e2d3;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 18px 48px rgba(32, 45, 31, 0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 48px 32px;
 }
 
 #login-title {
@@ -26,14 +53,14 @@
 
 h1 {
   margin: 0;
-  color: #152018;
-  font-size: 2rem;
+  color: #0f172a;
+  font-size: 2.1rem;
   line-height: 1.15;
 }
 
 .brand-block p:last-child {
   margin: 10px 0 0;
-  color: #5e6b61;
+  color: #64748b;
   text-align: center;
 }
 
@@ -45,30 +72,30 @@ h1 {
 label {
   display: grid;
   gap: 8px;
-  color: #27332a;
+  color: #334155;
   font-weight: 600;
 }
 
 input {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #c9d5c4;
+  border: 1px solid #cbd5e1;
   border-radius: 6px;
   padding: 12px 14px;
-  color: #152018;
+  color: #0f172a;
   font: inherit;
 }
 
 input:focus {
-  outline: 3px solid rgba(47, 125, 84, 0.18);
-  border-color: #2f7d54;
+  outline: 3px solid rgba(37, 99, 235, 0.18);
+  border-color: #2563eb;
 }
 
 button {
   min-height: 44px;
   border: 0;
   border-radius: 6px;
-  background: #0C7FDA;
+  background: #2563eb;
   color: #ffffff;
   font: inherit;
   font-weight: 700;
@@ -88,19 +115,37 @@ button:disabled {
 
 .demo-users {
   margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e3eadf;
-  color: #5e6b61;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 16px;
+  background: #eff6ff;
+  color: #1e40af;
   font-size: 0.92rem;
 }
 
 .demo-users span {
   display: block;
   margin-bottom: 8px;
-  color: #27332a;
+  color: #1e3a8a;
   font-weight: 700;
 }
 
 .demo-users p {
   margin: 4px 0;
+}
+
+.auth-link {
+  margin: 18px 0 0;
+  color: #64748b;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-brand {
+    display: none;
+  }
 }

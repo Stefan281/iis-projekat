@@ -1,0 +1,44 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <strong>Sistem za karte</strong>
+    </div>
+
+    <nav class="side-nav" aria-label="Main navigation">
+      @for (item of visibleNavItems(); track item.path + item.label) {
+        <a [routerLink]="item.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }">
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="user-card">
+      <div class="avatar">{{ initials() }}</div>
+      <div class="user-meta">
+        <strong>{{ user()?.firstName }} {{ user()?.lastName }}</strong>
+        <span>{{ user()?.role }}</span>
+      </div>
+      <button type="button" title="Log out" (click)="logout()">Out</button>
+    </div>
+  </aside>
+
+  <section class="shell-main">
+    <header class="shell-header">
+      <div>
+        <h1>{{ pageTitle() }}</h1>
+        <p>{{ pageDescription() }}</p>
+      </div>
+      <div class="header-actions">
+        <span class="notification" aria-hidden="true"></span>
+        @if (user()?.role === 'CUSTOMER') {
+          <a class="buy-button" routerLink="/matches">Kupi kartu</a>
+        }
+      </div>
+    </header>
+
+    <div class="shell-content">
+      <router-outlet />
+    </div>
+  </section>
+</div>

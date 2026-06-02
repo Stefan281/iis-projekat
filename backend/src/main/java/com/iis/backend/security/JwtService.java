@@ -27,9 +27,10 @@ public class JwtService {
     public String generateToken(User user) {
         var now = new Date();
         var expiration = new Date(now.getTime() + expirationMs);
+        var subject = user.getEmail() != null ? user.getEmail() : user.getUsername();
 
         return Jwts.builder()
-                .subject(user.getUsername())
+                .subject(subject)
                 .claim("role", user.getRole().name())
                 .issuedAt(now)
                 .expiration(expiration)
