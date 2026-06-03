@@ -88,7 +88,6 @@ export class DashboardComponent {
   private readonly router = inject(Router);
 
   readonly user = this.authService.currentUser;
-  readonly backendMessage = signal('');
   readonly playerMessage = signal('');
   readonly playerError = signal('');
   readonly isSavingPlayer = signal(false);
@@ -297,10 +296,6 @@ export class DashboardComponent {
   });
 
   constructor() {
-    this.http.get('http://localhost:8080/api/test', { responseType: 'text' }).subscribe({
-      next: (message) => this.backendMessage.set(message),
-      error: () => this.backendMessage.set('Backend nije dostupan ili token nije validan.')
-    });
     this.loadPlayerOverview();
     this.loadMetrics();
     this.loadPerformances();

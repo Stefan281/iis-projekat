@@ -41,27 +41,27 @@ public class PlayerAnalysisController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PlayerAnalysisResponse create(@Valid @RequestBody CreatePlayerAnalysisRequest request, Principal principal) {
-        return playerAnalysisService.create(request, requireStaff(principal));
+        return playerAnalysisService.create(request, requireAnalysisEditor(principal));
     }
 
     @PutMapping("/{id}")
     public PlayerAnalysisResponse update(@PathVariable Long id, @Valid @RequestBody CreatePlayerAnalysisRequest request, Principal principal) {
-        return playerAnalysisService.update(id, request, requireStaff(principal));
+        return playerAnalysisService.update(id, request, requireAnalysisEditor(principal));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id, Principal principal) {
-        requireStaff(principal);
+        requireAnalysisEditor(principal);
         playerAnalysisService.delete(id);
     }
 
-    private User requireStaff(Principal principal) {
+    private User requireAnalysisEditor(Principal principal) {
         var user = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        if (user.getRole() != Role.STRUCNI_STAB && user.getRole() != Role.ADMIN) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Samo strucni stab moze da uredjuje analize");
+        if (user.getRole() != Role.STRUCNI_STAB && user.getRole() != Role.SPORTSKI_DIREKTOR && user.getRole() != Role.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Samo strucni stab ili sportski direktor mogu da uredjuju analize");
         }
 
         return user;

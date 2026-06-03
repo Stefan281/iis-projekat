@@ -19,11 +19,6 @@
 
   @if (activeView() === 'dashboard') {
     <section class="dashboard-content">
-      <header class="welcome">
-        <p>Dobrodosli, {{ user()?.firstName }} {{ user()?.lastName }}</p>
-        <span>{{ backendMessage() || 'Povezivanje sa backendom...' }}</span>
-      </header>
-
       <section class="notice-card" aria-labelledby="notice-title">
         <h2 id="notice-title">Obavestenja</h2>
 
