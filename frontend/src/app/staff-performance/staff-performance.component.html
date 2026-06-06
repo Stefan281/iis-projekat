@@ -81,6 +81,16 @@
                   </div>
                 }
               </section>
+
+              <section>
+                <h3>Analiza</h3>
+                @for (row of playerAnalysisRows(selectedPlayerAnalysis()); track row.label) {
+                  <div class="player-stat-row">
+                    <span>{{ row.label }}</span>
+                    <strong>{{ row.value }}</strong>
+                  </div>
+                }
+              </section>
             </div>
           </section>
         } @else {

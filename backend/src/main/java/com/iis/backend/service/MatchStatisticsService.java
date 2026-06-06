@@ -238,7 +238,7 @@ public class MatchStatisticsService {
         var efficiency = playerEfficiency(statistic);
         analysis.setEfficiency(efficiency);
         analysis.setServeContribution(clamp(statistic.getServes() * 10 - statistic.getErrors() * 3, 0, 100));
-        analysis.setOverallRating(clamp(50 + efficiency * 5, 0, 100));
+        analysis.setOverallRating(clamp(efficiency * 5 + analysis.getServeContribution() / 2, 0, 100));
         playerAnalysisRepository.save(analysis);
     }
 

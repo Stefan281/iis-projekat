@@ -207,10 +207,10 @@
 .modal-close {
   border: 0;
   background: transparent;
+  color: red;
   font-size: 2.5rem;
   line-height: 1;
   cursor: pointer;
-  color: red;
 }
 
 .player-list {
@@ -260,7 +260,7 @@
 }
 
 .player-detail-modal {
-  width: min(92vw, 520px);
+  width: min(92vw, 720px);
   padding-top: 20px;
 }
 
@@ -281,6 +281,8 @@
 
 .player-detail-content {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
   margin-top: 16px;
 }
 
@@ -314,7 +316,8 @@
 
 @media (max-width: 880px) {
   .team-stat-grid,
-  .card-actions {
+  .card-actions,
+  .player-detail-content {
     grid-template-columns: 1fr;
   }
 

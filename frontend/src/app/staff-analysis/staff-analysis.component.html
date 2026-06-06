@@ -21,7 +21,7 @@
             </span>
             Individualne performanse - {{ teamName() }}
           </h2>
-          @for (row of playerRows(teamAnalysis); track row.label) {
+          @for (row of teamPlayerRows(teamAnalysis); track row.label) {
             <div class="analysis-row">
               <span>{{ row.label }}</span>
               <strong>{{ playerLabel(row.player, row.metric) }}</strong>
@@ -45,7 +45,7 @@
             </div>
           }
 
-          <button class="show-players-button" type="button">Prikazi igrace</button>
+          <button class="show-players-button" type="button" (click)="openPlayers()">Prikazi igrace</button>
         </article>
       </section>
     } @else {
@@ -62,5 +62,63 @@
         <p>Za sada je ovaj deo ostavljen kao placeholder.</p>
       </div>
     </section>
+
+    @if (isPlayerListOpen()) {
+      <div class="modal-backdrop" aria-modal="true" role="dialog">
+        @if (selectedPlayer(); as player) {
+          <section class="player-modal player-detail-modal">
+            <button class="modal-close" type="button" aria-label="Nazad na spisak igraca" (click)="closePlayerDetails()">x</button>
+            <header class="player-detail-header">
+              <h2>{{ player.playerName }}</h2>
+              <strong>Broj: {{ player.jerseyNumber }}</strong>
+              <strong>Status: {{ playerStatusLabel(player) }}</strong>
+            </header>
+
+            <div class="player-detail-content">
+              <section>
+                <h3>Statistika</h3>
+                @for (row of playerRows(player); track row.label) {
+                  <div class="player-stat-row">
+                    <span>{{ row.label }}</span>
+                    <strong>{{ row.value }}</strong>
+                  </div>
+                }
+              </section>
+
+              <section>
+                <h3>Analiza</h3>
+                @for (row of playerAnalysisRows(selectedPlayerAnalysis()); track row.label) {
+                  <div class="player-stat-row">
+                    <span>{{ row.label }}</span>
+                    <strong>{{ row.value }}</strong>
+                  </div>
+                }
+              </section>
+            </div>
+          </section>
+        } @else {
+          <section class="player-modal">
+            <div class="modal-header">
+              <h2>Igraci - {{ teamName() }}</h2>
+              <button class="modal-close" type="button" aria-label="Zatvori spisak igraca" (click)="closePlayers()">x</button>
+            </div>
+
+            <div class="player-list">
+              @for (player of currentPlayers(); track player.playerId) {
+                <button class="player-list-item" type="button" (click)="selectPlayer(player)">
+                  <span class="player-number">{{ player.jerseyNumber }}</span>
+                  <span>
+                    <strong>{{ player.playerName }}</strong>
+                    <small>Poeni: {{ player.points }} - Greske: {{ player.errors }} - Blokovi: {{ player.blocks }}</small>
+                  </span>
+                </button>
+              } @empty {
+                <p class="empty-players">Nema unetih igraca za ovaj tim.</p>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
   }
 </section>

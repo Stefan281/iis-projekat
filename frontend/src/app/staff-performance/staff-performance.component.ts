@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MatchStatistics, PlayerStatistic, TeamStatistic } from '../staff/staff.models';
+import { MatchStatistics, PlayerAnalysis, PlayerStatistic, TeamStatistic } from '../staff/staff.models';
 import { StaffStatisticsService } from '../staff/staff-statistics.service';
 
 type PlayerModalTeam = 'home' | 'away';
@@ -106,6 +106,35 @@ export class StaffPerformanceComponent {
       { label: 'Blokovi', value: player.blocks },
       { label: 'Servisi', value: player.serves },
       { label: 'Asistencije', value: player.assists }
+    ];
+  }
+
+  selectedPlayerAnalysis(): PlayerAnalysis | null {
+    const stats = this.statistics();
+    const team = this.openPlayerTeam();
+    const player = this.selectedPlayer();
+
+    if (!stats || !team || !player) {
+      return null;
+    }
+
+    const analyses = team === 'home' ? stats.homePlayerAnalyses : stats.awayPlayerAnalyses;
+    return analyses.find((analysis) => analysis.playerId === player.playerId) ?? null;
+  }
+
+  playerAnalysisRows(analysis: PlayerAnalysis | null) {
+    if (!analysis) {
+      return [
+        { label: 'Efikasnost', value: 'Nema podataka' },
+        { label: 'Doprinos servisa', value: 'Nema podataka' },
+        { label: 'Ukupna ocena', value: 'Nema podataka' }
+      ];
+    }
+
+    return [
+      { label: 'Efikasnost', value: analysis.efficiency },
+      { label: 'Doprinos servisa', value: `${analysis.serveContribution}%` },
+      { label: 'Ukupna ocena', value: `${analysis.overallRating}%` }
     ];
   }
 }

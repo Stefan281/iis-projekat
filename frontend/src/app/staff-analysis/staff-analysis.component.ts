@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { AnalysisPlayer, MatchStatistics, TeamAnalysis } from '../staff/staff.models';
+import { AnalysisPlayer, MatchStatistics, PlayerAnalysis, PlayerStatistic, TeamAnalysis } from '../staff/staff.models';
 import { StaffStatisticsService } from '../staff/staff-statistics.service';
 
 type AnalysisTeamSide = 'home' | 'away';
@@ -17,6 +17,8 @@ export class StaffAnalysisComponent {
 
   readonly statistics = signal<MatchStatistics | null>(null);
   readonly teamSide = signal<AnalysisTeamSide>('home');
+  readonly isPlayerListOpen = signal(false);
+  readonly selectedPlayer = signal<PlayerStatistic | null>(null);
   readonly errorMessage = signal('');
 
   readonly analysis = computed(() => {
@@ -40,7 +42,7 @@ export class StaffAnalysisComponent {
     });
   }
 
-  playerRows(analysis: TeamAnalysis) {
+  teamPlayerRows(analysis: TeamAnalysis) {
     return [
       { label: 'Najefikasniji igrac', player: analysis.mostEfficientPlayer, metric: 'efficiency' },
       { label: 'Najmanje efikasan igrac', player: analysis.leastEfficientPlayer, metric: 'efficiency' },
@@ -69,5 +71,83 @@ export class StaffAnalysisComponent {
 
     const value = player[metric];
     return `#${player.jerseyNumber} ${player.playerName} (${value})`;
+  }
+
+  openPlayers(): void {
+    this.isPlayerListOpen.set(true);
+    this.selectedPlayer.set(null);
+  }
+
+  closePlayers(): void {
+    this.isPlayerListOpen.set(false);
+    this.selectedPlayer.set(null);
+  }
+
+  selectPlayer(player: PlayerStatistic): void {
+    this.selectedPlayer.set(player);
+  }
+
+  closePlayerDetails(): void {
+    this.selectedPlayer.set(null);
+  }
+
+  currentPlayers(): PlayerStatistic[] {
+    const stats = this.statistics();
+
+    if (!stats) {
+      return [];
+    }
+
+    return this.teamSide() === 'home' ? stats.homePlayers : stats.awayPlayers;
+  }
+
+  selectedPlayerAnalysis(): PlayerAnalysis | null {
+    const stats = this.statistics();
+    const player = this.selectedPlayer();
+
+    if (!stats || !player) {
+      return null;
+    }
+
+    const analyses = this.teamSide() === 'home' ? stats.homePlayerAnalyses : stats.awayPlayerAnalyses;
+    return analyses.find((analysis) => analysis.playerId === player.playerId) ?? null;
+  }
+
+  playerStatusLabel(player: PlayerStatistic): string {
+    if (player.playerStatus === 'IN_GAME') {
+      return 'u igri';
+    }
+
+    if (player.playerStatus === 'BENCH') {
+      return 'na klupi';
+    }
+
+    return 'neaktivan';
+  }
+
+  playerRows(player: PlayerStatistic) {
+    return [
+      { label: 'Poeni', value: player.points },
+      { label: 'Greske', value: player.errors },
+      { label: 'Blokovi', value: player.blocks },
+      { label: 'Servisi', value: player.serves },
+      { label: 'Asistencije', value: player.assists }
+    ];
+  }
+
+  playerAnalysisRows(analysis: PlayerAnalysis | null) {
+    if (!analysis) {
+      return [
+        { label: 'Efikasnost', value: 'Nema podataka' },
+        { label: 'Doprinos servisa', value: 'Nema podataka' },
+        { label: 'Ukupna ocena', value: 'Nema podataka' }
+      ];
+    }
+
+    return [
+      { label: 'Efikasnost', value: analysis.efficiency },
+      { label: 'Doprinos servisa', value: `${analysis.serveContribution}%` },
+      { label: 'Ukupna ocena', value: `${analysis.overallRating}%` }
+    ];
   }
 }
