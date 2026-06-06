@@ -208,16 +208,16 @@ public class MatchStatisticsService {
         analysis.setTopServesPlayer(bestPlayer(playerStatistics, PlayerStatistic::getServes));
         analysis.setTopAssistsPlayer(bestPlayer(playerStatistics, PlayerStatistic::getAssists));
         analysis.setTeamEfficiency(teamEfficiency(teamStatistic));
-        analysis.setAttackIndex(percentage(
+        analysis.setAttackIndex(index10(
                 teamStatistic.getPoints() + teamStatistic.getBlocks(),
                 teamStatistic.getPoints() + teamStatistic.getBlocks() + teamStatistic.getErrors()));
-        analysis.setServeIndex(percentage(
+        analysis.setServeIndex(index10(
                 teamStatistic.getServes(),
                 teamStatistic.getServes() + teamStatistic.getErrors()));
-        analysis.setBlockIndex(percentage(
+        analysis.setBlockIndex(index10(
                 teamStatistic.getBlocks(),
                 teamStatistic.getPoints() + teamStatistic.getBlocks() + teamStatistic.getErrors()));
-        analysis.setDisciplineIndex(clamp(100 - teamStatistic.getErrors() * 5, 0, 100));
+        analysis.setDisciplineIndex(clamp(10 - teamStatistic.getErrors(), 0, 10));
 
         teamAnalysisRepository.save(analysis);
     }
@@ -236,9 +236,9 @@ public class MatchStatisticsService {
                 });
 
         var efficiency = playerEfficiency(statistic);
-        analysis.setEfficiency(efficiency);
-        analysis.setServeContribution(clamp(statistic.getServes() * 10 - statistic.getErrors() * 3, 0, 100));
-        analysis.setOverallRating(clamp(efficiency * 5 + analysis.getServeContribution() / 2, 0, 100));
+        analysis.setEfficiency(scaledEfficiency(efficiency));
+        analysis.setServeContribution(clamp(statistic.getServes() * 2 - statistic.getErrors(), 0, 10));
+        analysis.setOverallRating(overallRating(analysis.getEfficiency(), analysis.getServeContribution()));
         playerAnalysisRepository.save(analysis);
     }
 
@@ -301,10 +301,14 @@ public class MatchStatisticsService {
     }
 
     private Integer teamEfficiency(TeamStatistic statistic) {
-        return statistic.getPoints() * 2
-                + statistic.getBlocks() * 2
-                + statistic.getServes()
-                - statistic.getErrors() * 2;
+        var positiveActions = statistic.getPoints() + statistic.getBlocks() + statistic.getServes();
+        var totalActions = positiveActions + statistic.getErrors();
+
+        if (totalActions == 0) {
+            return 0;
+        }
+
+        return clamp((int) Math.round((positiveActions - statistic.getErrors()) * 10.0 / totalActions), -10, 10);
     }
 
     private Integer playerEfficiency(PlayerStatistic statistic) {
@@ -331,12 +335,22 @@ public class MatchStatisticsService {
                 .orElse(null);
     }
 
-    private Integer percentage(Integer numerator, Integer denominator) {
+    private Integer index10(Integer numerator, Integer denominator) {
         if (denominator == null || denominator == 0) {
             return 0;
         }
 
-        return clamp((int) Math.round((numerator == null ? 0 : numerator) * 100.0 / denominator), 0, 100);
+        return clamp((int) Math.round((numerator == null ? 0 : numerator) * 10.0 / denominator), 0, 10);
+    }
+
+    private Integer scaledEfficiency(Integer rawEfficiency) {
+        return clamp((int) Math.round((rawEfficiency == null ? 0 : rawEfficiency) / 2.0), -10, 10);
+    }
+
+    private Integer overallRating(Integer efficiency, Integer serveContribution) {
+        var positiveEfficiency = Math.max(0, efficiency == null ? 0 : efficiency);
+        var serveScore = serveContribution == null ? 0 : serveContribution;
+        return clamp((int) Math.round(positiveEfficiency * 0.8 + serveScore * 0.2), 0, 10);
     }
 
     private Integer clamp(Integer value, Integer min, Integer max) {

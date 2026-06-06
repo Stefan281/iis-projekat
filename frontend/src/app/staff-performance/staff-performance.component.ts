@@ -132,9 +132,9 @@ export class StaffPerformanceComponent {
     }
 
     return [
-      { label: 'Efikasnost', value: analysis.efficiency },
-      { label: 'Doprinos servisa', value: `${analysis.serveContribution}%` },
-      { label: 'Ukupna ocena', value: `${analysis.overallRating}%` }
+      { label: 'Efikasnost', value: `${analysis.efficiency}/10` },
+      { label: 'Doprinos servisa', value: `${analysis.serveContribution}/10` },
+      { label: 'Ukupna ocena', value: `${analysis.overallRating}/10` }
     ];
   }
 }

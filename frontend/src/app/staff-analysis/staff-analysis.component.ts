@@ -56,11 +56,11 @@ export class StaffAnalysisComponent {
 
   teamRows(analysis: TeamAnalysis) {
     return [
-      { label: 'Uspesnost servisa', value: analysis.serveIndex, suffix: '%' },
-      { label: 'Uspesnost napada', value: analysis.attackIndex, suffix: '%' },
-      { label: 'Uspesnost blokova', value: analysis.blockIndex, suffix: '%' },
-      { label: 'Disciplina igre', value: analysis.disciplineIndex, suffix: '%' },
-      { label: 'Efikasnost tima', value: analysis.teamEfficiency, suffix: '' }
+      { label: 'Indeks servisa', value: analysis.serveIndex, suffix: '/10' },
+      { label: 'Indeks napada', value: analysis.attackIndex, suffix: '/10' },
+      { label: 'Indeks blokova', value: analysis.blockIndex, suffix: '/10' },
+      { label: 'Disciplina igre', value: analysis.disciplineIndex, suffix: '/10' },
+      { label: 'Efikasnost tima', value: analysis.teamEfficiency, suffix: '/10' }
     ];
   }
 
@@ -145,9 +145,9 @@ export class StaffAnalysisComponent {
     }
 
     return [
-      { label: 'Efikasnost', value: analysis.efficiency },
-      { label: 'Doprinos servisa', value: `${analysis.serveContribution}%` },
-      { label: 'Ukupna ocena', value: `${analysis.overallRating}%` }
+      { label: 'Efikasnost', value: `${analysis.efficiency}/10` },
+      { label: 'Doprinos servisa', value: `${analysis.serveContribution}/10` },
+      { label: 'Ukupna ocena', value: `${analysis.overallRating}/10` }
     ];
   }
 }
