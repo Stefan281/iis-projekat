@@ -105,7 +105,10 @@
   margin-top: 2px;
 }
 
-.card-actions button {
+.card-actions button,
+.card-actions a {
+  display: grid;
+  place-items: center;
   min-height: 32px;
   border: 0;
   border-radius: 4px;
@@ -114,10 +117,11 @@
   font: inherit;
   font-size: 0.78rem;
   font-weight: 800;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.card-actions button + button {
+.card-actions button + a {
   background: #1288df;
 }
 

@@ -11,5 +11,9 @@ public record MatchStatisticsResponse(
         TeamStatisticResponse homeTeam,
         TeamStatisticResponse awayTeam,
         List<PlayerStatisticResponse> homePlayers,
-        List<PlayerStatisticResponse> awayPlayers) {
+        List<PlayerStatisticResponse> awayPlayers,
+        TeamAnalysisResponse homeAnalysis,
+        TeamAnalysisResponse awayAnalysis,
+        List<PlayerAnalysisResponse> homePlayerAnalyses,
+        List<PlayerAnalysisResponse> awayPlayerAnalyses) {
 }

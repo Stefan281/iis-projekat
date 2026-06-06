@@ -1,0 +1,66 @@
+<section class="analysis-page">
+  @if (errorMessage()) {
+    <p class="error-message">{{ errorMessage() }}</p>
+  }
+
+  @if (statistics(); as stats) {
+    <header class="match-strip">
+      <div>
+        <strong>{{ stats.homeTeam.teamName }} vs {{ stats.awayTeam.teamName }}</strong>
+        <span> {{ stats.matchDate }} - 18:00 - Set 3 </span>
+      </div>
+      <a routerLink="/strucni-stab/utakmica">Utakmica -></a>
+    </header>
+
+    @if (analysis(); as teamAnalysis) {
+      <section class="analysis-grid">
+        <article class="analysis-card">
+          <h2>
+            <span class="individual-icon" aria-hidden="true">
+              <span></span>
+            </span>
+            Individualne performanse - {{ teamName() }}
+          </h2>
+          @for (row of playerRows(teamAnalysis); track row.label) {
+            <div class="analysis-row">
+              <span>{{ row.label }}</span>
+              <strong>{{ playerLabel(row.player, row.metric) }}</strong>
+            </div>
+          }
+        </article>
+
+        <article class="analysis-card">
+          <h2>
+            <span class="team-icon" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            Timske performanse
+          </h2>
+          @for (row of teamRows(teamAnalysis); track row.label) {
+            <div class="analysis-row">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}{{ row.suffix }}</strong>
+            </div>
+          }
+
+          <button class="show-players-button" type="button">Prikazi igrace</button>
+        </article>
+      </section>
+    } @else {
+      <section class="empty-analysis">
+        <h1>Analiza nije dostupna</h1>
+        <p>Analiza ce biti prikazana kada se unesu dogadjaji za {{ teamName() }}.</p>
+      </section>
+    }
+
+    <section class="recommendations">
+      <h2><span aria-hidden="true">!</span> Preporuke</h2>
+      <div class="recommendation-card">
+        <strong>Preporuke ce biti prikazane ovde</strong>
+        <p>Za sada je ovaj deo ostavljen kao placeholder.</p>
+      </div>
+    </section>
+  }
+</section>

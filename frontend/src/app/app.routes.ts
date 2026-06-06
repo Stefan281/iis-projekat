@@ -5,6 +5,7 @@ import { HomeRedirectComponent } from './home-redirect/home-redirect.component';
 import { LoginComponent } from './login/login.component';
 import { MatchEventsComponent } from './match-events/match-events.component';
 import { OpponentTeamsComponent } from './opponent-teams/opponent-teams.component';
+import { StaffAnalysisComponent } from './staff-analysis/staff-analysis.component';
 import { StaffDashboardComponent } from './staff-dashboard/staff-dashboard.component';
 import { StaffPerformanceComponent } from './staff-performance/staff-performance.component';
 import { StaffTeamsComponent } from './staff-teams/staff-teams.component';
@@ -22,6 +23,7 @@ export const routes: Routes = [
       { path: 'protivnicki-timovi', component: OpponentTeamsComponent },
       { path: 'strucni-stab', component: StaffDashboardComponent },
       { path: 'strucni-stab/utakmica', component: StaffPerformanceComponent },
+      { path: 'strucni-stab/analiza/:team', component: StaffAnalysisComponent },
       { path: 'strucni-stab/timovi', component: StaffTeamsComponent },
       { path: '', component: HomeRedirectComponent, pathMatch: 'full' }
     ]

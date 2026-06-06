@@ -1,0 +1,235 @@
+.analysis-page {
+  display: grid;
+  gap: 14px;
+  padding: 12px 18px 24px;
+}
+
+.match-strip,
+.analysis-card,
+.recommendation-card,
+.empty-analysis {
+  border: 1px solid #c4c4c4;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
+}
+
+.match-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 8px 14px;
+}
+
+.match-strip div {
+  display: grid;
+  gap: 4px;
+}
+
+.match-strip span {
+  color: #536171;
+  font-size: 0.82rem;
+}
+
+.match-strip a {
+  border: 1px solid #b4b4b4;
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #111111;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.analysis-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 18px 20px;
+}
+
+.analysis-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.analysis-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.55fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  border-radius: 4px;
+  padding: 0 10px;
+  background: #d2d2d2;
+}
+
+.analysis-row span {
+  color: #607588;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.analysis-row strong {
+  overflow-wrap: anywhere;
+  text-align: right;
+  font-size: 0.86rem;
+}
+
+.individual-icon,
+.team-icon {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 20px;
+}
+
+.individual-icon span,
+.team-icon span {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 8px;
+  border: 2px solid #1a1a1a;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+}
+
+.individual-icon span::before,
+.team-icon span::before {
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 2px solid #1a1a1a;
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translateX(-50%);
+}
+
+.team-icon {
+  width: 30px;
+}
+
+.team-icon span {
+  width: 10px;
+  height: 7px;
+  margin-left: -2px;
+  margin-right: -2px;
+}
+
+.team-icon span:first-child,
+.team-icon span:last-child {
+  transform: scale(0.82);
+  transform-origin: bottom center;
+}
+
+.team-icon span:nth-child(2) {
+  z-index: 1;
+}
+
+.show-players-button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 4px;
+  background: #12cc24;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: default;
+}
+
+.recommendations {
+  display: grid;
+  gap: 10px;
+}
+
+.recommendations h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #ff1e1e;
+  font-size: 1.4rem;
+}
+
+.recommendations h2 span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ff2f2f;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.recommendation-card {
+  padding: 14px;
+  background: #d9d9d9;
+}
+
+.recommendation-card p {
+  margin: 4px 0 0;
+}
+
+.empty-analysis,
+.error-message {
+  padding: 14px;
+}
+
+.empty-analysis h1,
+.empty-analysis p {
+  margin: 0;
+}
+
+.empty-analysis {
+  display: grid;
+  gap: 8px;
+}
+
+.error-message {
+  margin: 0;
+  border: 1px solid #f0b4b7;
+  border-radius: 4px;
+  background: #fff1f2;
+  color: #9c1c22;
+  font-weight: 700;
+}
+
+@media (max-width: 920px) {
+  .analysis-grid,
+  .analysis-row {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-row {
+    padding: 8px 10px;
+  }
+
+  .analysis-row strong {
+    text-align: left;
+  }
+
+  .match-strip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
