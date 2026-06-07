@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MatchStatistics, PlayerAnalysis, PlayerStatistic, TeamStatistic } from '../staff/staff.models';
+import { ActivityRecommendation, MatchStatistics, PlayerAnalysis, PlayerStatistic, TeamStatistic } from '../staff/staff.models';
 import { StaffStatisticsService } from '../staff/staff-statistics.service';
 
 type PlayerModalTeam = 'home' | 'away';
@@ -136,5 +136,25 @@ export class StaffPerformanceComponent {
       { label: 'Doprinos servisa', value: `${analysis.serveContribution}/10` },
       { label: 'Ukupna ocena', value: `${analysis.overallRating}/10` }
     ];
+  }
+
+  recommendations(): ActivityRecommendation[] {
+    return this.statistics()?.recommendations ?? [];
+  }
+
+  priorityLabel(priority: ActivityRecommendation['priority']): string {
+    if (priority === 'HIGH') {
+      return 'Visok prioritet';
+    }
+
+    if (priority === 'MEDIUM') {
+      return 'Srednji prioritet';
+    }
+
+    return 'Nizak prioritet';
+  }
+
+  recommendationTeamLabel(recommendation: ActivityRecommendation): string {
+    return recommendation.teamType === 'HOME' ? 'Nas tim' : recommendation.teamName;
   }
 }

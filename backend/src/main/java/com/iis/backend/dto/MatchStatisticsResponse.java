@@ -15,5 +15,6 @@ public record MatchStatisticsResponse(
         TeamAnalysisResponse homeAnalysis,
         TeamAnalysisResponse awayAnalysis,
         List<PlayerAnalysisResponse> homePlayerAnalyses,
-        List<PlayerAnalysisResponse> awayPlayerAnalyses) {
+        List<PlayerAnalysisResponse> awayPlayerAnalyses,
+        List<ActivityRecommendationResponse> recommendations) {
 }

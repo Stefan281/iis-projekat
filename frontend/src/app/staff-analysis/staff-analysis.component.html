@@ -57,10 +57,21 @@
 
     <section class="recommendations">
       <h2><span aria-hidden="true">!</span> Preporuke</h2>
-      <div class="recommendation-card">
-        <strong>Preporuke ce biti prikazane ovde</strong>
-        <p>Za sada je ovaj deo ostavljen kao placeholder.</p>
-      </div>
+      @for (recommendation of recommendations(); track recommendation.id) {
+        <div class="recommendation-card">
+          <div class="recommendation-meta">
+            <span>{{ recommendationTeamLabel(recommendation) }}</span>
+            <span>{{ priorityLabel(recommendation.priority) }}</span>
+          </div>
+          <strong>{{ recommendation.title }}</strong>
+          <p>{{ recommendation.description }}</p>
+        </div>
+      } @empty {
+        <div class="recommendation-card">
+          <strong>Nema preporuka</strong>
+          <p>Preporuke ce biti prikazane kada analiza prepozna dovoljno izrazen obrazac u igri.</p>
+        </div>
+      }
     </section>
 
     @if (isPlayerListOpen()) {

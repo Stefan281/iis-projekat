@@ -59,6 +59,21 @@ export interface PlayerAnalysis {
   overallRating: number;
 }
 
+export interface ActivityRecommendation {
+  id: number;
+  teamId: number;
+  teamName: string;
+  teamType: 'HOME' | 'OPPONENT';
+  playerId?: number | null;
+  playerName?: string | null;
+  jerseyNumber?: number | null;
+  type: string;
+  title: string;
+  description: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  createdAt: string;
+}
+
 export interface MatchStatistics {
   matchId: number;
   matchDate: string;
@@ -72,4 +87,5 @@ export interface MatchStatistics {
   awayAnalysis: TeamAnalysis | null;
   homePlayerAnalyses: PlayerAnalysis[];
   awayPlayerAnalyses: PlayerAnalysis[];
+  recommendations: ActivityRecommendation[];
 }

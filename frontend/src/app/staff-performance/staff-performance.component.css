@@ -155,6 +155,22 @@
   background: #d9d9d9;
 }
 
+.recommendation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.recommendation-meta span {
+  border-radius: 4px;
+  padding: 3px 8px;
+  background: #ffffff;
+  color: #607588;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
 .recommendation-card p {
   margin: 4px 0 0;
 }

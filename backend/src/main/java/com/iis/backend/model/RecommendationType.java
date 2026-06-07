@@ -1,0 +1,13 @@
+package com.iis.backend.model;
+
+public enum RecommendationType {
+    REDUCE_ERRORS,
+    IMPROVE_SERVE,
+    KEEP_SERVE_PRESSURE,
+    IMPROVE_ATTACK,
+    IMPROVE_BLOCK,
+    USE_TOP_SCORER,
+    USE_EFFICIENT_PLAYER,
+    WATCH_ERROR_PRONE_PLAYER,
+    CONSIDER_TACTICAL_CHANGE
+}

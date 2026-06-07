@@ -1,10 +1,12 @@
 package com.iis.backend.service;
 
+import com.iis.backend.dto.ActivityRecommendationResponse;
 import com.iis.backend.dto.MatchStatisticsResponse;
 import com.iis.backend.dto.PlayerAnalysisResponse;
 import com.iis.backend.dto.PlayerStatisticResponse;
 import com.iis.backend.dto.TeamAnalysisResponse;
 import com.iis.backend.dto.TeamStatisticResponse;
+import com.iis.backend.model.ActivityRecommendation;
 import com.iis.backend.model.EventType;
 import com.iis.backend.model.Match;
 import com.iis.backend.model.MatchEvent;
@@ -13,8 +15,12 @@ import com.iis.backend.model.OpponentPlayer;
 import com.iis.backend.model.OpponentTeam;
 import com.iis.backend.model.PlayerAnalysis;
 import com.iis.backend.model.PlayerStatistic;
+import com.iis.backend.model.RecommendationPriority;
+import com.iis.backend.model.RecommendationType;
 import com.iis.backend.model.TeamAnalysis;
 import com.iis.backend.model.TeamStatistic;
+import com.iis.backend.model.TeamType;
+import com.iis.backend.repository.ActivityRecommendationRepository;
 import com.iis.backend.repository.MatchRepository;
 import com.iis.backend.repository.MatchEventRepository;
 import com.iis.backend.repository.PlayerAnalysisRepository;
@@ -24,6 +30,7 @@ import com.iis.backend.repository.TeamStatisticRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -40,6 +47,7 @@ public class MatchStatisticsService {
     private final PlayerStatisticRepository playerStatisticRepository;
     private final TeamAnalysisRepository teamAnalysisRepository;
     private final PlayerAnalysisRepository playerAnalysisRepository;
+    private final ActivityRecommendationRepository activityRecommendationRepository;
 
     public MatchStatisticsService(
             MatchRepository matchRepository,
@@ -47,13 +55,15 @@ public class MatchStatisticsService {
             TeamStatisticRepository teamStatisticRepository,
             PlayerStatisticRepository playerStatisticRepository,
             TeamAnalysisRepository teamAnalysisRepository,
-            PlayerAnalysisRepository playerAnalysisRepository) {
+            PlayerAnalysisRepository playerAnalysisRepository,
+            ActivityRecommendationRepository activityRecommendationRepository) {
         this.matchRepository = matchRepository;
         this.matchEventRepository = matchEventRepository;
         this.teamStatisticRepository = teamStatisticRepository;
         this.playerStatisticRepository = playerStatisticRepository;
         this.teamAnalysisRepository = teamAnalysisRepository;
         this.playerAnalysisRepository = playerAnalysisRepository;
+        this.activityRecommendationRepository = activityRecommendationRepository;
     }
 
     @Transactional
@@ -79,7 +89,8 @@ public class MatchStatisticsService {
                 getTeamAnalysis(match, homeTeamStatistic),
                 getTeamAnalysis(match, awayTeamStatistic),
                 getPlayerAnalyses(match, match.getHomeTeam()),
-                getPlayerAnalyses(match, match.getAwayTeam()));
+                getPlayerAnalyses(match, match.getAwayTeam()),
+                getRecommendations(match));
     }
 
     public void applyEvent(MatchEvent event) {
@@ -170,6 +181,17 @@ public class MatchStatisticsService {
                 .toList();
     }
 
+    private List<ActivityRecommendationResponse> getRecommendations(Match match) {
+        return activityRecommendationRepository
+                .findByTeamAnalysisTeamStatisticMatchId(match.getId())
+                .stream()
+                .sorted(Comparator
+                        .comparingInt((ActivityRecommendation recommendation) -> priorityRank(recommendation.getPriority()))
+                        .thenComparing(ActivityRecommendation::getCreatedAt))
+                .map(ActivityRecommendationResponse::fromEntity)
+                .toList();
+    }
+
     private TeamAnalysisResponse getTeamAnalysis(Match match, TeamStatistic statistic) {
         return teamAnalysisRepository.findByTeamStatisticId(statistic.getId())
                 .map(analysis -> TeamAnalysisResponse.fromEntity(analysis, playerStatisticMap(match, statistic.getTeam())))
@@ -189,6 +211,8 @@ public class MatchStatisticsService {
         playerStatistics.forEach(this::saveOrDeletePlayerAnalysis);
 
         if (!hasTeamAnalysisData(teamStatistic, playerStatistics)) {
+            teamAnalysisRepository.findByTeamStatisticId(teamStatistic.getId())
+                    .ifPresent(analysis -> activityRecommendationRepository.deleteByTeamAnalysisId(analysis.getId()));
             teamAnalysisRepository.deleteByTeamStatisticId(teamStatistic.getId());
             return;
         }
@@ -219,7 +243,185 @@ public class MatchStatisticsService {
                 teamStatistic.getPoints() + teamStatistic.getBlocks() + teamStatistic.getErrors()));
         analysis.setDisciplineIndex(clamp(10 - teamStatistic.getErrors(), 0, 10));
 
-        teamAnalysisRepository.save(analysis);
+        var savedAnalysis = teamAnalysisRepository.save(analysis);
+        regenerateRecommendations(savedAnalysis, playerStatistics);
+    }
+
+    private void regenerateRecommendations(TeamAnalysis analysis, List<PlayerStatistic> playerStatistics) {
+        activityRecommendationRepository.deleteByTeamAnalysisId(analysis.getId());
+
+        var recommendations = new ArrayList<ActivityRecommendation>();
+        var teamStatistic = analysis.getTeamStatistic();
+        var team = teamStatistic.getTeam();
+        var isHomeTeam = team.getTeamType() == TeamType.HOME;
+        var playerStatisticMap = playerStatistics.stream()
+                .collect(Collectors.toMap(statistic -> statistic.getPlayer().getId(), statistic -> statistic));
+
+        if (analysis.getDisciplineIndex() <= 4) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    null,
+                    RecommendationType.REDUCE_ERRORS,
+                    RecommendationPriority.HIGH,
+                    isHomeTeam ? "Smanjiti broj gresaka" : "Iskoristiti greske protivnika",
+                    isHomeTeam
+                            ? "Tim ima nizak indeks discipline. Fokusirati se na sigurniju igru i smanjenje neiznudjenih gresaka."
+                            : team.getName() + " ima nizak indeks discipline. Vrsiti pritisak i terati protivnika na rizicne odluke.");
+        }
+
+        if (analysis.getServeIndex() <= 4) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    null,
+                    RecommendationType.IMPROVE_SERVE,
+                    RecommendationPriority.MEDIUM,
+                    isHomeTeam ? "Poboljsati servis" : "Napasti protivnicki servis",
+                    isHomeTeam
+                            ? "Indeks servisa je nizak. Potrebno je stabilizovati servis i smanjiti rizik."
+                            : team.getName() + " ima slabiji indeks servisa. Iskoristiti njihove nestabilne servis sekvence.");
+        } else if (analysis.getServeIndex() >= 7) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    null,
+                    RecommendationType.KEEP_SERVE_PRESSURE,
+                    RecommendationPriority.LOW,
+                    isHomeTeam ? "Nastaviti pritisak servisom" : "Pripremiti prijem za jak servis",
+                    isHomeTeam
+                            ? "Indeks servisa je visok. Zadrzati trenutni ritam i koristiti servis kao sredstvo pritiska."
+                            : team.getName() + " ima visok indeks servisa. Posebno obratiti paznju na organizaciju prijema.");
+        }
+
+        if (analysis.getAttackIndex() <= 4) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    null,
+                    RecommendationType.IMPROVE_ATTACK,
+                    RecommendationPriority.MEDIUM,
+                    isHomeTeam ? "Pojacati napad" : "Zadrzati pritisak na protivnicki napad",
+                    isHomeTeam
+                            ? "Indeks napada je nizak. Potrebno je traziti sigurnije i bolje rasporedjene napadacke opcije."
+                            : team.getName() + " ima nizak indeks napada. Nastaviti sa pritiskom i zatvaranjem glavnih napadackih opcija.");
+        }
+
+        if (analysis.getBlockIndex() <= 3) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    null,
+                    RecommendationType.IMPROVE_BLOCK,
+                    RecommendationPriority.MEDIUM,
+                    isHomeTeam ? "Pojacati blok igru" : "Napadati prostor oko bloka",
+                    isHomeTeam
+                            ? "Indeks blokova je nizak. Potrebna je bolja komunikacija i postavljanje u bloku."
+                            : team.getName() + " ima slabiji indeks blokova. Traziti napade kroz prostor oko njihovog bloka.");
+        }
+
+        if (analysis.getTeamEfficiency() <= -3) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    null,
+                    RecommendationType.CONSIDER_TACTICAL_CHANGE,
+                    RecommendationPriority.HIGH,
+                    isHomeTeam ? "Razmotriti promenu ritma" : "Pojacati pritisak na neefikasan tim",
+                    isHomeTeam
+                            ? "Efikasnost tima je negativna. Razmotriti izmenu ili promenu taktickog pristupa."
+                            : team.getName() + " ima negativnu efikasnost. Zadrzati pritisak dok protivnik ne stabilizuje igru.");
+        }
+
+        addPlayerRecommendationRules(recommendations, analysis, playerStatisticMap, isHomeTeam);
+
+        activityRecommendationRepository.saveAll(recommendations);
+    }
+
+    private void addPlayerRecommendationRules(
+            List<ActivityRecommendation> recommendations,
+            TeamAnalysis analysis,
+            Map<Long, PlayerStatistic> playerStatisticMap,
+            boolean isHomeTeam) {
+        var topPointsStatistic = statisticFor(analysis.getTopPointsPlayer(), playerStatisticMap);
+        if (topPointsStatistic != null && topPointsStatistic.getPoints() >= 5) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    topPointsStatistic.getPlayer(),
+                    RecommendationType.USE_TOP_SCORER,
+                    RecommendationPriority.MEDIUM,
+                    isHomeTeam ? "Usmeriti napad preko najboljeg poentera" : "Zaustaviti najboljeg poentera protivnika",
+                    isHomeTeam
+                            ? playerName(topPointsStatistic) + " ima najveci broj poena u timu. Koristiti ga u kljucnim napadima."
+                            : playerName(topPointsStatistic) + " je najopasniji poenter protivnika. Potrebno je ograniciti njegove napadacke opcije.");
+        }
+
+        var efficientStatistic = statisticFor(analysis.getMostEfficientPlayer(), playerStatisticMap);
+        if (efficientStatistic != null && scaledEfficiency(playerEfficiency(efficientStatistic)) >= 7) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    efficientStatistic.getPlayer(),
+                    RecommendationType.USE_EFFICIENT_PLAYER,
+                    RecommendationPriority.MEDIUM,
+                    isHomeTeam ? "Koristiti najefikasnijeg igraca" : "Neutralisati najefikasnijeg igraca protivnika",
+                    isHomeTeam
+                            ? playerName(efficientStatistic) + " ima visok indeks efikasnosti. Preporucuje se vise akcija preko njega."
+                            : playerName(efficientStatistic) + " ima visok indeks efikasnosti. Fokusirati odbranu i blok na tog igraca.");
+        }
+
+        var errorStatistic = statisticFor(analysis.getTopErrorsPlayer(), playerStatisticMap);
+        if (errorStatistic != null && errorStatistic.getErrors() >= 3) {
+            addRecommendation(
+                    recommendations,
+                    analysis,
+                    errorStatistic.getPlayer(),
+                    RecommendationType.WATCH_ERROR_PRONE_PLAYER,
+                    RecommendationPriority.HIGH,
+                    isHomeTeam ? "Smanjiti rizicne akcije kod igraca" : "Napadati igraca sklonog greskama",
+                    isHomeTeam
+                            ? playerName(errorStatistic) + " ima najveci broj gresaka. Smanjiti rizicne lopte i stabilizovati njegovu ulogu."
+                            : playerName(errorStatistic) + " ima najveci broj gresaka kod protivnika. Usmeriti pritisak ka njemu.");
+        }
+    }
+
+    private PlayerStatistic statisticFor(OpponentPlayer player, Map<Long, PlayerStatistic> playerStatisticMap) {
+        if (player == null) {
+            return null;
+        }
+
+        return playerStatisticMap.get(player.getId());
+    }
+
+    private String playerName(PlayerStatistic statistic) {
+        return "#" + statistic.getPlayer().getJerseyNumber() + " " + statistic.getPlayer().getFullName();
+    }
+
+    private void addRecommendation(
+            List<ActivityRecommendation> recommendations,
+            TeamAnalysis analysis,
+            OpponentPlayer player,
+            RecommendationType type,
+            RecommendationPriority priority,
+            String title,
+            String description) {
+        var recommendation = new ActivityRecommendation();
+        recommendation.setTeamAnalysis(analysis);
+        recommendation.setPlayer(player);
+        recommendation.setType(type);
+        recommendation.setPriority(priority);
+        recommendation.setTitle(title);
+        recommendation.setDescription(description);
+        recommendations.add(recommendation);
+    }
+
+    private Integer priorityRank(RecommendationPriority priority) {
+        return switch (priority) {
+            case HIGH -> 0;
+            case MEDIUM -> 1;
+            case LOW -> 2;
+        };
     }
 
     private void saveOrDeletePlayerAnalysis(PlayerStatistic statistic) {
