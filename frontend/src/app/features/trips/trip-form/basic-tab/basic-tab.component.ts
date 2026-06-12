@@ -1,5 +1,7 @@
-import { Component, EventEmitter, inject, Input, OnChanges, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnChanges, OnInit, OnDestroy, Output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { Putovanje, PutovanjeStatus } from '../../../../core/models/models';
 import { TripsService } from '../../../../core/services/trips.service';
 
@@ -10,7 +12,7 @@ import { TripsService } from '../../../../core/services/trips.service';
   templateUrl: './basic-tab.component.html',
   styleUrl: './basic-tab.component.css'
 })
-export class BasicTabComponent implements OnChanges {
+export class BasicTabComponent implements OnInit, OnChanges, OnDestroy {
   @Input() putovanje: Putovanje | null = null;
   @Input() isNew = false;
   @Output() saved = new EventEmitter<Putovanje>();
@@ -20,6 +22,7 @@ export class BasicTabComponent implements OnChanges {
 
   isSaving = signal(false);
   saveSuccess = signal(false);
+  overlapError = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -36,6 +39,14 @@ export class BasicTabComponent implements OnChanges {
     { value: 'CONFIRMED', label: 'Odobreno' }
   ];
 
+  private dateSub?: Subscription;
+
+  ngOnInit() {
+    const reset = () => this.overlapError.set(null);
+    this.dateSub = this.form.controls.departureDate.valueChanges.subscribe(reset);
+    this.dateSub.add(this.form.controls.returnDate.valueChanges.subscribe(reset));
+  }
+
   ngOnChanges() {
     if (this.putovanje) {
       this.form.patchValue({
@@ -49,9 +60,14 @@ export class BasicTabComponent implements OnChanges {
     }
   }
 
+  ngOnDestroy() {
+    this.dateSub?.unsubscribe();
+  }
+
   submit() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.isSaving.set(true);
+    this.overlapError.set(null);
     const val = this.form.getRawValue();
     const payload: Partial<Putovanje> = {
       name: val.name,
@@ -73,7 +89,13 @@ export class BasicTabComponent implements OnChanges {
         setTimeout(() => this.saveSuccess.set(false), 2000);
         this.saved.emit(p);
       },
-      error: () => this.isSaving.set(false)
+      error: (err: HttpErrorResponse) => {
+        this.isSaving.set(false);
+        if (err.status === 409) {
+          const message = err.error?.message ?? (typeof err.error === 'string' ? err.error : 'Datumi se preklapaju sa postojećim putovanjem.');
+          this.overlapError.set(message);
+        }
+      }
     });
   }
 }

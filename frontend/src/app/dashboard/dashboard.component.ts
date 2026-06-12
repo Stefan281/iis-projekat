@@ -69,7 +69,7 @@ export class DashboardComponent implements OnInit {
     start.setDate(start.getDate() - offset);
 
     const days: CalendarDay[] = [];
-    const cur = new Date(start);
+    const cur = new Date(start); //i=0;
 
     while (cur <= lastDay || days.length % 7 !== 0 || days.length < 35) {
       const d = new Date(cur);
@@ -78,16 +78,20 @@ export class DashboardComponent implements OnInit {
       let isTripStart = false;
       let isTripEnd = false;
 
+      //za svaki dan koji je prvi ili poslednji oznacava to i dal je danas taj trip
       const tripIds = this.putovanja().filter(p => {
         const polaska = new Date(p.departureDate);
         polaska.setHours(0,0,0,0);
+
         const povratka = p.returnDate ? new Date(p.returnDate) : polaska;
         povratka.setHours(0,0,0,0);
+
         if (d.getTime() === polaska.getTime()) isTripStart = true;
         if (d.getTime() === povratka.getTime()) isTripEnd = true;
         return d >= polaska && d <= povratka;
       }).map(p => p.id);
 
+      //dodaje taj dan
       days.push({
         date: d,
         dayNum: d.getDate(),
@@ -98,7 +102,7 @@ export class DashboardComponent implements OnInit {
         isTripEnd
       });
 
-      cur.setDate(cur.getDate() + 1);
+      cur.setDate(cur.getDate() + 1);//i++
       if (days.length >= 42) break;
     }
     return days;
@@ -107,17 +111,6 @@ export class DashboardComponent implements OnInit {
   getTripColor(tripId: number) {
     const idx = this.tripColorMap.get(tripId) ?? 0;
     return this.TRIP_COLORS[idx];
-  }
-
-  getDayCellBg(day: CalendarDay): string | null {
-    if (day.tripIds.length === 0) return null;
-    return this.getTripColor(day.tripIds[0]).bg;
-  }
-
-  getDayCircleBg(day: CalendarDay): string | null {
-    if (day.tripIds.length === 0) return null;
-    if (day.isTripStart || day.isTripEnd) return this.getTripColor(day.tripIds[0]).solid;
-    return null;
   }
 
   getDayColorBg(day: CalendarDay): string | null {

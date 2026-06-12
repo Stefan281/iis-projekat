@@ -31,6 +31,13 @@
       <input type="date" formControlName="returnDate" />
     </div>
 
+    @if (overlapError()) {
+      <div class="overlap-error-box">
+        <span class="overlap-error-icon">⚠</span>
+        <span>{{ overlapError() }}</span>
+      </div>
+    }
+
     <p class="field-hint">Za jednodnevna putovanja uneti samo datum polaska</p>
 
     <div class="form-field">
