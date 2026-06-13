@@ -1,13 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TripsService } from '../../../core/services/trips.service';
-import { Putovanje } from '../../../core/models/models';
+import { Trip } from '../../../core/models/models';
 import { BasicTabComponent } from './basic-tab/basic-tab.component';
 import { AccommodationTabComponent } from './accommodation-tab/accommodation-tab.component';
 import { TransportTabComponent } from './transport-tab/transport-tab.component';
 import { PassengersTabComponent } from './passengers-tab/passengers-tab.component';
 
-type Tab = 'osnovno' | 'smestaj' | 'prevoz' | 'putnici';
+type Tab = 'basic' | 'accommodation' | 'transport' | 'passengers';
 
 @Component({
   selector: 'app-trip-form',
@@ -21,16 +21,16 @@ export class TripFormComponent implements OnInit {
   private router = inject(Router);
   private tripsService = inject(TripsService);
 
-  putovanjeId = signal<number | null>(null);
-  putovanje = signal<Putovanje | null>(null);
-  activeTab = signal<Tab>('osnovno');
+  tripId = signal<number | null>(null);
+  trip = signal<Trip | null>(null);
+  activeTab = signal<Tab>('basic');
   isNew = signal(false);
 
   tabs: { key: Tab; label: string }[] = [
-    { key: 'osnovno', label: 'Osnovno' },
-    { key: 'smestaj', label: 'Smeštaj' },
-    { key: 'prevoz', label: 'Prevoz' },
-    { key: 'putnici', label: 'Putnici' }
+    { key: 'basic', label: 'Osnovno' },
+    { key: 'accommodation', label: 'Smeštaj' },
+    { key: 'transport', label: 'Prevoz' },
+    { key: 'passengers', label: 'Putnici' }
   ];
 
   ngOnInit() {
@@ -38,9 +38,9 @@ export class TripFormComponent implements OnInit {
     if (!id || id === 'novo') {
       this.isNew.set(true);
     } else {
-      this.putovanjeId.set(+id);
+      this.tripId.set(+id);
       this.tripsService.getById(+id).subscribe({
-        next: (p) => this.putovanje.set(p),
+        next: (p) => this.trip.set(p),
         error: () => {}
       });
     }
@@ -50,9 +50,9 @@ export class TripFormComponent implements OnInit {
     this.activeTab.set(tab);
   }
 
-  onTripSaved(p: Putovanje) {
-    this.putovanje.set(p);
-    this.putovanjeId.set(p.id);
+  onTripSaved(p: Trip) {
+    this.trip.set(p);
+    this.tripId.set(p.id);
     this.isNew.set(false);
   }
 }

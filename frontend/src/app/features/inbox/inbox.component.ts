@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InboxService } from '../../core/services/inbox.service';
-import { Poruka } from '../../core/models/models';
+import { Message } from '../../core/models/models';
 
 @Component({
   selector: 'app-inbox',
@@ -14,19 +14,19 @@ export class InboxComponent implements OnInit {
   private inboxService = inject(InboxService);
   private fb = inject(FormBuilder);
 
-  poruke = signal<Poruka[]>([]);
+  messages = signal<Message[]>([]);
   replyTo = signal<number | null>(null);
   isSending = signal(false);
 
   replyForm = this.fb.nonNullable.group({
-    tekst: ['', Validators.required]
+    text: ['', Validators.required]
   });
 
   ngOnInit() { this.load(); }
 
   load() {
     this.inboxService.getMessages().subscribe({
-      next: (list) => this.poruke.set(list),
+      next: (list) => this.messages.set(list),
       error: () => {}
     });
   }
@@ -40,8 +40,8 @@ export class InboxComponent implements OnInit {
   sendReply() {
     if (this.replyForm.invalid || !this.replyTo()) return;
     this.isSending.set(true);
-    const tekst = this.replyForm.getRawValue().tekst;
-    this.inboxService.reply(this.replyTo()!, tekst).subscribe({
+    const text = this.replyForm.getRawValue().text;
+    this.inboxService.reply(this.replyTo()!, text).subscribe({
       next: () => { this.replyTo.set(null); this.replyForm.reset(); this.load(); this.isSending.set(false); },
       error: () => this.isSending.set(false)
     });
@@ -52,6 +52,6 @@ export class InboxComponent implements OnInit {
   }
 
   unreadCount(): number {
-    return this.poruke().filter(p => !p.procitana).length;
+    return this.messages().filter(p => !p.procitana).length;
   }
 }

@@ -5,14 +5,14 @@
       <a routerLink="/putovanja/novo" class="btn btn-primary">+ Novo putovanje</a>
     </div>
 
-    @if (putovanja().length === 0) {
+    @if (trips().length === 0) {
       <div class="card empty-state">
         <p>Nema putovanja. Kliknite "+ Novo putovanje" da dodate prvo putovanje.</p>
       </div>
     }
 
     <div class="trip-list">
-      @for (p of putovanja(); track p.id) {
+      @for (p of trips(); track p.id) {
         <div class="trip-row">
           <div class="trip-info">
             <div class="trip-top">

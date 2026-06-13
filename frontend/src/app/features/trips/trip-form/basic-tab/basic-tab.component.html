@@ -1,11 +1,11 @@
 <div class="tab-panel">
-  @if (putovanje && putovanje.status === 'REJECTED' && putovanje.rejectionReason) {
+  @if (trip && trip.status === 'REJECTED' && trip.razlogOdbijanja) {
     <div class="reject-notice">
       <strong>Putovanje je odbijeno.</strong>
-      <span>Razlog: {{ putovanje.rejectionReason }}</span>
+      <span>Razlog: {{ trip.razlogOdbijanja }}</span>
     </div>
   }
-  <form [formGroup]="form" (ngSubmit)="submit()" class="osnovno-form">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="basic-form">
     <div class="form-field">
       <label>Ime putovanja</label>
       <input type="text" formControlName="name" [class.invalid]="form.controls.name.invalid && form.controls.name.touched" />
@@ -43,7 +43,7 @@
     <div class="form-field">
       <label>Status putovanja</label>
       <select formControlName="status">
-        @for (s of statusi; track s.value) {
+        @for (s of statuses; track s.value) {
           <option [value]="s.value">{{ s.label }}</option>
         }
       </select>

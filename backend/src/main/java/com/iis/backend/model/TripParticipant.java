@@ -34,6 +34,21 @@ public class TripParticipant {
     @Column(name = "documentation_status", nullable = false)
     private DocumentationStatus documentationStatus = DocumentationStatus.TO_CHECK;
 
+    /**
+     * Room number stored directly on the participant. Kept as a free-text string
+     * so a room can be assigned without depending on a selected accommodation.
+     */
+    @Column(name = "room_number")
+    private String roomNumber;
+
+    /**
+     * Whether this team member actually travels on this trip. A participant row may
+     * exist with {@code checked = false} purely to hold a documentation status for a
+     * member who is not (yet) travelling.
+     */
+    @Column(name = "is_checked", nullable = false, columnDefinition = "boolean default true")
+    private boolean checked = true;
+
     @ManyToOne
     @JoinColumn(name = "room_id")
     private Room room;
@@ -71,6 +86,22 @@ public class TripParticipant {
 
     public void setDocumentationStatus(DocumentationStatus documentationStatus) {
         this.documentationStatus = documentationStatus;
+    }
+
+    public String getRoomNumber() {
+        return roomNumber;
+    }
+
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber;
+    }
+
+    public boolean isChecked() {
+        return checked;
+    }
+
+    public void setChecked(boolean checked) {
+        this.checked = checked;
     }
 
     public Room getRoom() {

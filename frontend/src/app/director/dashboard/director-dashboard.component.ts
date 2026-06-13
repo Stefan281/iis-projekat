@@ -5,7 +5,7 @@ import { NotificationsService } from '../../core/services/notifications.service'
 import { TripsService } from '../../core/services/trips.service';
 import { AccommodationService } from '../../core/services/accommodation.service';
 import { TransportService } from '../../core/services/transport.service';
-import { Obavestenje, PonudaSmestaja, PonudaTransporta, Putovanje } from '../../core/models/models';
+import { Announcement, AccommodationOffer, TransportOffer, Trip } from '../../core/models/models';
 
 interface CalendarDay {
   date: Date;
@@ -25,12 +25,12 @@ interface CalendarDay {
   styleUrl: './director-dashboard.component.css'
 })
 export class DirectorDashboardComponent implements OnInit {
-  private obavestenjaService = inject(NotificationsService);
-  private putovanjaService = inject(TripsService);
-  private smestajService = inject(AccommodationService);
+  private announcementsService = inject(NotificationsService);
+  private tripsService = inject(TripsService);
+  private accommodationService = inject(AccommodationService);
   private transportService = inject(TransportService);
 
-  readonly MESECI = [
+  readonly MONTHS = [
     'Januar', 'Februar', 'Mart', 'April', 'Maj', 'Jun',
     'Jul', 'Avgust', 'Septembar', 'Oktobar', 'Novembar', 'Decembar'
   ];
@@ -44,13 +44,13 @@ export class DirectorDashboardComponent implements OnInit {
     { bg: '#E0F2F1', solid: '#00796B' },
   ];
 
-  obavestenja = signal<Obavestenje[]>([]);
-  putovanja = signal<Putovanje[]>([]);
-  selectedPutovanje = signal<Putovanje | null>(null);
+  announcements = signal<Announcement[]>([]);
+  trips = signal<Trip[]>([]);
+  selectedTrip = signal<Trip | null>(null);
   calendarViewDate = signal(new Date());
 
-  selectedSmestaj = signal<PonudaSmestaja | null>(null);
-  selectedTransport = signal<PonudaTransporta | null>(null);
+  selectedAccommodation = signal<AccommodationOffer | null>(null);
+  selectedTransport = signal<TransportOffer | null>(null);
   loadingDetail = signal(false);
 
   showRejectForm = signal(false);
@@ -61,7 +61,7 @@ export class DirectorDashboardComponent implements OnInit {
 
   get calendarMonthLabel(): string {
     const d = this.calendarViewDate();
-    return `${this.MESECI[d.getMonth()]} ${d.getFullYear()}`;
+    return `${this.MONTHS[d.getMonth()]} ${d.getFullYear()}`;
   }
 
   get calendarDays(): CalendarDay[] {
@@ -87,14 +87,14 @@ export class DirectorDashboardComponent implements OnInit {
       let isTripStart = false;
       let isTripEnd = false;
 
-      const tripIds = this.putovanja().filter(p => {
-        const polaska = new Date(p.departureDate);
-        polaska.setHours(0, 0, 0, 0);
-        const povratka = p.returnDate ? new Date(p.returnDate) : polaska;
-        povratka.setHours(0, 0, 0, 0);
-        if (d.getTime() === polaska.getTime()) isTripStart = true;
-        if (d.getTime() === povratka.getTime()) isTripEnd = true;
-        return d >= polaska && d <= povratka;
+      const tripIds = this.trips().filter(p => {
+        const departure = new Date(p.departureDate);
+        departure.setHours(0, 0, 0, 0);
+        const ret = p.returnDate ? new Date(p.returnDate) : departure;
+        ret.setHours(0, 0, 0, 0);
+        if (d.getTime() === departure.getTime()) isTripStart = true;
+        if (d.getTime() === ret.getTime()) isTripEnd = true;
+        return d >= departure && d <= ret;
       }).map(p => p.id);
 
       days.push({
@@ -113,13 +113,12 @@ export class DirectorDashboardComponent implements OnInit {
     return days;
   }
 
-  predstojecaPutovanja = computed(() => {
+  upcomingTrips = computed(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return this.putovanja()
+    return this.trips()
       .filter(p => new Date(p.departureDate) >= today)
-      .sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime())
-      .slice(0, 5);
+      .sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
   });
 
   ngOnInit() {
@@ -128,16 +127,16 @@ export class DirectorDashboardComponent implements OnInit {
   }
 
   loadAnnouncements() {
-    this.obavestenjaService.getAll().subscribe({
-      next: (list) => this.obavestenja.set(list),
+    this.announcementsService.getAll().subscribe({
+      next: (list) => this.announcements.set(list),
       error: () => {}
     });
   }
 
   loadTrips() {
-    this.putovanjaService.getAll().subscribe({
+    this.tripsService.getAll().subscribe({
       next: (list) => {
-        this.putovanja.set(list);
+        this.trips.set(list);
         list.forEach((p, i) => this.tripColorMap.set(p.id, i % this.TRIP_COLORS.length));
       },
       error: () => {}
@@ -184,21 +183,21 @@ export class DirectorDashboardComponent implements OnInit {
 
   clickDay(day: CalendarDay) {
     if (day.tripIds.length > 0) {
-      const trip = this.putovanja().find(p => p.id === day.tripIds[0]);
+      const trip = this.trips().find(p => p.id === day.tripIds[0]);
       if (trip) this.openDetail(trip);
     }
   }
 
-  openDetail(p: Putovanje) {
-    this.selectedPutovanje.set(p);
-    this.selectedSmestaj.set(null);
+  openDetail(p: Trip) {
+    this.selectedTrip.set(p);
+    this.selectedAccommodation.set(null);
     this.selectedTransport.set(null);
     this.showRejectForm.set(false);
     this.rejectReason = '';
     this.loadingDetail.set(true);
 
-    this.smestajService.getSelected(p.id).subscribe({
-      next: (s) => this.selectedSmestaj.set(s),
+    this.accommodationService.getSelected(p.id).subscribe({
+      next: (s) => this.selectedAccommodation.set(s),
       error: () => {}
     });
 
@@ -209,19 +208,19 @@ export class DirectorDashboardComponent implements OnInit {
   }
 
   backToCalendar() {
-    this.selectedPutovanje.set(null);
+    this.selectedTrip.set(null);
     this.showRejectForm.set(false);
     this.rejectReason = '';
   }
 
   approve() {
-    const p = this.selectedPutovanje();
+    const p = this.selectedTrip();
     if (!p) return;
     this.isActing.set(true);
-    this.putovanjaService.updateStatus(p.id, 'CONFIRMED').subscribe({
+    this.tripsService.updateStatus(p.id, 'CONFIRMED').subscribe({
       next: () => {
-        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'CONFIRMED' } : t));
-        this.selectedPutovanje.set({ ...p, status: 'CONFIRMED' });
+        this.trips.update(list => list.map(t => t.id === p.id ? { ...t, status: 'CONFIRMED' } : t));
+        this.selectedTrip.set({ ...p, status: 'CONFIRMED' });
         this.isActing.set(false);
       },
       error: () => this.isActing.set(false)
@@ -229,14 +228,14 @@ export class DirectorDashboardComponent implements OnInit {
   }
 
   reject() {
-    const p = this.selectedPutovanje();
+    const p = this.selectedTrip();
     if (!p || !this.rejectReason.trim()) return;
     const reason = this.rejectReason.trim();
     this.isActing.set(true);
-    this.putovanjaService.updateStatus(p.id, 'REJECTED', reason).subscribe({
+    this.tripsService.updateStatus(p.id, 'REJECTED', reason).subscribe({
       next: () => {
-        this.putovanja.update(list => list.map(t => t.id === p.id ? { ...t, status: 'REJECTED', rejectionReason: reason } : t));
-        this.selectedPutovanje.set({ ...p, status: 'REJECTED', rejectionReason: reason });
+        this.trips.update(list => list.map(t => t.id === p.id ? { ...t, status: 'REJECTED', razlogOdbijanja: reason } : t));
+        this.selectedTrip.set({ ...p, status: 'REJECTED', razlogOdbijanja: reason });
         this.showRejectForm.set(false);
         this.rejectReason = '';
         this.isActing.set(false);
@@ -246,7 +245,7 @@ export class DirectorDashboardComponent implements OnInit {
   }
 
   totalCost(): number {
-    const s = this.selectedSmestaj();
+    const s = this.selectedAccommodation();
     const t = this.selectedTransport();
     return (s?.cena ?? 0) + (t?.cena ?? 0);
   }
@@ -262,11 +261,11 @@ export class DirectorDashboardComponent implements OnInit {
     return map[status] ?? status;
   }
 
-  formatDateRange(p: Putovanje): string {
-    const polaska = new Date(p.departureDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
-    if (!p.returnDate) return polaska;
-    const povratka = new Date(p.returnDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
-    return `${polaska}–${povratka}`;
+  formatDateRange(p: Trip): string {
+    const departure = new Date(p.departureDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
+    if (!p.returnDate) return departure;
+    const ret = new Date(p.returnDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
+    return `${departure}–${ret}`;
   }
 
   formatDate(dateStr: string): string {
@@ -283,5 +282,19 @@ export class DirectorDashboardComponent implements OnInit {
     const d = new Date(dateStr);
     d.setHours(0, 0, 0, 0);
     return Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  getTransportIcon(type: string): string {
+    const map: Record<string, string> = {
+      'AVION': '✈️', 'AUTOBUS': '🚌', 'KOMBI': '🚐', 'VOZ': '🚆', 'BROD': '🚢'
+    };
+    return map[type?.toUpperCase()] ?? '🚌';
+  }
+
+  getTransportLabel(type: string): string {
+    const map: Record<string, string> = {
+      'AVION': 'Avion', 'AUTOBUS': 'Autobus', 'KOMBI': 'Kombi', 'VOZ': 'Voz', 'BROD': 'Brod'
+    };
+    return map[type?.toUpperCase()] ?? type;
   }
 }

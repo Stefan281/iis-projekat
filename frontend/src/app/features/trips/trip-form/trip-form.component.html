@@ -6,8 +6,8 @@
   <div class="form-content-wrapper">
 
     <!-- B3: centered title -->
-    @if (putovanje()) {
-      <span class="page-title">Putovanje: {{ putovanje()!.name }}</span>
+    @if (trip()) {
+      <span class="page-title">Putovanje: {{ trip()!.name }}</span>
     } @else if (isNew()) {
       <span class="page-title">Novo putovanje</span>
     }
@@ -18,28 +18,28 @@
         <button
           class="tab-btn"
           [class.active]="activeTab() === tab.key"
-          [disabled]="isNew() && tab.key !== 'osnovno'"
+          [disabled]="isNew() && tab.key !== 'basic'"
           (click)="setTab(tab.key)"
         >{{ tab.label }}</button>
       }
     </div>
 
     <div class="tab-content">
-      @if (activeTab() === 'osnovno') {
+      @if (activeTab() === 'basic') {
         <app-basic-tab
-          [putovanje]="putovanje()"
+          [trip]="trip()"
           [isNew]="isNew()"
           (saved)="onTripSaved($event)"
         />
       }
-      @if (activeTab() === 'smestaj' && putovanjeId()) {
-        <app-accommodation-tab [putovanjeId]="putovanjeId()!" />
+      @if (activeTab() === 'accommodation' && tripId()) {
+        <app-accommodation-tab [tripId]="tripId()!" />
       }
-      @if (activeTab() === 'prevoz' && putovanjeId()) {
-        <app-transport-tab [putovanjeId]="putovanjeId()!" />
+      @if (activeTab() === 'transport' && tripId()) {
+        <app-transport-tab [tripId]="tripId()!" />
       }
-      @if (activeTab() === 'putnici' && putovanjeId()) {
-        <app-passengers-tab [putovanjeId]="putovanjeId()!" />
+      @if (activeTab() === 'passengers' && tripId()) {
+        <app-passengers-tab [tripId]="tripId()!" />
       }
     </div>
 

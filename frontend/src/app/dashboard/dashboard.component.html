@@ -16,24 +16,24 @@
         @if (showForm()) {
           <div class="announcement-form">
             <p class="form-label">Novo obaveštenje:</p>
-            <form [formGroup]="novoObavestenjeForm" (ngSubmit)="submitAnnouncement()">
+            <form [formGroup]="newAnnouncementForm" (ngSubmit)="submitAnnouncement()">
               <textarea formControlName="text" rows="4" placeholder="Unesite tekst obaveštenja..."></textarea>
               <div class="form-actions">
-                <button type="button" class="btn btn-danger" (click)="showForm.set(false); novoObavestenjeForm.reset()">Poništi</button>
+                <button type="button" class="btn btn-danger" (click)="showForm.set(false); newAnnouncementForm.reset()">Poništi</button>
                 <button type="submit" class="btn btn-success" [disabled]="isSaving()">Postavi</button>
               </div>
             </form>
           </div>
         }
 
-        @if (obavestenja().length === 0 && !showForm()) {
+        @if (announcements().length === 0 && !showForm()) {
           <p class="empty-msg">Nema obaveštenja.</p>
         }
         <div class="announcements-list">
-          @for (o of obavestenja(); track o.id) {
+          @for (o of announcements(); track o.id) {
             <div class="announcement-item">
-              <span class="announcement-text">{{ o.text }}</span>
-              <span class="announcement-date">{{ formatDate(o.createdAt) }}</span>
+              <span class="announcement-text">{{ o.tekst }}</span>
+              <span class="announcement-date">{{ formatDate(o.datum) }}</span>
             </div>
           }
         </div>
@@ -41,7 +41,7 @@
 
       <!-- Calendar or Detail -->
       <div class="card calendar-card">
-        @if (!selectedPutovanje()) {
+        @if (!selectedTrip()) {
           <div class="cal-header">
             <button class="cal-nav" (click)="prevMonth()">&#8249;</button>
             <span class="cal-month">{{ calendarMonthLabel }}</span>
@@ -73,17 +73,43 @@
           </div>
         } @else {
           <div class="trip-detail">
-            <h3>Putovanje: {{ selectedPutovanje()!.name }}</h3>
+            <h3>Putovanje: {{ selectedTrip()!.name }}</h3>
             <div class="detail-rows">
-              <div class="detail-row"><span>🏐</span><span>{{ selectedPutovanje()!.purpose }}</span></div>
-              <div class="detail-row"><span>📍</span><span>{{ selectedPutovanje()!.location }}</span></div>
-              <div class="detail-row"><span>📅</span><span>{{ formatDateRange(selectedPutovanje()!) }}</span></div>
-              <div class="detail-row"><span>🏨</span><span>{{ selectedPutovanje()!.smestajId ? 'Smeštaj dodat' : 'Nema noćenja' }}</span></div>
-              <div class="detail-row"><span>🚌</span><span>{{ selectedPutovanje()!.transportId ? 'Transport dodat' : 'Nije definisan' }}</span></div>
+              <div class="detail-row"><span>🏐</span><span>{{ selectedTrip()!.purpose }}</span></div>
+              <div class="detail-row"><span>📍</span><span>{{ selectedTrip()!.location }}</span></div>
+              <div class="detail-row"><span>📅</span><span>{{ formatDateRange(selectedTrip()!) }}</span></div>
+
+              @if (loadingDetail()) {
+                <p class="loading-msg">Učitavanje detalja...</p>
+              } @else {
+                @if (selectedAccommodation()) {
+                  <div class="detail-row">
+                    <span>🏨</span>
+                    <span>{{ selectedAccommodation()!.ime }}, {{ selectedAccommodation()!.adresa }} — {{ selectedAccommodation()!.cena | number:'1.0-0' }} €</span>
+                  </div>
+                } @else {
+                  <div class="detail-row detail-row-muted">
+                    <span>🏨</span>
+                    <span>Nije odabran smeštaj</span>
+                  </div>
+                }
+                @if (selectedTransport()) {
+                  <div class="detail-row">
+                    <span>{{ getTransportIcon(selectedTransport()!.vrsta) }}</span>
+                    <span>{{ selectedTransport()!.naziv }} — {{ getTransportLabel(selectedTransport()!.vrsta) }}</span>
+                  </div>
+                } @else {
+                  <div class="detail-row detail-row-muted">
+                    <span>🚌</span>
+                    <span>Nije odabran prevoz</span>
+                  </div>
+                }
+              }
             </div>
+
             <div class="detail-actions">
               <button class="btn btn-secondary" (click)="backToCalendar()">Nazad na kalendar</button>
-              <a class="btn btn-primary" [routerLink]="['/putovanja', selectedPutovanje()!.id]">Otvori putovanje</a>
+              <a class="btn btn-primary" [routerLink]="['/putovanja', selectedTrip()!.id]">✏️ Otvori putovanje za izmene</a>
             </div>
           </div>
         }
@@ -94,28 +120,30 @@
     <div class="right-col">
       <div class="card">
         <h2 class="upcoming-title">Predstojeca putovanja</h2>
-        @if (predstojecaPutovanja().length === 0) {
+        @if (upcomingTrips().length === 0) {
           <p class="empty-msg">Nema predstojećih putovanja.</p>
         }
-        @for (p of predstojecaPutovanja(); track p.id) {
-          <div class="trip-card">
-            <div class="trip-card-header">
-              <div class="trip-name-row">
-                <span class="trip-dot" [style.background-color]="getTripColor(p.id).solid"></span>
-                <span class="trip-name">{{ p.name }}</span>
+        <div class="upcoming-trips-list">
+          @for (p of upcomingTrips(); track p.id) {
+            <div class="trip-card">
+              <div class="trip-card-header">
+                <div class="trip-name-row">
+                  <span class="trip-dot" [style.background-color]="getTripColor(p.id).solid"></span>
+                  <span class="trip-name">{{ p.name }}</span>
+                </div>
+                <span class="status-badge" [class]="'status-' + p.status.toLowerCase()">{{ statusLabel(p.status) }}</span>
               </div>
-              <span class="status-badge" [class]="'status-' + p.status.toLowerCase()">{{ statusLabel(p.status) }}</span>
+              <div class="trip-meta">
+                <span>📍 {{ p.location }}</span>
+                <span>📅 {{ formatDateRange(p) }}</span>
+              </div>
+              @if (showWarning(p)) {
+                <div class="warning-msg">⚠ Ostalo jos manje od mesec dana</div>
+              }
+              <span class="detail-link" (click)="selectTripForDetail(p)">Pritisni za detalje putovanja</span>
             </div>
-            <div class="trip-meta">
-              <span>📍 {{ p.location }}</span>
-              <span>📅 {{ formatDateRange(p) }}</span>
-            </div>
-            @if (showWarning(p)) {
-              <div class="warning-msg">⚠ Ostalo jos manje od mesec dana</div>
-            }
-            <a class="detail-link" [routerLink]="['/putovanja', p.id]" (click)="selectTripForDetail(p)">Pritisni za detalje putovanja</a>
-          </div>
-        }
+          }
+        </div>
       </div>
     </div>
   </div>

@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TripsService } from '../../../core/services/trips.service';
-import { Putovanje } from '../../../core/models/models';
+import { Trip } from '../../../core/models/models';
 
 @Component({
   selector: 'app-trips-list',
@@ -12,20 +12,24 @@ import { Putovanje } from '../../../core/models/models';
 })
 export class TripsListComponent implements OnInit {
   private tripsService = inject(TripsService);
-  putovanja = signal<Putovanje[]>([]);
+  trips = signal<Trip[]>([]);
 
   ngOnInit() {
     this.tripsService.getAll().subscribe({
-      next: (list) => this.putovanja.set(list),
+      next: (list) => this.trips.set(
+        [...list].sort((a, b) =>
+          new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime()
+        )
+      ),
       error: () => {}
     });
   }
 
-  formatDateRange(p: Putovanje): string {
-    const pol = new Date(p.departureDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
-    if (!p.returnDate) return pol;
-    const pov = new Date(p.returnDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
-    return `${pol}–${pov}`;
+  formatDateRange(p: Trip): string {
+    const departure = new Date(p.departureDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
+    if (!p.returnDate) return departure;
+    const ret = new Date(p.returnDate).toLocaleDateString('sr-RS', { day: 'numeric', month: 'numeric' });
+    return `${departure}–${ret}`;
   }
 
   statusLabel(status: string): string {
@@ -39,7 +43,7 @@ export class TripsListComponent implements OnInit {
     return map[status] ?? status;
   }
 
-  showWarning(p: Putovanje): boolean {
+  showWarning(p: Trip): boolean {
     const today = new Date(); today.setHours(0,0,0,0);
     const d = new Date(p.departureDate); d.setHours(0,0,0,0);
     const diff = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));

@@ -9,21 +9,21 @@
         <div class="card-header">
           <h2>Obaveštenja</h2>
         </div>
-        @if (obavestenja().length === 0) {
+        @if (announcements().length === 0) {
           <p class="empty-msg">Nema obaveštenja.</p>
         }
         <div class="announcements-list">
-          @for (o of obavestenja(); track o.id) {
+          @for (o of announcements(); track o.id) {
             <div class="announcement-item">
-              <span class="announcement-text">{{ o.text }}</span>
-              <span class="announcement-date">{{ formatDate(o.createdAt) }}</span>
+              <span class="announcement-text">{{ o.tekst }}</span>
+              <span class="announcement-date">{{ formatDate(o.datum) }}</span>
             </div>
           }
         </div>
       </div>
 
       <div class="card calendar-card">
-        @if (!selectedPutovanje()) {
+        @if (!selectedTrip()) {
           <div class="cal-header">
             <button class="cal-nav" (click)="prevMonth()">&#8249;</button>
             <span class="cal-month">{{ calendarMonthLabel }}</span>
@@ -55,58 +55,66 @@
           </div>
         } @else {
           <div class="trip-detail">
-            <h3>Putovanje: {{ selectedPutovanje()!.name }}</h3>
+            <h3>Putovanje: {{ selectedTrip()!.name }}</h3>
 
             <div class="detail-rows">
-              <div class="detail-row"><span>🏐</span><span>{{ selectedPutovanje()!.purpose }}</span></div>
-              <div class="detail-row"><span>📍</span><span>{{ selectedPutovanje()!.location }}</span></div>
-              <div class="detail-row"><span>📅</span><span>{{ formatDateShort(selectedPutovanje()!.departureDate) }}</span></div>
-            </div>
+              <div class="detail-row"><span>🏐</span><span>{{ selectedTrip()!.purpose }}</span></div>
+              <div class="detail-row"><span>📍</span><span>{{ selectedTrip()!.location }}</span></div>
+              <div class="detail-row"><span>📅</span><span>{{ formatDateShort(selectedTrip()!.departureDate) }}</span></div>
 
-            @if (loadingDetail()) {
-              <p class="loading-msg">Učitavanje detalja...</p>
-            } @else {
-              <div class="detail-section">
-                <div class="section-title">── Smeštaj ──</div>
-                @if (selectedSmestaj()) {
-                  <div class="detail-row"><span>🏨</span><span class="detail-info">
-                    <strong>{{ selectedSmestaj()!.ime }}</strong><br>
-                    {{ selectedSmestaj()!.adresa }}
-                  </span></div>
+              @if (loadingDetail()) {
+                <p class="loading-msg">Učitavanje detalja...</p>
+              } @else {
+                @if (selectedAccommodation()) {
+                  <div class="detail-row">
+                    <span>🏨</span>
+                    <span>{{ selectedAccommodation()!.ime }}, {{ selectedAccommodation()!.adresa }}</span>
+                  </div>
                 } @else {
-                  <p class="empty-msg">Nema izabranog smeštaja.</p>
+                  <div class="detail-row detail-row-muted">
+                    <span>🏨</span>
+                    <span>Nije odabran smeštaj</span>
+                  </div>
                 }
-              </div>
-
-              <div class="detail-section">
-                <div class="section-title">── Prevoz ──</div>
                 @if (selectedTransport()) {
-                  <div class="detail-row"><span>🚌</span><span class="detail-info">
-                    <strong>{{ selectedTransport()!.naziv }}</strong><br>
-                    Vrsta: {{ selectedTransport()!.vrsta }}
-                  </span></div>
+                  <div class="detail-row">
+                    <span>{{ getTransportIcon(selectedTransport()!.vrsta) }}</span>
+                    <span>{{ selectedTransport()!.naziv }} — {{ getTransportLabel(selectedTransport()!.vrsta) }}</span>
+                  </div>
                 } @else {
-                  <p class="empty-msg">Nema izabranog prevoza.</p>
+                  <div class="detail-row detail-row-muted">
+                    <span>🚌</span>
+                    <span>Nije odabran prevoz</span>
+                  </div>
                 }
-              </div>
-
-              <div class="detail-section">
-                <h4>Vaša soba</h4>
-                @if (roomInfo()) {
-                  <p>Soba {{ roomInfo()!.roomNumber }}</p>
+                @if (notParticipant()) {
+                  <div class="detail-row">
+                    <span>🚪</span>
+                    <span>Niste prijavljeni na ovo putovanje</span>
+                  </div>
+                } @else if (roomInfo()) {
+                  <div class="detail-row">
+                    <span>🚪</span>
+                    <span>Soba {{ roomInfo()!.roomNumber }}</span>
+                  </div>
                   @if (roomInfo()!.roommates.length) {
-                    <p class="section-subtitle">Saigrači u sobi:</p>
-                    <ul>
-                      @for (r of roomInfo()!.roommates; track r.id) {
-                        <li>{{ r.name }}</li>
-                      }
-                    </ul>
+                    <div class="roommates-section">
+                      <p class="section-subtitle">Saigrači u sobi:</p>
+                      <ul>
+                        @for (r of roomInfo()!.roommates; track r.id) {
+                          <li>{{ r.name }}</li>
+                        }
+                      </ul>
+                    </div>
                   }
                 } @else {
-                  <p class="placeholder-text">Raspored po sobama još nije dostupan.</p>
+                  <div class="detail-row">
+                    <span>🚪</span>
+                    <span>Soba još nije dodeljena</span>
+                  </div>
                 }
-              </div>
-            }
+              }
+            </div>
 
             <div class="detail-actions">
               <button class="btn btn-secondary" (click)="backToCalendar()">← Nazad na kalendar</button>
@@ -119,25 +127,27 @@
     <div class="right-col">
       <div class="card">
         <h2 class="upcoming-title">Predstojeca putovanja</h2>
-        @if (predstojecaPutovanja().length === 0) {
+        @if (upcomingTrips().length === 0) {
           <p class="empty-msg">Nema predstojećih putovanja.</p>
         }
-        @for (p of predstojecaPutovanja(); track p.id) {
-          <div class="trip-card" (click)="openDetail(p)">
-            <div class="trip-card-header">
-              <div class="trip-name-row">
-                <span class="trip-dot" [style.background-color]="getTripColor(p.id).solid"></span>
-                <span class="trip-name">{{ p.name }}</span>
+        <div class="upcoming-trips-list">
+          @for (p of upcomingTrips(); track p.id) {
+            <div class="trip-card" (click)="openDetail(p)">
+              <div class="trip-card-header">
+                <div class="trip-name-row">
+                  <span class="trip-dot" [style.background-color]="getTripColor(p.id).solid"></span>
+                  <span class="trip-name">{{ p.name }}</span>
+                </div>
+                <span class="status-badge" [class]="'status-' + p.status.toLowerCase()">{{ statusLabel(p.status) }}</span>
               </div>
-              <span class="status-badge" [class]="'status-' + p.status.toLowerCase()">{{ statusLabel(p.status) }}</span>
+              <div class="trip-meta">
+                <span>📍 {{ p.location }}</span>
+                <span>📅 {{ formatDateRange(p) }}</span>
+              </div>
+              <span class="detail-link">Pritisni za detalje putovanja</span>
             </div>
-            <div class="trip-meta">
-              <span>📍 {{ p.location }}</span>
-              <span>📅 {{ formatDateRange(p) }}</span>
-            </div>
-            <span class="detail-link">Pritisni za detalje putovanja</span>
-          </div>
-        }
+          }
+        </div>
       </div>
     </div>
   </div>

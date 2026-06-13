@@ -1,7 +1,7 @@
 package com.iis.backend.security;
 
 import com.iis.backend.repository.UserRepository;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails .UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

@@ -210,9 +210,19 @@
 /* Trip detail */
 .trip-detail h3 { font-size: 16px; font-weight: 700; color: #212121; margin-bottom: 16px; }
 
-.detail-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-.detail-row { display: flex; gap: 10px; font-size: 14px; color: #37474F; align-items: flex-start; }
+.detail-rows { display: flex; flex-direction: column; margin-bottom: 16px; }
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #37474F;
+}
+.detail-row:last-child { margin-bottom: 0; }
 .detail-row span:first-child { font-size: 16px; min-width: 22px; }
+.detail-row-muted { color: #9E9E9E; }
 .detail-info { line-height: 1.5; }
 
 .detail-section { margin-bottom: 16px; }
@@ -265,6 +275,16 @@ textarea:focus { outline: none; border-color: #D32F2F; }
 .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
 
 /* Upcoming trips */
+.upcoming-trips-list {
+  max-height: 480px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding-right: 4px;
+}
+.upcoming-trips-list::-webkit-scrollbar { width: 4px; }
+.upcoming-trips-list::-webkit-scrollbar-track { background: transparent; }
+.upcoming-trips-list::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
+
 .trip-card {
   padding: 14px 0;
   border-bottom: 1px solid #F0F0F0;

@@ -44,8 +44,8 @@ public class Trip {
     @Column(nullable = false)
     private TripStatus status;
 
-    @Column(name = "rejection_reason", length = 1000)
-    private String rejectionReason;
+    @Column(name = "razlog_odbijanja", length = 1000)
+    private String razlogOdbijanja;
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("trip-accommodation")
@@ -118,12 +118,12 @@ public class Trip {
         this.status = status;
     }
 
-    public String getRejectionReason() {
-        return rejectionReason;
+    public String getRazlogOdbijanja() {
+        return razlogOdbijanja;
     }
 
-    public void setRejectionReason(String rejectionReason) {
-        this.rejectionReason = rejectionReason;
+    public void setRazlogOdbijanja(String razlogOdbijanja) {
+        this.razlogOdbijanja = razlogOdbijanja;
     }
 
     public List<Accommodation> getAccommodationOptions() {

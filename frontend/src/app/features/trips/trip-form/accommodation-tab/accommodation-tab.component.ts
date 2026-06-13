@@ -1,7 +1,7 @@
 import { Component, inject, Input, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccommodationService } from '../../../../core/services/accommodation.service';
-import { PonudaSmestaja } from '../../../../core/models/models';
+import { AccommodationOffer } from '../../../../core/models/models';
 
 @Component({
   selector: 'app-accommodation-tab',
@@ -11,13 +11,13 @@ import { PonudaSmestaja } from '../../../../core/models/models';
   styleUrl: './accommodation-tab.component.css'
 })
 export class AccommodationTabComponent implements OnInit {
-  @Input() putovanjeId!: number;
+  @Input() tripId!: number;
 
   private accommodationService = inject(AccommodationService);
   private fb = inject(FormBuilder);
 
-  ponude = signal<PonudaSmestaja[]>([]);
-  selectedPonudaId = signal<number | null>(null);
+  offers = signal<AccommodationOffer[]>([]);
+  selectedOfferId = signal<number | null>(null);
   showForm = signal(false);
   isSaving = signal(false);
 
@@ -30,11 +30,11 @@ export class AccommodationTabComponent implements OnInit {
   ngOnInit() { this.load(); }
 
   load() {
-    this.accommodationService.getOffers(this.putovanjeId).subscribe({
+    this.accommodationService.getOffers(this.tripId).subscribe({
       next: (list) => {
-        this.ponude.set(list);
-        const izabrana = list.find(p => p.izabran);
-        if (izabrana) this.selectedPonudaId.set(izabrana.id);
+        this.offers.set(list);
+        const selected = list.find(p => p.izabran);
+        if (selected) this.selectedOfferId.set(selected.id);
       },
       error: () => {}
     });
@@ -44,19 +44,19 @@ export class AccommodationTabComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.isSaving.set(true);
     const val = this.form.getRawValue();
-    this.accommodationService.addOffer(this.putovanjeId, val).subscribe({
+    this.accommodationService.addOffer(this.tripId, val).subscribe({
       next: () => { this.showForm.set(false); this.form.reset(); this.load(); this.isSaving.set(false); },
       error: () => this.isSaving.set(false)
     });
   }
 
   selectAccommodation() {
-    if (!this.selectedPonudaId()) return;
-    this.accommodationService.select(this.putovanjeId, this.selectedPonudaId()!).subscribe({
+    if (!this.selectedOfferId()) return;
+    this.accommodationService.select(this.tripId, this.selectedOfferId()!).subscribe({
       next: () => this.load(),
       error: () => {}
     });
   }
 
-  get hasSelection() { return this.ponude().some(p => p.izabran); }
+  get hasSelection() { return this.offers().some(p => p.izabran); }
 }

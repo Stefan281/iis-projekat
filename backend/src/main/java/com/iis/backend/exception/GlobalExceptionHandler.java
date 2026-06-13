@@ -49,16 +49,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest()
-                .body(buildBody(HttpStatus.BAD_REQUEST, ex.getMessage()));
-    }
-
     @ExceptionHandler(DateOverlapException.class)
     public ResponseEntity<Map<String, Object>> handleDateOverlap(DateOverlapException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(buildBody(HttpStatus.CONFLICT, ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest()
+                .body(buildBody(HttpStatus.BAD_REQUEST, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

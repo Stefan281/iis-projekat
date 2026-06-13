@@ -9,6 +9,5 @@ import java.util.List;
 @Repository
 public interface TripRepository extends JpaRepository<Trip, Long> {
     boolean existsByName(String name);
-
     List<Trip> findByIdNot(Long id);
 }

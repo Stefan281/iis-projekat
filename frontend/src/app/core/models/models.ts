@@ -1,22 +1,24 @@
-export type PutovanjeStatus = 'IN_PROCESSING' | 'AWAITING_APPROVAL' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED';
-export type DokumentacijaStatus = 'KOMPLETNO' | 'PROVERITI' | 'NEDOSTAJE';
-export type VrstaPrevoza = 'AUTOBUS' | 'KOMBI' | 'AVION' | 'VOZ';
+export type TripStatus = 'IN_PROCESSING' | 'AWAITING_APPROVAL' | 'CONFIRMED' | 'REJECTED' | 'COMPLETED';
+export type DocumentationStatus = 'TO_CHECK' | 'COMPLETE' | 'MISSING';
+export type TransportType = 'AUTOBUS' | 'KOMBI' | 'AVION' | 'VOZ';
 
-export interface Putovanje {
+export interface Trip {
   id: number;
   name: string;
   location: string;
   purpose: string;
   departureDate: string;   // ISO "2026-05-19"
   returnDate?: string;     // null for single-day trips
-  status: PutovanjeStatus;
+  status: TripStatus;
   smestajId?: number;
   transportId?: number;
   organizatorId?: number;
-  rejectionReason?: string;
+  razlogOdbijanja?: string;
+  selectedSmestaj?: AccommodationOffer | null;
+  selectedTransport?: TransportOffer | null;
 }
 
-export interface PonudaSmestaja {
+export interface AccommodationOffer {
   id: number;
   putovanjeId: number;
   ime: string;
@@ -25,32 +27,35 @@ export interface PonudaSmestaja {
   izabran: boolean;
 }
 
-export interface PonudaTransporta {
+export interface TransportOffer {
   id: number;
   putovanjeId: number;
   naziv: string;
-  vrsta: VrstaPrevoza;
+  vrsta: TransportType;
   cena: number;
   izabran: boolean;
 }
 
-export interface Putnik {
-  id: number;
+export interface Passenger {
+  id: number;                  // userId
+  userId?: number;             // backend duplicates id for clarity; not always present
+  participantId?: number;      // present only when added=true
   ime: string;
   prezime: string;
+  role?: string;
   sobaBroj?: string;
-  dokumentacijaStatus: DokumentacijaStatus;
-  dodat: boolean; // true if added to this trip
+  dokumentacijaStatus?: DocumentationStatus;
+  added: boolean;              // true if added to this trip
 }
 
-export interface Obavestenje {
+export interface Announcement {
   id: number;
-  text: string;
-  createdAt: string;
-  authorId: number;
+  tekst: string;
+  datum: string;
+  autorId: number;
 }
 
-export interface Poruka {
+export interface Message {
   id: number;
   posiljacId: number;
   posiljacIme: string;

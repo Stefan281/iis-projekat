@@ -6,14 +6,14 @@
     }
   </div>
 
-  @if (poruke().length === 0) {
+  @if (messages().length === 0) {
     <div class="card empty-state">
       <p>Nema poruka u prijemnom sandučetu.</p>
     </div>
   }
 
   <div class="message-list">
-    @for (p of poruke(); track p.id) {
+    @for (p of messages(); track p.id) {
       <div class="message-card" [class.unread]="!p.procitana">
         <div class="msg-header">
           <span class="msg-sender">{{ p.posiljacIme }}</span>
@@ -23,7 +23,7 @@
 
         @if (replyTo() === p.id) {
           <form [formGroup]="replyForm" (ngSubmit)="sendReply()" class="reply-form">
-            <textarea formControlName="tekst" rows="3" placeholder="Napišite odgovor..."></textarea>
+            <textarea formControlName="text" rows="3" placeholder="Napišite odgovor..."></textarea>
             <div class="reply-actions">
               <button type="button" class="btn btn-secondary" (click)="replyTo.set(null)">Otkaži</button>
               <button type="submit" class="btn btn-primary" [disabled]="isSending()">

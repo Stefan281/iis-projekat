@@ -249,12 +249,32 @@ textarea:focus { outline: none; border-color: #1976D2; }
 
 /* Trip detail panel */
 .trip-detail h3 { font-size: 16px; font-weight: 700; color: #212121; margin-bottom: 16px; }
-.detail-rows { display: flex; flex-direction: column; gap: 10px; }
-.detail-row { display: flex; gap: 10px; font-size: 14px; color: #37474F; align-items: flex-start; }
+.detail-rows { display: flex; flex-direction: column; }
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #37474F;
+}
+.detail-row:last-child { margin-bottom: 0; }
 .detail-row span:first-child { font-size: 16px; min-width: 22px; }
+.detail-row-muted { color: #9E9E9E; }
 .detail-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
 
 /* Upcoming trips */
+.upcoming-trips-list {
+  max-height: 480px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding-right: 4px;
+}
+.upcoming-trips-list::-webkit-scrollbar { width: 4px; }
+.upcoming-trips-list::-webkit-scrollbar-track { background: transparent; }
+.upcoming-trips-list::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
+
 .trip-card {
   padding: 14px 0;
   border-bottom: 1px solid #F0F0F0;
@@ -313,3 +333,8 @@ textarea:focus { outline: none; border-color: #1976D2; }
 
 .warning-msg { font-size: 12px; color: #D32F2F; font-weight: 600; margin-bottom: 6px; }
 .detail-link { font-size: 12px; color: #1976D2; text-decoration: underline; cursor: pointer; }
+
+.detail-info { line-height: 1.5; }
+.detail-section { margin-bottom: 16px; }
+.section-title { font-size: 12px; font-weight: 700; color: #9E9E9E; margin-bottom: 8px; letter-spacing: 0.3px; }
+.loading-msg { color: #9E9E9E; font-size: 13px; padding: 8px 0; }
