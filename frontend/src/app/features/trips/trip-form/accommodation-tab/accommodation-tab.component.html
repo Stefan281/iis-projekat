@@ -6,15 +6,15 @@
         <form [formGroup]="form" (ngSubmit)="addOffer()" class="offer-form">
           <div class="form-field">
             <label>Ime smeštaja</label>
-            <input type="text" formControlName="ime" [class.invalid]="form.controls.ime.invalid && form.controls.ime.touched" />
+            <input type="text" formControlName="name" [class.invalid]="form.controls.name.invalid && form.controls.name.touched" />
           </div>
           <div class="form-field">
             <label>Adresa</label>
-            <input type="text" formControlName="adresa" [class.invalid]="form.controls.adresa.invalid && form.controls.adresa.touched" />
+            <input type="text" formControlName="address" [class.invalid]="form.controls.address.invalid && form.controls.address.touched" />
           </div>
           <div class="form-field">
-            <label>Cena (€)</label>
-            <input type="number" formControlName="cena" [class.invalid]="form.controls.cena.invalid && form.controls.cena.touched" />
+            <label>Cena (U eurima)</label>
+            <input type="number" formControlName="price" [class.invalid]="form.controls.price.invalid && form.controls.price.touched" />
           </div>
           <div class="form-actions">
             <button type="button" class="btn btn-danger" (click)="showForm.set(false); form.reset()">Poništi</button>
@@ -29,13 +29,13 @@
         <div
           class="offer-card"
           [class.selected]="selectedOfferId() === p.id"
-          [class.chosen]="p.izabran"
+          [class.chosen]="p.selected"
           (click)="selectedOfferId.set(p.id)"
         >
-          <div class="offer-name">{{ p.ime }}</div>
-          <div class="offer-meta">📍 {{ p.adresa }}</div>
-          <div class="offer-meta">💲 {{ p.cena }}€</div>
-          @if (p.izabran) {
+          <div class="offer-name">{{ p.name }}</div>
+          <div class="offer-meta">📍 {{ p.address }}</div>
+          <div class="offer-meta">💶 {{ p.price }}€</div>
+          @if (p.selected) {
             <span class="chosen-badge">✓ Izabran</span>
           }
         </div>

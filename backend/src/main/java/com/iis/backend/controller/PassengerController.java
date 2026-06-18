@@ -1,7 +1,6 @@
 package com.iis.backend.controller;
 
 import com.iis.backend.dto.DocumentationUpdateRequest;
-import com.iis.backend.dto.PassengerDocumentationRequest;
 import com.iis.backend.dto.PassengerRowDTO;
 import com.iis.backend.dto.PassengerToggleRequest;
 import com.iis.backend.dto.RoomAssignRequest;
@@ -39,24 +38,17 @@ public class PassengerController {
         return ResponseEntity.ok(passengerService.toggle(tripId, request));
     }
 
-    @PutMapping("/{participantId}/room")
+    @PutMapping("/{userId}/room")
     public ResponseEntity<PassengerRowDTO> assignRoom(@PathVariable Long tripId,
-                                                      @PathVariable Long participantId,
+                                                      @PathVariable Long userId,
                                                       @Valid @RequestBody RoomAssignRequest request) {
-        return ResponseEntity.ok(passengerService.assignRoom(tripId, participantId, request));
+        return ResponseEntity.ok(passengerService.assignRoom(tripId, userId, request));
     }
 
-    @PutMapping("/{participantId}/documentation")
+    @PutMapping("/{userId}/documentation")
     public ResponseEntity<PassengerRowDTO> updateDocumentation(@PathVariable Long tripId,
-                                                               @PathVariable Long participantId,
+                                                               @PathVariable Long userId,
                                                                @Valid @RequestBody DocumentationUpdateRequest request) {
-        return ResponseEntity.ok(passengerService.updateDocumentation(tripId, participantId, request));
-    }
-
-    @PostMapping("/documentation")
-    public ResponseEntity<PassengerRowDTO> setDocumentationForNonParticipant(
-            @PathVariable Long tripId,
-            @Valid @RequestBody PassengerDocumentationRequest request) {
-        return ResponseEntity.ok(passengerService.setDocumentationForNonParticipant(tripId, request));
+        return ResponseEntity.ok(passengerService.updateDocumentation(tripId, userId, request));
     }
 }

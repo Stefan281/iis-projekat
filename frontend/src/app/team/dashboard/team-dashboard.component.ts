@@ -210,14 +210,14 @@ export class TeamDashboardComponent implements OnInit {
           this.roomInfo.set(null);
           return;
         }
-        if (!mine.sobaBroj) {
+        if (!mine.roomNumber) {
           this.roomInfo.set(null);
           return;
         }
         const roommates = participants
-          .filter(x => x.added && x.sobaBroj === mine.sobaBroj && x.userId !== me.id)
-          .map(x => ({ id: x.userId as number, name: `${x.ime} ${x.prezime}` }));
-        this.roomInfo.set({ roomNumber: mine.sobaBroj, roommates });
+          .filter(x => x.added && x.roomNumber === mine.roomNumber && x.userId !== me.id)
+          .map(x => ({ id: x.userId as number, name: `${x.firstName} ${x.lastName}` }));
+        this.roomInfo.set({ roomNumber: mine.roomNumber, roommates });
       },
       error: () => this.roomInfo.set(null)
     });

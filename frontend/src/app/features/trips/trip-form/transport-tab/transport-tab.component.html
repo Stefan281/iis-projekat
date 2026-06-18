@@ -6,22 +6,22 @@
         <form [formGroup]="form" (ngSubmit)="addOffer()" class="offer-form">
           <div class="form-field">
             <label>Naziv prevoznika</label>
-            <input type="text" formControlName="naziv" [class.invalid]="form.controls.naziv.invalid && form.controls.naziv.touched" />
+            <input type="text" formControlName="carrierName" [class.invalid]="form.controls.carrierName.invalid && form.controls.carrierName.touched" />
           </div>
           <div class="form-field">
             <label>Vrsta prevoza</label>
-            <select formControlName="vrsta">
+            <select formControlName="transportType">
               @for (v of transportTypes; track v) {
                 <option [value]="v">{{ typeIcon(v) }} {{ v }}</option>
               }
             </select>
           </div>
           <div class="form-field">
-            <label>Cena (€)</label>
-            <input type="number" formControlName="cena" [class.invalid]="form.controls.cena.invalid && form.controls.cena.touched" />
+            <label>Cena (U eurima)</label>
+            <input type="number" formControlName="price" [class.invalid]="form.controls.price.invalid && form.controls.price.touched" />
           </div>
           <div class="form-actions">
-            <button type="button" class="btn btn-danger" (click)="showForm.set(false); form.reset({vrsta: 'AUTOBUS'})">Poništi</button>
+            <button type="button" class="btn btn-danger" (click)="showForm.set(false); form.reset({transportType: 'AUTOBUS'})">Poništi</button>
             <button type="submit" class="btn btn-primary" [disabled]="isSaving()">Dodaj ponudu</button>
           </div>
         </form>
@@ -33,13 +33,13 @@
         <div
           class="offer-card"
           [class.selected]="selectedOfferId() === p.id"
-          [class.chosen]="p.izabran"
+          [class.chosen]="p.selected"
           (click)="selectedOfferId.set(p.id)"
         >
-          <div class="offer-name">{{ p.naziv }}</div>
-          <div class="offer-meta">{{ typeIcon(p.vrsta) }} {{ p.vrsta }}</div>
-          <div class="offer-meta">💲 {{ p.cena }}€</div>
-          @if (p.izabran) {
+          <div class="offer-name">{{ p.carrierName }}</div>
+          <div class="offer-meta">{{ typeIcon(p.transportType) }} {{ p.transportType }}</div>
+          <div class="offer-meta">💶  {{ p.price }}€</div>
+          @if (p.selected) {
             <span class="chosen-badge">✓ Izabran</span>
           }
         </div>

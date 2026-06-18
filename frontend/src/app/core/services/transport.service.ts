@@ -12,7 +12,7 @@ export class TransportService {
   getOffers(tripId: number) {
     return this.http.get<TransportOffer[]>(`${this.base}/${tripId}/transport`);
   }
-  addOffer(tripId: number, p: { naziv: string; vrsta: string; cena: number }) {
+  addOffer(tripId: number, p: { carrierName: string; transportType: string; price: number }) {
     return this.http.post<TransportOffer>(`${this.base}/${tripId}/transport`, p);
   }
   select(tripId: number, offerId: number) {

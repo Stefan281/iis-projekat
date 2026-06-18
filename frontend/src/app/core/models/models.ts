@@ -20,31 +20,31 @@ export interface Trip {
 
 export interface AccommodationOffer {
   id: number;
-  putovanjeId: number;
-  ime: string;
-  adresa: string;
-  cena: number;
-  izabran: boolean;
+  tripId: number;
+  name: string;
+  address: string;
+  price: number;
+  selected: boolean;
 }
 
 export interface TransportOffer {
   id: number;
-  putovanjeId: number;
-  naziv: string;
-  vrsta: TransportType;
-  cena: number;
-  izabran: boolean;
+  tripId: number;
+  carrierName: string;
+  transportType: TransportType;
+  price: number;
+  selected: boolean;
 }
 
 export interface Passenger {
   id: number;                  // userId
   userId?: number;             // backend duplicates id for clarity; not always present
   participantId?: number;      // present only when added=true
-  ime: string;
-  prezime: string;
+  firstName: string;
+  lastName: string;
   role?: string;
-  sobaBroj?: string;
-  dokumentacijaStatus?: DocumentationStatus;
+  roomNumber?: string;
+  documentationStatus?: DocumentationStatus;
   added: boolean;              // true if added to this trip
 }
 

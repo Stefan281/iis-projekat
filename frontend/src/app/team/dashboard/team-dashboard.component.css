@@ -96,6 +96,17 @@
 .placeholder-text { color: #9E9E9E; font-size: 13px; font-style: italic; }
 .section-subtitle { font-size: 13px; font-weight: 600; color: #37474F; margin-top: 8px; margin-bottom: 4px; }
 
+.roommates-section { margin-top: 4px; }
+.roommates-section ul {
+  list-style: none;
+  margin: 4px 0 0 0;
+  padding: 0;
+  font-size: 14px;
+  color: #37474F;
+}
+.roommates-section ul li { padding: 2px 0; }
+
+
 .detail-section ul { margin: 4px 0 0 16px; padding: 0; font-size: 13px; color: #37474F; }
 .detail-section ul li { padding: 2px 0; }
 .detail-section h4 { font-size: 13px; font-weight: 700; color: #212121; margin: 0 0 8px 0; }

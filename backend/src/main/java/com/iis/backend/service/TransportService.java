@@ -10,7 +10,9 @@ import com.iis.backend.repository.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TransportService {
@@ -27,21 +29,22 @@ public class TransportService {
     @Transactional(readOnly = true)
     public List<TransportDTO> getOffers(Long tripId) {
         ensureTripExists(tripId);
-        return transportRepository.findByTripId(tripId).stream()
-                .map(TransportDTO::from)
-                .toList();
+        List<TransportDTO> offers = new ArrayList<>();
+        for (Transport t : transportRepository.findByTripId(tripId)) {
+            offers.add(TransportDTO.from(t));
+        }
+        return offers;
     }
 
     @Transactional
     public TransportDTO create(Long tripId, TransportCreateRequest request) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new ResourceNotFoundException("Trip with ID " + tripId + " was not found"));
+        Trip trip = findTripOrThrow(tripId);
 
         Transport t = new Transport();
         t.setTrip(trip);
-        t.setCarrierName(request.getNaziv());
-        t.setTransportType(request.getVrsta());
-        t.setPrice(request.getCena());
+        t.setCarrierName(request.getCarrierName());
+        t.setTransportType(request.getTransportType());
+        t.setPrice(request.getPrice());
         t.setSelected(false);
 
         return TransportDTO.from(transportRepository.save(t));
@@ -71,10 +74,19 @@ public class TransportService {
     @Transactional(readOnly = true)
     public TransportDTO getSelected(Long tripId) {
         ensureTripExists(tripId);
-        return transportRepository.findByTripIdAndSelectedTrue(tripId)
-                .map(TransportDTO::from)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No selected transport for trip " + tripId));
+        Optional<Transport> selected = transportRepository.findByTripIdAndSelectedTrue(tripId);
+        if (selected.isEmpty()) {
+            throw new ResourceNotFoundException("No selected transport for trip " + tripId);
+        }
+        return TransportDTO.from(selected.get());
+    }
+
+    private Trip findTripOrThrow(Long tripId) {
+        Optional<Trip> trip = tripRepository.findById(tripId);
+        if (trip.isEmpty()) {
+            throw new ResourceNotFoundException("Trip with ID " + tripId + " was not found");
+        }
+        return trip.get();
     }
 
     private void ensureTripExists(Long tripId) {

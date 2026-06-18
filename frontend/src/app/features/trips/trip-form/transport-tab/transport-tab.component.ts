@@ -24,9 +24,9 @@ export class TransportTabComponent implements OnInit {
   transportTypes = ['AUTOBUS', 'KOMBI', 'AVION', 'VOZ'];
 
   form = this.fb.nonNullable.group({
-    naziv: ['', Validators.required],
-    vrsta: ['AUTOBUS', Validators.required],
-    cena: [0, [Validators.required, Validators.min(0)]]
+    carrierName: ['', Validators.required],
+    transportType: ['AUTOBUS', Validators.required],
+    price: [0, [Validators.required, Validators.min(0)]]
   });
 
   ngOnInit() { this.load(); }
@@ -35,7 +35,7 @@ export class TransportTabComponent implements OnInit {
     this.transportService.getOffers(this.tripId).subscribe({
       next: (list) => {
         this.offers.set(list);
-        const selected = list.find(p => p.izabran);
+        const selected = list.find(p => p.selected);
         if (selected) this.selectedOfferId.set(selected.id);
       },
       error: () => {}
@@ -47,7 +47,7 @@ export class TransportTabComponent implements OnInit {
     this.isSaving.set(true);
     const val = this.form.getRawValue();
     this.transportService.addOffer(this.tripId, val).subscribe({
-      next: () => { this.showForm.set(false); this.form.reset({ vrsta: 'AUTOBUS' }); this.load(); this.isSaving.set(false); },
+      next: () => { this.showForm.set(false); this.form.reset({ transportType: 'AUTOBUS' }); this.load(); this.isSaving.set(false); },
       error: () => this.isSaving.set(false)
     });
   }
@@ -65,5 +65,5 @@ export class TransportTabComponent implements OnInit {
     return icons[type] ?? '🚗';
   }
 
-  get hasSelection() { return this.offers().some(p => p.izabran); }
+  get hasSelection() { return this.offers().some(p => p.selected); }
 }

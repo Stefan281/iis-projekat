@@ -72,7 +72,7 @@
                 @if (selectedAccommodation()) {
                   <div class="detail-row">
                     <span>🏨</span>
-                    <span>{{ selectedAccommodation()!.ime }}, {{ selectedAccommodation()!.adresa }} — {{ selectedAccommodation()!.cena | number:'1.0-0' }} €</span>
+                    <span>{{ selectedAccommodation()!.name }}, {{ selectedAccommodation()!.address }} — {{ selectedAccommodation()!.price | number:'1.0-0' }} €</span>
                   </div>
                 } @else {
                   <div class="detail-row detail-row-muted">
@@ -82,8 +82,8 @@
                 }
                 @if (selectedTransport()) {
                   <div class="detail-row">
-                    <span>{{ getTransportIcon(selectedTransport()!.vrsta) }}</span>
-                    <span>{{ selectedTransport()!.naziv }} — {{ getTransportLabel(selectedTransport()!.vrsta) }}</span>
+                    <span>{{ getTransportIcon(selectedTransport()!.transportType) }}</span>
+                    <span>{{ selectedTransport()!.carrierName }} — {{ getTransportLabel(selectedTransport()!.transportType) }} — {{ selectedTransport()!.price | number:'1.0-0' }} €</span>
                   </div>
                 } @else {
                   <div class="detail-row detail-row-muted">

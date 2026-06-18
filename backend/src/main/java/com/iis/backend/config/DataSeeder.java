@@ -29,7 +29,7 @@ public class DataSeeder {
     }
 
     private void seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        createUserIfMissing(userRepository, passwordEncoder, "organizator", "Nikola", "Savić", Role.ORGANIZATOR);
+        createUserIfMissing(userRepository, passwordEncoder, "organizator", "Marko", "Joknić", Role.ORGANIZATOR);
         createUserIfMissing(userRepository, passwordEncoder, "direktor", "Aleksandar", "Jovančević", Role.GENERALNI_DIREKTOR);
         createUserIfMissing(userRepository, passwordEncoder, "statisticar", "Milan", "Kovačević", Role.STATISTICAR);
 

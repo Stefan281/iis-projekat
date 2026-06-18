@@ -22,9 +22,9 @@ export class AccommodationTabComponent implements OnInit {
   isSaving = signal(false);
 
   form = this.fb.nonNullable.group({
-    ime: ['', Validators.required],
-    adresa: ['', Validators.required],
-    cena: [0, [Validators.required, Validators.min(0)]]
+    name: ['', Validators.required],
+    address: ['', Validators.required],
+    price: [0, [Validators.required, Validators.min(0)]]
   });
 
   ngOnInit() { this.load(); }
@@ -33,7 +33,7 @@ export class AccommodationTabComponent implements OnInit {
     this.accommodationService.getOffers(this.tripId).subscribe({
       next: (list) => {
         this.offers.set(list);
-        const selected = list.find(p => p.izabran);
+        const selected = list.find(p => p.selected);
         if (selected) this.selectedOfferId.set(selected.id);
       },
       error: () => {}
@@ -58,5 +58,5 @@ export class AccommodationTabComponent implements OnInit {
     });
   }
 
-  get hasSelection() { return this.offers().some(p => p.izabran); }
+  get hasSelection() { return this.offers().some(p => p.selected); }
 }

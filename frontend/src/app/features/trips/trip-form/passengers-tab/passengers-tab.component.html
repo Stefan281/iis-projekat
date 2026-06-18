@@ -19,7 +19,7 @@
             <td>
               <input type="checkbox" [checked]="p.added" (change)="togglePassenger(p)" />
             </td>
-            <td class="passenger-name">{{ p.ime }} {{ p.prezime }}</td>
+            <td class="passenger-name">{{ p.firstName }} {{ p.lastName }}</td>
             <td class="room-cell">
               @if (p.added) {
                 @if (editingRoomFor() === p.id) {
@@ -27,7 +27,7 @@
                     #roomInput
                     type="text"
                     class="room-input"
-                    [value]="p.sobaBroj ?? ''"
+                    [value]="p.roomNumber ?? ''"
                     (keydown.enter)="saveRoom(p, roomInput.value)"
                     (blur)="saveRoom(p, roomInput.value)"
                     autofocus>
@@ -35,7 +35,7 @@
                   <span
                     class="room-display clickable"
                     (click)="startEditRoom(p.id)">
-                    {{ p.sobaBroj || '-' }}
+                    {{ p.roomNumber || '-' }}
                   </span>
                 }
               } @else {
@@ -45,8 +45,8 @@
             <td>
               <select
                 class="doc-select"
-                [class]="documentStatusClass(p.dokumentacijaStatus)"
-                [(ngModel)]="p.dokumentacijaStatus"
+                [class]="documentStatusClass(p.documentationStatus)"
+                [(ngModel)]="p.documentationStatus"
                 (ngModelChange)="onDocStatusChange(p)">
                 <option value="TO_CHECK">Proveriti</option>
                 <option value="MISSING">Nedostaje</option>

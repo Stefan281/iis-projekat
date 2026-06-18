@@ -12,7 +12,7 @@ export class AccommodationService {
   getOffers(tripId: number) {
     return this.http.get<AccommodationOffer[]>(`${this.base}/${tripId}/accommodation`);
   }
-  addOffer(tripId: number, p: { ime: string; adresa: string; cena: number }) {
+  addOffer(tripId: number, p: { name: string; address: string; price: number }) {
     return this.http.post<AccommodationOffer>(`${this.base}/${tripId}/accommodation`, p);
   }
   select(tripId: number, offerId: number) {

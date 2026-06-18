@@ -6,11 +6,11 @@ import java.math.BigDecimal;
 
 public record AccommodationDTO(
         Long id,
-        Long putovanjeId,
-        String ime,
-        String adresa,
-        BigDecimal cena,
-        boolean izabran
+        Long tripId,
+        String name,
+        String address,
+        BigDecimal price,
+        boolean selected
 ) {
     public static AccommodationDTO from(Accommodation a) {
         return new AccommodationDTO(

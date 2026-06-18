@@ -28,14 +28,14 @@ export class PassengersTabComponent implements OnInit {
     });
   }
 
-  /** Replace a single row (keyed by user id) with the given changes. */
+
   private patch(userId: number, changes: Partial<Passenger>) {
     this.passengers.update(list =>
       list.map(p => p.id === userId ? { ...p, ...changes } : p)
     );
   }
 
-  // CHECKBOX — toggles membership immediately, no Save button needed
+
   togglePassenger(passenger: Passenger) {
     const newChecked = !passenger.added;
     this.patch(passenger.id, { added: newChecked }); // optimistic
@@ -43,8 +43,8 @@ export class PassengersTabComponent implements OnInit {
       next: (updated) => this.patch(passenger.id, {
         added: updated.added,
         participantId: updated.participantId ?? undefined,
-        sobaBroj: updated.sobaBroj,
-        dokumentacijaStatus: updated.dokumentacijaStatus
+        roomNumber: updated.roomNumber,
+        documentationStatus: updated.documentationStatus
       }),
       error: () => this.patch(passenger.id, { added: !newChecked }) // revert
     });
@@ -61,7 +61,6 @@ export class PassengersTabComponent implements OnInit {
     return this.passengers().length > 0 && this.passengers().every(p => p.added);
   }
 
-  // ROOM NUMBER — inline edit, auto-save on blur/Enter
   startEditRoom(id: number) {
     this.editingRoomFor.set(id);
   }
@@ -70,28 +69,22 @@ export class PassengersTabComponent implements OnInit {
     this.editingRoomFor.set(null);
     if (!passenger.participantId) return; // room only applies to members on the trip
     const trimmed = roomNumber?.trim() ?? '';
-    this.patch(passenger.id, { sobaBroj: trimmed }); // optimistic
-    this.passengersService.updateRoom(this.tripId, passenger.participantId, trimmed).subscribe({
-      next: (updated) => this.patch(passenger.id, { sobaBroj: updated.sobaBroj }),
+    this.patch(passenger.id, { roomNumber: trimmed }); // optimistic
+    this.passengersService.updateRoom(this.tripId, passenger.id, trimmed).subscribe({
+      next: (updated) => this.patch(passenger.id, { roomNumber: updated.roomNumber }),
       error: () => {}
     });
   }
 
-  // DOCUMENTATION — dropdown, auto-save on change (works for members and non-members)
+
   onDocStatusChange(passenger: Passenger) {
-    const status = passenger.dokumentacijaStatus ?? 'TO_CHECK';
-    if (passenger.participantId) {
-      this.passengersService.updateDocumentation(this.tripId, passenger.participantId, status)
-        .subscribe({ error: () => {} });
-    } else {
-      this.passengersService.setDocumentationForNonParticipant(this.tripId, passenger.id, status)
-        .subscribe({
-          next: (updated) => this.patch(passenger.id, {
-            participantId: updated.participantId ?? undefined
-          }),
-          error: () => {}
-        });
-    }
+    const status = passenger.documentationStatus ?? 'TO_CHECK';
+    this.passengersService.updateDocumentation(this.tripId, passenger.id, status).subscribe({
+      next: (updated) => this.patch(passenger.id, {
+        participantId: updated.participantId ?? undefined
+      }),
+      error: () => {}
+    });
   }
 
   documentStatusClass(status?: string): string {

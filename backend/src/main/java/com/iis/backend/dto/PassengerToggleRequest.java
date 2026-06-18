@@ -2,7 +2,6 @@ package com.iis.backend.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-/** Toggles a single team member on/off for a trip. */
 public class PassengerToggleRequest {
 
     @NotNull

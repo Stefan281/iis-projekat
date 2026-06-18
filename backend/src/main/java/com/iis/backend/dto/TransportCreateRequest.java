@@ -9,21 +9,21 @@ import java.math.BigDecimal;
 public class TransportCreateRequest {
 
     @NotBlank
-    private String naziv;
+    private String carrierName;
 
     @NotBlank
-    private String vrsta;
+    private String transportType;
 
     @NotNull
     @PositiveOrZero
-    private BigDecimal cena;
+    private BigDecimal price;
 
     public TransportCreateRequest() {}
 
-    public String getNaziv() { return naziv; }
-    public void setNaziv(String naziv) { this.naziv = naziv; }
-    public String getVrsta() { return vrsta; }
-    public void setVrsta(String vrsta) { this.vrsta = vrsta; }
-    public BigDecimal getCena() { return cena; }
-    public void setCena(BigDecimal cena) { this.cena = cena; }
+    public String getCarrierName() { return carrierName; }
+    public void setCarrierName(String carrierName) { this.carrierName = carrierName; }
+    public String getTransportType() { return transportType; }
+    public void setTransportType(String transportType) { this.transportType = transportType; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 }

@@ -218,6 +218,12 @@ export class DashboardComponent implements OnInit {
     this.selectedTransport.set(null);
   }
 
+  totalCost(): number {
+    const s = this.selectedAccommodation();
+    const t = this.selectedTransport();
+    return (s?.price ?? 0) + (t?.price ?? 0);
+  }
+
   submitAnnouncement() {
     if (this.newAnnouncementForm.invalid) return;
     this.isSaving.set(true);

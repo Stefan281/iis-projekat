@@ -10,7 +10,9 @@ import com.iis.backend.repository.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AccommodationService {
@@ -27,21 +29,22 @@ public class AccommodationService {
     @Transactional(readOnly = true)
     public List<AccommodationDTO> getOffers(Long tripId) {
         ensureTripExists(tripId);
-        return accommodationRepository.findByTripId(tripId).stream()
-                .map(AccommodationDTO::from)
-                .toList();
+        List<AccommodationDTO> offers = new ArrayList<>();
+        for (Accommodation a : accommodationRepository.findByTripId(tripId)) {
+            offers.add(AccommodationDTO.from(a));
+        }
+        return offers;
     }
 
     @Transactional
     public AccommodationDTO create(Long tripId, AccommodationCreateRequest request) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new ResourceNotFoundException("Trip with ID " + tripId + " was not found"));
+        Trip trip = findTripOrThrow(tripId);
 
         Accommodation a = new Accommodation();
         a.setTrip(trip);
-        a.setName(request.getIme());
-        a.setAddress(request.getAdresa());
-        a.setPrice(request.getCena());
+        a.setName(request.getName());
+        a.setAddress(request.getAddress());
+        a.setPrice(request.getPrice());
         a.setSelected(false);
 
         return AccommodationDTO.from(accommodationRepository.save(a));
@@ -71,10 +74,19 @@ public class AccommodationService {
     @Transactional(readOnly = true)
     public AccommodationDTO getSelected(Long tripId) {
         ensureTripExists(tripId);
-        return accommodationRepository.findByTripIdAndSelectedTrue(tripId)
-                .map(AccommodationDTO::from)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No selected accommodation for trip " + tripId));
+        Optional<Accommodation> selected = accommodationRepository.findByTripIdAndSelectedTrue(tripId);
+        if (selected.isEmpty()) {
+            throw new ResourceNotFoundException("No selected accommodation for trip " + tripId);
+        }
+        return AccommodationDTO.from(selected.get());
+    }
+
+    private Trip findTripOrThrow(Long tripId) {
+        Optional<Trip> trip = tripRepository.findById(tripId);
+        if (trip.isEmpty()) {
+            throw new ResourceNotFoundException("Trip with ID " + tripId + " was not found");
+        }
+        return trip.get();
     }
 
     private void ensureTripExists(Long tripId) {

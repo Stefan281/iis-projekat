@@ -7,12 +7,10 @@ export class PassengersService {
   private http = inject(HttpClient);
   private base = 'http://localhost:8080/api';
 
-  /** All team members merged with their participant data for this trip. */
   getAll(tripId: number) {
     return this.http.get<Passenger[]>(`${this.base}/trips/${tripId}/passengers`);
   }
 
-  /** Adds (checked=true) or removes (checked=false) a member from the trip. */
   toggle(tripId: number, userId: number, checked: boolean) {
     return this.http.post<Passenger>(
       `${this.base}/trips/${tripId}/passengers/toggle`,
@@ -20,25 +18,17 @@ export class PassengersService {
     );
   }
 
-  updateRoom(tripId: number, participantId: number, roomNumber: string) {
+  updateRoom(tripId: number, userId: number, roomNumber: string) {
     return this.http.put<Passenger>(
-      `${this.base}/trips/${tripId}/passengers/${participantId}/room`,
+      `${this.base}/trips/${tripId}/passengers/${userId}/room`,
       { roomNumber }
     );
   }
 
-  updateDocumentation(tripId: number, participantId: number, status: string) {
+  updateDocumentation(tripId: number, userId: number, status: string) {
     return this.http.put<Passenger>(
-      `${this.base}/trips/${tripId}/passengers/${participantId}/documentation`,
+      `${this.base}/trips/${tripId}/passengers/${userId}/documentation`,
       { status }
-    );
-  }
-
-  /** Persists a documentation status for a member who is not a participant of the trip. */
-  setDocumentationForNonParticipant(tripId: number, userId: number, status: string) {
-    return this.http.post<Passenger>(
-      `${this.base}/trips/${tripId}/passengers/documentation`,
-      { userId, status }
     );
   }
 }

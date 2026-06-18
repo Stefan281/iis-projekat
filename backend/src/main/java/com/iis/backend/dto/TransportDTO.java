@@ -6,11 +6,11 @@ import java.math.BigDecimal;
 
 public record TransportDTO(
         Long id,
-        Long putovanjeId,
-        String naziv,
-        String vrsta,
-        BigDecimal cena,
-        boolean izabran
+        Long tripId,
+        String carrierName,
+        String transportType,
+        BigDecimal price,
+        boolean selected
 ) {
     public static TransportDTO from(Transport t) {
         return new TransportDTO(

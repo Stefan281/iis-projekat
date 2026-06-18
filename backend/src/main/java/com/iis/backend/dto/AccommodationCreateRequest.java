@@ -9,21 +9,21 @@ import java.math.BigDecimal;
 public class AccommodationCreateRequest {
 
     @NotBlank
-    private String ime;
+    private String name;
 
     @NotBlank
-    private String adresa;
+    private String address;
 
     @NotNull
     @PositiveOrZero
-    private BigDecimal cena;
+    private BigDecimal price;
 
     public AccommodationCreateRequest() {}
 
-    public String getIme() { return ime; }
-    public void setIme(String ime) { this.ime = ime; }
-    public String getAdresa() { return adresa; }
-    public void setAdresa(String adresa) { this.adresa = adresa; }
-    public BigDecimal getCena() { return cena; }
-    public void setCena(BigDecimal cena) { this.cena = cena; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 }

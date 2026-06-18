@@ -247,7 +247,7 @@ export class DirectorDashboardComponent implements OnInit {
   totalCost(): number {
     const s = this.selectedAccommodation();
     const t = this.selectedTransport();
-    return (s?.cena ?? 0) + (t?.cena ?? 0);
+    return (s?.price ?? 0) + (t?.price ?? 0);
   }
 
   statusLabel(status: string): string {
