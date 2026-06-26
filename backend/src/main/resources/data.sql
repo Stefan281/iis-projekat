@@ -1,11 +1,28 @@
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_status_check;
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_status_check;
+ALTER TABLE seats DROP CONSTRAINT IF EXISTS seats_status_check;
+
+DELETE FROM reservations;
+DELETE FROM tickets;
+DELETE FROM seats;
+DELETE FROM zones;
 
 INSERT INTO zones (id, name, description, price_coefficient, capacity, occupied_seats, occupancy_rate)
 VALUES
-    (1, 'VIP', 'Best seats near the court', 1.80, 60, 12, 20.00),
-    (2, 'East', 'Central stand', 1.20, 250, 45, 18.00),
-    (3, 'North', 'Standard stand', 1.00, 300, 30, 10.00)
-ON CONFLICT (id) DO NOTHING;
+    (1, 'North', 'North stand', 1.00, 40, 0, 0.00),
+    (2, 'West', 'West stand', 1.20, 40, 0, 0.00),
+    (3, 'East', 'East stand', 1.20, 40, 0, 0.00),
+    (4, 'South', 'South stand', 1.00, 40, 0, 0.00)
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    price_coefficient = EXCLUDED.price_coefficient,
+    capacity = EXCLUDED.capacity,
+    occupied_seats = EXCLUDED.occupied_seats,
+    occupancy_rate = EXCLUDED.occupancy_rate;
+
+SELECT setval(pg_get_serial_sequence('zones', 'id'), COALESCE((SELECT MAX(id) FROM zones), 1), true);
 
 INSERT INTO matches (id, date, time, home_team, away_team, location, status, base_price, attractiveness, expected_attendance)
 VALUES
@@ -43,13 +60,17 @@ UPDATE matches
 SET away_team = 'Spartak'
 WHERE away_team = 'Guest team';
 
-INSERT INTO seats (id, row_label, seat_number, status, zone_id)
-VALUES
-    (1, 'A', 1, 'AVAILABLE', 1),
-    (2, 'A', 2, 'BLOCKED', 1),
-    (3, 'B', 15, 'AVAILABLE', 2),
-    (4, 'C', 24, 'RESERVED', 3)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO seats (row_label, seat_number, status, zone_id)
+SELECT row_data.row_label, seat_data.seat_number, 'AVAILABLE', zone_data.zone_id
+FROM (VALUES (1), (2), (3), (4)) AS zone_data(zone_id)
+CROSS JOIN (VALUES ('A'), ('B'), ('C'), ('D')) AS row_data(row_label)
+CROSS JOIN generate_series(1, 10) AS seat_data(seat_number);
+
+SELECT setval(pg_get_serial_sequence('seats', 'id'), COALESCE((SELECT MAX(id) FROM seats), 1), true);
+
+UPDATE seats
+SET status = 'AVAILABLE'
+WHERE status IN ('RESERVED', 'SOLD');
 
 INSERT INTO promotions (id, name, discount_percentage, start_date, end_date, status)
 VALUES
@@ -60,7 +81,40 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO ticket_types (id, name, description, coefficient)
 VALUES
     (1, 'REGULAR', 'Standard ticket', 1.00),
-    (2, 'VIP', 'VIP ticket with better seating', 1.80),
-    (3, 'STUDENT', 'Discounted student ticket', 0.80),
-    (4, 'CHILD', 'Discounted child ticket', 0.60)
+    (2, 'VIP', 'VIP ticket with better seating', 1.80)
 ON CONFLICT (id) DO NOTHING;
+
+DELETE FROM ticket_types
+WHERE name IN ('STUDENT', 'CHILD', 'STUDENTSKA', 'DECIJA');
+
+UPDATE users
+SET role = CASE
+    WHEN UPPER(role) IN ('CUSTOMER', 'KUPAC', 'ROLE_CUSTOMER', 'ROLE_KUPAC') THEN 'CUSTOMER'
+    WHEN UPPER(role) IN ('MANAGER', 'MENADZER', 'ROLE_MANAGER', 'ROLE_MENADZER') THEN 'MANAGER'
+    WHEN UPPER(role) IN ('ADMIN', 'ADMINISTRATOR', 'ROLE_ADMIN', 'ROLE_ADMINISTRATOR') THEN 'ADMIN'
+    WHEN UPPER(role) IN ('STATISTICAR', 'ROLE_STATISTICAR') THEN 'STATISTICAR'
+    WHEN UPPER(role) IN ('STRUCNI_STAB', 'STRUCNI STAB', 'ROLE_STRUCNI_STAB') THEN 'STRUCNI_STAB'
+    ELSE 'CUSTOMER'
+END
+WHERE role IS NULL
+   OR role NOT IN ('CUSTOMER', 'MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB');
+
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+
+ALTER TABLE users ADD CONSTRAINT users_role_check
+CHECK (role IN ('CUSTOMER', 'MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'));
+
+ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_status_check;
+
+ALTER TABLE reservations ADD CONSTRAINT reservations_status_check
+CHECK (status IN ('ACTIVE', 'CANCELLED', 'EXPIRED', 'SOLD'));
+
+ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_status_check;
+
+ALTER TABLE tickets ADD CONSTRAINT tickets_status_check
+CHECK (status IN ('VALID', 'CANCELLED', 'REFUNDED'));
+
+ALTER TABLE seats DROP CONSTRAINT IF EXISTS seats_status_check;
+
+ALTER TABLE seats ADD CONSTRAINT seats_status_check
+CHECK (status IN ('AVAILABLE', 'RESERVED', 'SOLD', 'BLOCKED'));

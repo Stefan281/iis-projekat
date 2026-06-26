@@ -8,10 +8,12 @@ import com.iis.backend.model.ReservationStatus;
 import com.iis.backend.model.Role;
 import com.iis.backend.model.Seat;
 import com.iis.backend.model.SeatStatus;
+import com.iis.backend.model.Ticket;
+import com.iis.backend.model.TicketStatus;
 import com.iis.backend.model.User;
 import com.iis.backend.repository.ReservationRepository;
 import com.iis.backend.repository.SeatRepository;
-import java.math.BigDecimal;
+import com.iis.backend.repository.TicketRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -24,14 +26,20 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final MatchService matchService;
     private final SeatRepository seatRepository;
+    private final TicketRepository ticketRepository;
+    private final PricingService pricingService;
 
     public ReservationService(
             ReservationRepository reservationRepository,
             MatchService matchService,
-            SeatRepository seatRepository) {
+            SeatRepository seatRepository,
+            TicketRepository ticketRepository,
+            PricingService pricingService) {
         this.reservationRepository = reservationRepository;
         this.matchService = matchService;
         this.seatRepository = seatRepository;
+        this.ticketRepository = ticketRepository;
+        this.pricingService = pricingService;
     }
 
     public List<ReservationResponse> findByCustomer(User customer) {
@@ -51,22 +59,19 @@ public class ReservationService {
         var match = matchService.findById(request.matchId());
         var seat = findSeat(request.seatId());
 
-        if (seat.getStatus() != SeatStatus.AVAILABLE) {
+        if (!isSeatAvailableForMatch(match.getId(), seat)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Seat is not available");
         }
-
-        seat.setStatus(SeatStatus.RESERVED);
-        seatRepository.save(seat);
 
         var now = LocalDateTime.now();
         var reservation = new Reservation();
         reservation.setCustomer(customer);
         reservation.setMatch(match);
         reservation.setSeat(seat);
-        reservation.setPrice(calculatePrice(match.getBasePrice(), seat));
+        reservation.setPrice(pricingService.calculatePrice(match, seat));
         reservation.setStatus(ReservationStatus.ACTIVE);
         reservation.setCreatedAt(now);
-        reservation.setExpiresAt(now.plusHours(24));
+        reservation.setExpiresAt(now.toLocalDate().plusDays(1).atTime(17, 0));
 
         return toResponse(reservationRepository.save(reservation));
     }
@@ -85,10 +90,44 @@ public class ReservationService {
         }
 
         reservation.setStatus(ReservationStatus.CANCELLED);
-        var seat = reservation.getSeat();
-        seat.setStatus(SeatStatus.AVAILABLE);
-        seatRepository.save(seat);
 
+        return toResponse(reservationRepository.save(reservation));
+    }
+
+    @Transactional
+    public ReservationResponse confirm(User manager, Long reservationId) {
+        if (manager.getRole() == Role.CUSTOMER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Customer cannot confirm reservations");
+        }
+
+        var reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation was not found"));
+
+        if (reservation.getStatus() == ReservationStatus.SOLD) {
+            return toResponse(reservation);
+        }
+
+        if (reservation.getStatus() != ReservationStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only active reservations can be confirmed");
+        }
+
+        var match = reservation.getMatch();
+        var seat = reservation.getSeat();
+        if (ticketRepository.existsByMatchIdAndSeatIdAndStatus(match.getId(), seat.getId(), TicketStatus.VALID)) {
+            reservation.setStatus(ReservationStatus.SOLD);
+            return toResponse(reservationRepository.save(reservation));
+        }
+
+        var ticket = new Ticket();
+        ticket.setCustomer(reservation.getCustomer());
+        ticket.setMatch(match);
+        ticket.setSeat(seat);
+        ticket.setPrice(reservation.getPrice());
+        ticket.setStatus(TicketStatus.VALID);
+        ticket.setPurchasedAt(LocalDateTime.now());
+        ticketRepository.save(ticket);
+
+        reservation.setStatus(ReservationStatus.SOLD);
         return toResponse(reservationRepository.save(reservation));
     }
 
@@ -97,8 +136,14 @@ public class ReservationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Seat was not found"));
     }
 
-    private BigDecimal calculatePrice(BigDecimal basePrice, Seat seat) {
-        return basePrice.multiply(seat.getZone().getPriceCoefficient());
+    private boolean isSeatAvailableForMatch(Long matchId, Seat seat) {
+        if (seat.getStatus() == SeatStatus.BLOCKED) {
+            return false;
+        }
+
+        var sold = ticketRepository.existsByMatchIdAndSeatIdAndStatus(matchId, seat.getId(), TicketStatus.VALID);
+        var reserved = reservationRepository.existsByMatchIdAndSeatIdAndStatus(matchId, seat.getId(), ReservationStatus.ACTIVE);
+        return !sold && !reserved;
     }
 
     private ReservationResponse toResponse(Reservation reservation) {

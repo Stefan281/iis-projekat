@@ -5,6 +5,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { AppShellComponent } from './layout/app-shell.component';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
+import { CheckoutComponent } from './tickets/checkout/checkout.component';
 import { MatchDetailsComponent } from './tickets/matches/match-details.component';
 import { MatchFormComponent } from './tickets/matches/match-form.component';
 import { MatchListComponent } from './tickets/matches/match-list.component';
@@ -29,8 +30,9 @@ export const routes: Routes = [
       { path: 'matches/new', component: MatchFormComponent, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
       { path: 'matches/:id', component: MatchDetailsComponent },
       { path: 'matches/:id/edit', component: MatchFormComponent, canActivate: [roleGuard], data: { roles: ['ADMIN'] } },
+      { path: 'checkout', component: CheckoutComponent, canActivate: [roleGuard], data: { roles: ['CUSTOMER'] } },
       { path: 'my-tickets', component: MyTicketsComponent, canActivate: [roleGuard], data: { roles: ['CUSTOMER'] } },
-      { path: 'my-reservations', component: MyReservationsComponent, canActivate: [roleGuard], data: { roles: ['CUSTOMER', 'MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] } },
+      { path: 'my-reservations', component: MyReservationsComponent, canActivate: [roleGuard], data: { roles: ['CUSTOMER', 'MANAGER', 'STATISTICAR', 'STRUCNI_STAB'] } },
       { path: 'zones', component: ZoneListComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN'] } },
       { path: 'zones/new', component: ZoneFormComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN'] } },
       { path: 'zones/:id/edit', component: ZoneFormComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN'] } },

@@ -23,13 +23,15 @@ import { MatchAttractiveness, MatchRequest, MatchStatus } from '../ticketing.mod
         <label>Domaci tim <input type="text" formControlName="homeTeam" /></label>
         <label>Gostujuci tim <input type="text" formControlName="awayTeam" /></label>
         <label>Lokacija <input type="text" formControlName="location" /></label>
-        <label>Status
-          <select formControlName="status">
-            <option value="SCHEDULED">Zakazana</option>
-            <option value="CANCELLED">Otkazana</option>
-            <option value="FINISHED">Zavrsena</option>
-          </select>
-        </label>
+        @if (isEditMode()) {
+          <label>Status
+            <select formControlName="status">
+              <option value="SCHEDULED">Zakazana</option>
+              <option value="CANCELLED">Otkazana</option>
+              <option value="FINISHED">Zavrsena</option>
+            </select>
+          </label>
+        }
         <label>Osnovna cena <input type="number" min="0" formControlName="basePrice" /></label>
         <label>Atraktivnost
           <select formControlName="attractiveness">
@@ -95,6 +97,7 @@ export class MatchFormComponent implements OnInit {
 
     const request: MatchRequest = {
       ...this.form.getRawValue(),
+      status: this.isEditMode() ? this.form.controls.status.value : 'SCHEDULED',
       expectedAttendance: 0
     };
     const operation = this.matchId

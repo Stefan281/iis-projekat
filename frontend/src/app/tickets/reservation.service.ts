@@ -23,4 +23,8 @@ export class ReservationService {
   cancel(id: number) {
     return this.http.patch<Reservation>(`${this.apiUrl}/${id}/cancel`, {});
   }
+
+  confirm(id: number) {
+    return this.http.patch<Reservation>(`${this.apiUrl}/${id}/confirm`, {});
+  }
 }

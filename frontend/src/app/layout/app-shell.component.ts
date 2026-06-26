@@ -29,10 +29,9 @@ export class AppShellComponent {
     { label: 'Utakmice', path: '/matches', icon: 'U', roles: ['CUSTOMER', 'MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] },
     { label: 'Moje karte', path: '/my-tickets', icon: 'K', roles: ['CUSTOMER'] },
     { label: 'Moje rezervacije', path: '/my-reservations', icon: 'R', roles: ['CUSTOMER'] },
-    { label: 'Rezervacije', path: '/my-reservations', icon: 'R', roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] },
-    { label: 'Sedista i zone', path: '/seats', icon: 'S', roles: ['MANAGER', 'STATISTICAR', 'STRUCNI_STAB'] },
-    { label: 'Zone', path: '/zones', icon: 'Z', roles: ['ADMIN'] },
-    { label: 'Sedista', path: '/seats', icon: 'S', roles: ['ADMIN'] }
+    { label: 'Rezervacije', path: '/my-reservations', icon: 'R', roles: ['MANAGER', 'STATISTICAR', 'STRUCNI_STAB'] },
+    { label: 'Zone', path: '/zones', icon: 'Z', roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] },
+    { label: 'Sedista', path: '/seats', icon: 'S', roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] }
   ];
 
   readonly visibleNavItems = computed(() => {

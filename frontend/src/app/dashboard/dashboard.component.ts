@@ -21,7 +21,9 @@ export class DashboardComponent implements OnInit {
   readonly reservations = signal<Reservation[]>([]);
   readonly role = computed(() => this.user()?.role);
 
-  readonly customerMatches = computed(() => this.matches().slice(0, 2));
+  readonly customerMatches = computed(() => this.matches()
+    .filter((match) => match.status === 'SCHEDULED')
+    .slice(0, 5));
   readonly activeReservations = computed(() => this.reservations().filter((reservation) => reservation.status === 'ACTIVE').slice(0, 2));
 
   ngOnInit(): void {

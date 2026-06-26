@@ -75,7 +75,8 @@ export type TicketTypeRequest = Omit<TicketType, 'id'>;
 
 export interface PurchaseRequest {
   matchId: number;
-  seatId: number;
+  seatId?: number;
+  seatIds?: number[];
 }
 
 export interface ReservationRequest {

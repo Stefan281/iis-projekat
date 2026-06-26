@@ -8,8 +8,15 @@ export class SeatService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getAll(zoneId?: number) {
-    const params = zoneId ? new HttpParams().set('zoneId', zoneId) : undefined;
+  getAll(zoneId?: number, matchId?: number) {
+    let params = new HttpParams();
+    if (zoneId) {
+      params = params.set('zoneId', zoneId);
+    }
+    if (matchId) {
+      params = params.set('matchId', matchId);
+    }
+
     return this.http.get<Seat[]>(this.apiUrl, { params });
   }
 

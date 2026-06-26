@@ -33,7 +33,7 @@ public class TicketController {
 
     @PostMapping("/purchase")
     @ResponseStatus(HttpStatus.CREATED)
-    public TicketResponse purchase(Authentication authentication, @Valid @RequestBody PurchaseRequest request) {
+    public List<TicketResponse> purchase(Authentication authentication, @Valid @RequestBody PurchaseRequest request) {
         return ticketService.purchase(userService.getCurrentUser(authentication), request);
     }
 }

@@ -69,13 +69,17 @@ export class MatchListComponent implements OnInit {
   filteredMatches(): Match[] {
     const query = this.searchTerm.trim().toLowerCase();
     const status = this.selectedStatus;
+    const role = this.authService.currentUser()?.role;
 
-    return this.matches().filter((match) => {
-      const teams = `${match.homeTeam} ${match.awayTeam}`.toLowerCase();
-      const matchesSearch = !query || teams.includes(query);
-      const matchesStatus = !status || match.status === status;
-      return matchesSearch && matchesStatus;
-    });
+    return this.matches()
+      .filter((match) => {
+        const teams = `${match.homeTeam} ${match.awayTeam}`.toLowerCase();
+        const matchesSearch = !query || teams.includes(query);
+        const matchesStatus = !status || match.status === status;
+        const visibleForCustomer = role !== 'CUSTOMER' || match.status !== 'CANCELLED';
+        return matchesSearch && matchesStatus && visibleForCustomer;
+      })
+      .sort((first, second) => this.statusOrder(first.status) - this.statusOrder(second.status));
   }
 
   constructor(private readonly matchService: MatchService) {}
@@ -104,5 +108,14 @@ export class MatchListComponent implements OnInit {
 
   private load(): void {
     this.matchService.getAll().subscribe((matches) => this.matches.set(matches));
+  }
+
+  private statusOrder(status: Match['status']): number {
+    const order: Record<Match['status'], number> = {
+      SCHEDULED: 0,
+      FINISHED: 1,
+      CANCELLED: 2
+    };
+    return order[status];
   }
 }

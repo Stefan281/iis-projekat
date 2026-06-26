@@ -28,6 +28,25 @@ import { ZoneService } from '../zone.service';
             }
           </select>
         </label>
+        <label>
+          Filtriraj po redu
+          <select [(ngModel)]="selectedRowLabel">
+            <option value="">Svi redovi</option>
+            @for (row of rowLabels; track row) {
+              <option [value]="row">{{ row }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Filtriraj po statusu
+          <select [(ngModel)]="selectedStatus">
+            <option value="">Svi statusi</option>
+            <option value="AVAILABLE">Slobodno</option>
+            <option value="RESERVED">Rezervisano</option>
+            <option value="SOLD">Prodato</option>
+            <option value="BLOCKED">Blokirano</option>
+          </select>
+        </label>
       </div>
 
       <table>
@@ -41,7 +60,7 @@ import { ZoneService } from '../zone.service';
           </tr>
         </thead>
         <tbody>
-          @for (seat of seats(); track seat.id) {
+          @for (seat of filteredSeats(); track seat.id) {
             <tr>
               <td>{{ seat.rowLabel }}</td>
               <td>{{ seat.seatNumber }}</td>
@@ -61,7 +80,10 @@ import { ZoneService } from '../zone.service';
 export class SeatListComponent implements OnInit {
   readonly seats = signal<Seat[]>([]);
   readonly zones = signal<Zone[]>([]);
+  readonly rowLabels = ['A', 'B', 'C', 'D'];
   selectedZoneId: number | null = null;
+  selectedRowLabel = '';
+  selectedStatus: Seat['status'] | '' = '';
 
   constructor(
     private readonly seatService: SeatService,
@@ -75,6 +97,17 @@ export class SeatListComponent implements OnInit {
 
   load(): void {
     this.seatService.getAll(this.selectedZoneId ?? undefined).subscribe((seats) => this.seats.set(seats));
+  }
+
+  filteredSeats(): Seat[] {
+    return this.seats()
+      .filter((seat) => !this.selectedRowLabel || seat.rowLabel === this.selectedRowLabel)
+      .filter((seat) => !this.selectedStatus || seat.status === this.selectedStatus)
+      .sort((first, second) =>
+        first.zoneName.localeCompare(second.zoneName)
+        || first.rowLabel.localeCompare(second.rowLabel)
+        || first.seatNumber - second.seatNumber
+      );
   }
 
   delete(id: number): void {

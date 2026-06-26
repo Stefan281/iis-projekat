@@ -27,7 +27,15 @@ public class SeatController {
     }
 
     @GetMapping
-    public List<SeatResponse> findAll(@RequestParam(required = false) Long zoneId) {
+    public List<SeatResponse> findAll(
+            @RequestParam(required = false) Long zoneId,
+            @RequestParam(required = false) Long matchId) {
+        if (zoneId != null && matchId != null) {
+            return seatService.findByZoneForMatch(zoneId, matchId);
+        }
+        if (matchId != null) {
+            return seatService.findAllForMatch(matchId);
+        }
         if (zoneId != null) {
             return seatService.findByZone(zoneId);
         }

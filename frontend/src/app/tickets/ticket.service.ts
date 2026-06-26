@@ -13,6 +13,6 @@ export class TicketService {
   }
 
   purchase(request: PurchaseRequest) {
-    return this.http.post<Ticket>(`${this.apiUrl}/purchase`, request);
+    return this.http.post<Ticket[]>(`${this.apiUrl}/purchase`, request);
   }
 }

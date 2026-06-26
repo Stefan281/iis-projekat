@@ -1,4 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { Reservation } from '../ticketing.models';
@@ -12,10 +13,20 @@ import { ReservationService } from '../reservation.service';
       <header class="page-header">
         <div>
           <p>Rezervacije</p>
-          <h1>{{ authService.currentUser()?.role === 'CUSTOMER' ? 'Moje rezervacije' : 'Rezervacije' }}</h1>
+          <h1>{{ customerTitle() }}</h1>
         </div>
-        <a class="button primary" routerLink="/matches">Pronadji utakmice</a>
+        @if (isCustomer()) {
+          <button class="button primary" type="button" (click)="togglePreviousReservations()">
+            {{ showPreviousReservations() ? 'Aktivne rezervacije' : 'Prethodne rezervacije' }}
+          </button>
+        } @else {
+          <a class="button primary" routerLink="/matches">Pronadji utakmice</a>
+        }
       </header>
+
+      @if (error()) {
+        <p class="form-error">{{ error() }}</p>
+      }
 
       @if (!isCustomer()) {
         <section class="manager-reservations panel">
@@ -41,7 +52,7 @@ import { ReservationService } from '../reservation.service';
               </tr>
             </thead>
             <tbody>
-              @for (reservation of reservations(); track reservation.id) {
+              @for (reservation of sortedReservations(); track reservation.id) {
                 <tr>
                   <td>R{{ reservation.id }}</td>
                   <td>{{ reservation.customerFullName || 'Kupac' }}</td>
@@ -49,9 +60,9 @@ import { ReservationService } from '../reservation.service';
                   <td>Zona {{ reservation.zoneName }}, red {{ reservation.rowLabel }}, mesto {{ reservation.seatNumber }}</td>
                   <td><span class="status-pill">{{ statusLabel(reservation.status) }}</span></td>
                   <td class="actions">
-                    <button type="button">Potvrdi</button>
                     @if (reservation.status === 'ACTIVE') {
-                      <button type="button" (click)="cancel(reservation.id)">Otkazi</button>
+                      <button type="button" (click)="confirm(reservation.id)">Potvrdi</button>
+                      <button type="button" (click)="cancel(reservation.id)">Otkazi rezervaciju</button>
                     }
                   </td>
                 </tr>
@@ -59,14 +70,14 @@ import { ReservationService } from '../reservation.service';
             </tbody>
           </table>
         </section>
-      } @else if (reservations().length === 0) {
+      } @else if (customerReservations().length === 0) {
         <section class="empty-state">
           <h2>Nema rezervacija</h2>
-          <p>Rezervisi slobodno sediste na strani detalja utakmice.</p>
+          <p>{{ showPreviousReservations() ? 'Nemas prethodnih rezervacija.' : 'Rezervisi slobodno sediste na strani detalja utakmice.' }}</p>
         </section>
       } @else {
         <section class="cards-grid">
-          @for (reservation of reservations(); track reservation.id) {
+          @for (reservation of customerReservations(); track reservation.id) {
             <article class="ticket-card">
               <div class="ticket-card__head">
                 <span>{{ reservation.status }}</span>
@@ -77,7 +88,7 @@ import { ReservationService } from '../reservation.service';
               <dl>
                 <div><dt>Sediste</dt><dd>{{ reservation.zoneName }}, red {{ reservation.rowLabel }}, sediste {{ reservation.seatNumber }}</dd></div>
                 <div><dt>Cena</dt><dd>{{ reservation.price }} RSD</dd></div>
-                <div><dt>Istice</dt><dd>{{ reservation.expiresAt }}</dd></div>
+                <div><dt>Status</dt><dd>{{ statusLabel(reservation.status) }}</dd></div>
               </dl>
               @if (reservation.status === 'ACTIVE') {
                 <button type="button" (click)="cancel(reservation.id)">Otkazi rezervaciju</button>
@@ -118,6 +129,8 @@ import { ReservationService } from '../reservation.service';
 })
 export class MyReservationsComponent implements OnInit {
   readonly reservations = signal<Reservation[]>([]);
+  readonly error = signal('');
+  readonly showPreviousReservations = signal(false);
 
   constructor(
     private readonly reservationService: ReservationService,
@@ -134,11 +147,53 @@ export class MyReservationsComponent implements OnInit {
       return;
     }
 
-    this.reservationService.cancel(id).subscribe(() => this.load());
+    this.error.set('');
+    this.reservationService.cancel(id).subscribe({
+      next: () => this.load(),
+      error: (error) => this.error.set(this.errorMessage(error))
+    });
+  }
+
+  confirm(id: number): void {
+    const confirmed = window.confirm('Da li zelis da potvrdis rezervaciju i kreiras kartu?');
+    if (!confirmed) {
+      return;
+    }
+
+    this.error.set('');
+    this.reservationService.confirm(id).subscribe({
+      next: () => this.load(),
+      error: (error) => this.error.set(this.errorMessage(error))
+    });
   }
 
   isCustomer(): boolean {
     return this.authService.currentUser()?.role === 'CUSTOMER';
+  }
+
+  customerTitle(): string {
+    if (!this.isCustomer()) return 'Rezervacije';
+    return this.showPreviousReservations() ? 'Prethodne rezervacije' : 'Moje aktivne rezervacije';
+  }
+
+  togglePreviousReservations(): void {
+    this.showPreviousReservations.update((value) => !value);
+  }
+
+  customerReservations(): Reservation[] {
+    return this.showPreviousReservations()
+      ? this.reservations().filter((reservation) => reservation.status !== 'ACTIVE')
+      : this.reservations().filter((reservation) => reservation.status === 'ACTIVE');
+  }
+
+  sortedReservations(): Reservation[] {
+    const order: Record<Reservation['status'], number> = {
+      ACTIVE: 0,
+      EXPIRED: 1,
+      CANCELLED: 2,
+      SOLD: 3
+    };
+    return [...this.reservations()].sort((a, b) => order[a.status] - order[b.status]);
   }
 
   statusLabel(status: Reservation['status']): string {
@@ -146,7 +201,7 @@ export class MyReservationsComponent implements OnInit {
       ACTIVE: 'Aktivna',
       CANCELLED: 'Otkazana',
       EXPIRED: 'Istekla',
-      SOLD: 'Prodata'
+      SOLD: 'Potvrdjena'
     };
     return labels[status];
   }
@@ -157,5 +212,13 @@ export class MyReservationsComponent implements OnInit {
       : this.reservationService.getAll();
 
     request.subscribe((reservations) => this.reservations.set(reservations));
+  }
+
+  private errorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string') {
+      return error.error.message;
+    }
+
+    return 'Akcija nije uspesno izvrsena. Proveri status rezervacije.';
   }
 }

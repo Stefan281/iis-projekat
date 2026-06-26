@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { Match, Seat, Zone } from '../ticketing.models';
 import { MatchService } from '../match.service';
@@ -46,30 +47,37 @@ import { ReservationService } from '../reservation.service';
                 }
               </div>
 
-              <div class="seat-grid">
-                @for (seat of filteredSeats(); track seat.id) {
-                  <button
-                    type="button"
-                    class="seat-dot"
-                    [class.selected]="selectedSeatId() === seat.id"
-                    [class.unavailable]="seat.status !== 'AVAILABLE'"
-                    [disabled]="seat.status !== 'AVAILABLE'"
-                    (click)="selectSeat(seat.id)"
-                    title="Red {{ seat.rowLabel }}, sediste {{ seat.seatNumber }}"
-                  >
-                    {{ seat.rowLabel }}{{ seat.seatNumber }}
-                  </button>
+              <div class="seat-layout">
+                @for (row of seatRows(); track row.rowLabel) {
+                  <div class="seat-row">
+                    <span class="row-label">{{ row.rowLabel }}</span>
+                    <div class="seat-row__items">
+                      @for (seat of row.seats; track seat.id) {
+                        <button
+                          type="button"
+                          class="seat-dot"
+                          [class.selected]="selectedSeatIds().includes(seat.id)"
+                          [class.unavailable]="seat.status !== 'AVAILABLE'"
+                          [disabled]="seat.status !== 'AVAILABLE'"
+                          (click)="selectSeat(seat.id)"
+                          title="Red {{ seat.rowLabel }}, sediste {{ seat.seatNumber }}"
+                        >
+                          {{ seat.rowLabel }}{{ seat.seatNumber }}
+                        </button>
+                      }
+                    </div>
+                  </div>
                 }
               </div>
             </div>
 
             <aside class="panel checkout-panel">
               <h2>Tvoj izbor</h2>
-              @if (selectedSeat(); as seat) {
+              @if (selectedSeats().length > 0) {
                 <dl>
-                  <div><dt>Zona</dt><dd>{{ seat.zoneName }}</dd></div>
-                  <div><dt>Sediste</dt><dd>Red {{ seat.rowLabel }}, sediste {{ seat.seatNumber }}</dd></div>
-                  <div><dt>Ukupno</dt><dd>{{ priceForSeat(selectedMatch.basePrice, seat) }} RSD</dd></div>
+                  <div><dt>Broj karata</dt><dd>{{ selectedSeats().length }}</dd></div>
+                  <div><dt>Sedista</dt><dd>{{ selectedSeatsLabel() }}</dd></div>
+                  <div><dt>Ukupno</dt><dd>{{ totalPrice(selectedMatch) }} RSD</dd></div>
                 </dl>
                 @if (message()) {
                   <p class="success">{{ message() }}</p>
@@ -77,10 +85,10 @@ import { ReservationService } from '../reservation.service';
                 @if (error()) {
                   <p class="error">{{ error() }}</p>
                 }
-                <button class="button primary" type="button" (click)="purchase(selectedMatch.id, seat.id)">Kupi kartu</button>
-                <button class="button" type="button" (click)="reserve(selectedMatch.id, seat.id)">Rezervisi 24h</button>
+                <button class="button primary" type="button" (click)="goToCheckout(selectedMatch.id)">Kupi karte</button>
+                <button class="button" type="button" (click)="reserve(selectedMatch.id)">Rezervisi karte</button>
               } @else {
-                <p class="muted">Prvo izaberi slobodno sediste.</p>
+                <p class="muted">Prvo izaberi jedno ili vise slobodnih sedista.</p>
               }
             </aside>
           </section>
@@ -187,6 +195,36 @@ import { ReservationService } from '../reservation.service';
       margin: 0 0 14px;
       font-size: 0.95rem;
     }
+
+    .seat-layout {
+      display: grid;
+      gap: 10px;
+    }
+
+    .seat-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .row-label {
+      color: #475569;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .seat-row__items {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(44px, 1fr));
+      gap: 8px;
+    }
+
+    @media (max-width: 760px) {
+      .seat-row__items {
+        grid-template-columns: repeat(5, minmax(44px, 1fr));
+      }
+    }
   `
 })
 export class MatchDetailsComponent implements OnInit {
@@ -194,7 +232,7 @@ export class MatchDetailsComponent implements OnInit {
   readonly zones = signal<Zone[]>([]);
   readonly seats = signal<Seat[]>([]);
   readonly selectedZoneId = signal<number | null>(null);
-  readonly selectedSeatId = signal<number | null>(null);
+  readonly selectedSeatIds = signal<number[]>([]);
   readonly message = signal('');
   readonly error = signal('');
 
@@ -205,28 +243,50 @@ export class MatchDetailsComponent implements OnInit {
     private readonly zoneService: ZoneService,
     private readonly seatService: SeatService,
     private readonly ticketService: TicketService,
-    private readonly reservationService: ReservationService
+    private readonly reservationService: ReservationService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.matchService.getById(id).subscribe((match) => this.match.set(match));
+    this.matchService.getById(id).subscribe((match) => {
+      this.match.set(match);
+      this.loadSeats(match.id);
+    });
     this.zoneService.getAll().subscribe((zones) => {
       this.zones.set(zones);
       if (zones.length > 0) {
         this.selectedZoneId.set(zones[0].id);
       }
     });
-    this.loadSeats();
   }
 
   filteredSeats(): Seat[] {
     const zoneId = this.selectedZoneId();
-    return this.seats().filter((seat) => !zoneId || seat.zoneId === zoneId);
+    return this.seats()
+      .filter((seat) => !zoneId || seat.zoneId === zoneId)
+      .sort((first, second) => first.rowLabel.localeCompare(second.rowLabel) || first.seatNumber - second.seatNumber);
+  }
+
+  seatRows(): Array<{ rowLabel: string; seats: Seat[] }> {
+    const rows = new Map<string, Seat[]>();
+    for (const seat of this.filteredSeats()) {
+      rows.set(seat.rowLabel, [...(rows.get(seat.rowLabel) ?? []), seat]);
+    }
+
+    return Array.from(rows.entries()).map(([rowLabel, seats]) => ({
+      rowLabel,
+      seats: seats.sort((first, second) => first.seatNumber - second.seatNumber)
+    }));
   }
 
   selectedSeat(): Seat | null {
-    return this.seats().find((seat) => seat.id === this.selectedSeatId()) ?? null;
+    return this.selectedSeats()[0] ?? null;
+  }
+
+  selectedSeats(): Seat[] {
+    const selectedIds = this.selectedSeatIds();
+    return this.seats().filter((seat) => selectedIds.includes(seat.id));
   }
 
   isCustomer(): boolean {
@@ -243,17 +303,21 @@ export class MatchDetailsComponent implements OnInit {
 
   selectZone(zoneId: number): void {
     this.selectedZoneId.set(zoneId);
-    this.selectedSeatId.set(null);
+    this.selectedSeatIds.set([]);
   }
 
   selectSeat(seatId: number): void {
     this.message.set('');
     this.error.set('');
-    this.selectedSeatId.set(seatId);
+    this.selectedSeatIds.update((seatIds) =>
+      seatIds.includes(seatId)
+        ? seatIds.filter((id) => id !== seatId)
+        : [...seatIds, seatId]
+    );
   }
 
   priceForZone(basePrice: number, zone: Zone): number {
-    return Math.round(basePrice * zone.priceCoefficient);
+    return Math.round(this.applyPriceFactors(basePrice, zone.priceCoefficient));
   }
 
   priceForSeat(basePrice: number, seat: Seat): number {
@@ -261,26 +325,56 @@ export class MatchDetailsComponent implements OnInit {
     return zone ? this.priceForZone(basePrice, zone) : basePrice;
   }
 
-  purchase(matchId: number, seatId: number): void {
-    this.ticketService.purchase({ matchId, seatId }).subscribe({
+  totalPrice(match: Match): number {
+    return this.selectedSeats()
+      .reduce((total, seat) => total + this.priceForSeat(match.basePrice, seat), 0);
+  }
+
+  selectedSeatsLabel(): string {
+    return this.selectedSeats()
+      .map((seat) => `${seat.zoneName} ${seat.rowLabel}${seat.seatNumber}`)
+      .join(', ');
+  }
+
+  goToCheckout(matchId: number): void {
+    const seatIds = this.selectedSeatIds();
+    this.router.navigate(['/checkout'], {
+      queryParams: {
+        matchId,
+        seatIds: seatIds.join(',')
+      }
+    });
+  }
+
+  purchase(matchId: number): void {
+    const seatIds = this.selectedSeatIds();
+    this.ticketService.purchase({ matchId, seatIds }).subscribe({
       next: () => {
-        this.message.set('Karta je uspesno kupljena.');
+        this.message.set('Karte su uspesno kupljene.');
         this.error.set('');
-        this.loadSeats();
+        this.selectedSeatIds.set([]);
+        this.loadSeats(matchId);
       },
       error: () => {
-        this.error.set('Kupovina nije uspela. Prijavi se i izaberi slobodno sediste.');
+        this.error.set('Kupovina nije uspela. Proveri izabrana sedista.');
         this.message.set('');
       }
     });
   }
 
-  reserve(matchId: number, seatId: number): void {
-    this.reservationService.reserve({ matchId, seatId }).subscribe({
+  reserve(matchId: number): void {
+    const seatIds = this.selectedSeatIds();
+    if (seatIds.length === 0) {
+      this.error.set('Izaberi bar jedno slobodno sediste.');
+      return;
+    }
+
+    forkJoin(seatIds.map((seatId) => this.reservationService.reserve({ matchId, seatId }))).subscribe({
       next: () => {
-        this.message.set('Rezervacija je kreirana na 24 sata.');
+        this.message.set(seatIds.length === 1 ? 'Rezervacija je kreirana.' : 'Rezervacije su kreirane.');
         this.error.set('');
-        this.loadSeats();
+        this.selectedSeatIds.set([]);
+        this.loadSeats(matchId);
       },
       error: () => {
         this.error.set('Rezervacija nije uspela. Prijavi se i izaberi slobodno sediste.');
@@ -298,7 +392,46 @@ export class MatchDetailsComponent implements OnInit {
     return labels[status];
   }
 
-  private loadSeats(): void {
-    this.seatService.getAll().subscribe((seats) => this.seats.set(seats));
+  private loadSeats(matchId: number): void {
+    this.seatService.getAll(undefined, matchId).subscribe((seats) => this.seats.set(seats));
+  }
+
+  private applyPriceFactors(basePrice: number, zoneCoefficient: number): number {
+    const match = this.match();
+    if (!match) return basePrice * zoneCoefficient;
+
+    let price = basePrice * zoneCoefficient * this.attractivenessCoefficient(match.attractiveness);
+    const occupancy = this.occupiedSeatsCount() / Math.max(this.seats().length, 1);
+    if (occupancy >= 0.8) {
+      price *= 1.2;
+    } else if (occupancy >= 0.5) {
+      price *= 1.1;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const matchDate = new Date(match.date);
+    const daysUntilMatch = Math.round((matchDate.getTime() - today.getTime()) / 86400000);
+    if (daysUntilMatch >= 30) {
+      price *= 0.9;
+    } else if (daysUntilMatch <= 0 && this.seatsByStatus('AVAILABLE') > 0) {
+      price *= 0.85;
+    }
+
+    return price;
+  }
+
+  private attractivenessCoefficient(attractiveness: Match['attractiveness']): number {
+    const coefficients: Record<Match['attractiveness'], number> = {
+      LOW: 0.95,
+      MEDIUM: 1,
+      HIGH: 1.15,
+      DERBY: 1.3
+    };
+    return coefficients[attractiveness];
+  }
+
+  private occupiedSeatsCount(): number {
+    return this.seats().filter((seat) => seat.status === 'RESERVED' || seat.status === 'SOLD').length;
   }
 }

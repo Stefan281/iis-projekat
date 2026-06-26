@@ -53,4 +53,9 @@ public class ReservationController {
     public ReservationResponse cancel(Authentication authentication, @PathVariable Long id) {
         return reservationService.cancel(userService.getCurrentUser(authentication), id);
     }
+
+    @PatchMapping("/{id}/confirm")
+    public ReservationResponse confirm(Authentication authentication, @PathVariable Long id) {
+        return reservationService.confirm(userService.getCurrentUser(authentication), id);
+    }
 }
