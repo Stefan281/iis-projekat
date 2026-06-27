@@ -9,7 +9,12 @@
         <strong>{{ stats.homeTeam.teamName }} vs {{ stats.awayTeam.teamName }}</strong>
         <span> {{ stats.matchDate }} - 18:00 - Set 3 </span>
       </div>
-      <a routerLink="/strucni-stab">Pocetni ekran -></a>
+      <div class="match-actions">
+        <button type="button" [disabled]="isGeneratingReport()" (click)="generateReport()">
+          {{ isGeneratingReport() ? 'Generisanje...' : 'Generisi izvestaj' }}
+        </button>
+        <a routerLink="/strucni-stab">Pocetni ekran -></a>
+      </div>
     </header>
 
     <div class="team-stat-grid">

@@ -18,6 +18,7 @@ export class StaffPerformanceComponent {
   readonly openPlayerTeam = signal<PlayerModalTeam | null>(null);
   readonly selectedPlayer = signal<PlayerStatistic | null>(null);
   readonly errorMessage = signal('');
+  readonly isGeneratingReport = signal(false);
 
   constructor() {
     this.staffStatisticsService.getCurrentStatistics().subscribe({
@@ -156,5 +157,26 @@ export class StaffPerformanceComponent {
 
   recommendationTeamLabel(recommendation: ActivityRecommendation): string {
     return recommendation.teamType === 'HOME' ? 'Nas tim' : recommendation.teamName;
+  }
+
+  generateReport(): void {
+    this.isGeneratingReport.set(true);
+    this.errorMessage.set('');
+
+    this.staffStatisticsService.generateCurrentReport().subscribe({
+      next: (report) => {
+        const url = URL.createObjectURL(report);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'izvestaj-aktuelne-utakmice.pdf';
+        link.click();
+        URL.revokeObjectURL(url);
+        this.isGeneratingReport.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Nije moguce generisati izvestaj utakmice.');
+        this.isGeneratingReport.set(false);
+      }
+    });
   }
 }

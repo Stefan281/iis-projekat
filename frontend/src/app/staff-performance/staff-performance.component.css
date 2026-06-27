@@ -32,7 +32,14 @@
   font-size: 0.82rem;
 }
 
-.match-strip a {
+.match-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.match-strip a,
+.match-actions button {
   border: 1px solid #b4b4b4;
   border-radius: 8px;
   padding: 8px 14px;
@@ -41,6 +48,17 @@
   font-weight: 700;
   text-decoration: none;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.22);
+}
+
+.match-actions button {
+  background: #1288df;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.match-actions button:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .team-stat-grid {
@@ -338,6 +356,11 @@
   }
 
   .match-strip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .match-actions {
     align-items: stretch;
     flex-direction: column;
   }

@@ -12,4 +12,8 @@ export class StaffStatisticsService {
   getCurrentStatistics() {
     return this.http.get<MatchStatistics>(`${this.apiUrl}/current/statistics`);
   }
+
+  generateCurrentReport() {
+    return this.http.get(`${this.apiUrl}/current/report`, { responseType: 'blob' });
+  }
 }
