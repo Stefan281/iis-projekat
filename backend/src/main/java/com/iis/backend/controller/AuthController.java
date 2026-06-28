@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class  AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;

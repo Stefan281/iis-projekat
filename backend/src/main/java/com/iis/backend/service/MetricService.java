@@ -44,7 +44,6 @@ public class MetricService {
                 request.unitOfMeasure().trim(),
                 request.standardMetric(),
                 definedBy);
-
         return toResponse(metricRepository.save(metric));
     }
 

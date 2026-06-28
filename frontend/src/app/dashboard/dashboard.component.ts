@@ -75,6 +75,42 @@ interface PlayerRecommendationResponse {
   recommendedByName: string;
 }
 
+interface RecommendationCriterionResponse {
+  id: number;
+  metricId: number;
+  metricName: string;
+  unitOfMeasure: string | null;
+  comparison: 'MINIMUM' | 'MAXIMUM';
+  thresholdValue: number;
+  weight: number;
+  required: boolean;
+}
+
+interface RecommendationModelResponse {
+  id: number;
+  name: string;
+  position: string | null;
+  minimumHeight: number | null;
+  minimumScore: number;
+  createdByName: string;
+  createdAt: string;
+  criteria: RecommendationCriterionResponse[];
+}
+
+interface RecommendationResultResponse {
+  id: number;
+  modelId: number;
+  playerId: number;
+  playerName: string;
+  position: string | null;
+  club: string | null;
+  height: number | null;
+  score: number;
+  status: 'PREPORUCEN' | 'UZI_IZBOR' | 'NASTAVITI_PRACENJE' | 'NE_ISPUNJAVA';
+  explanation: string;
+  calculatedAt: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   imports: [ReactiveFormsModule],
@@ -106,7 +142,11 @@ export class DashboardComponent {
   readonly recommendationMessage = signal('');
   readonly recommendationError = signal('');
   readonly isSavingRecommendation = signal(false);
-  readonly activeView = signal<'dashboard' | 'players' | 'add-player' | 'player-details' | 'edit-player' | 'metrics' | 'add-metric' | 'edit-metric' | 'performances' | 'add-performance' | 'observations' | 'add-observation' | 'analyses' | 'add-analysis' | 'edit-analysis' | 'recommendations' | 'add-recommendation' | 'edit-recommendation'>('dashboard');
+  readonly modelMessage = signal('');
+  readonly modelError = signal('');
+  readonly isSavingModel = signal(false);
+  readonly isCalculatingModel = signal(false);
+  readonly activeView = signal<'dashboard' | 'players' | 'add-player' | 'player-details' | 'edit-player' | 'metrics' | 'add-metric' | 'edit-metric' | 'performances' | 'add-performance' | 'observations' | 'add-observation' | 'analyses' | 'add-analysis' | 'edit-analysis' | 'recommendations' | 'add-recommendation' | 'edit-recommendation' | 'recommendation-models' | 'add-recommendation-model' | 'edit-recommendation-model' | 'recommendation-results'>('dashboard');
   readonly playerCount = signal(0);
   readonly players = signal<PlayerResponse[]>([]);
   readonly selectedPlayer = signal<PlayerResponse | null>(null);
@@ -120,6 +160,9 @@ export class DashboardComponent {
   readonly selectedAnalysis = signal<PlayerAnalysisResponse | null>(null);
   readonly recommendations = signal<PlayerRecommendationResponse[]>([]);
   readonly selectedRecommendation = signal<PlayerRecommendationResponse | null>(null);
+  readonly recommendationModels = signal<RecommendationModelResponse[]>([]);
+  readonly selectedRecommendationModel = signal<RecommendationModelResponse | null>(null);
+  readonly recommendationResults = signal<RecommendationResultResponse[]>([]);
   readonly performanceDrafts = signal<Record<number, { value: number | null; comment: string }>>({});
   readonly searchTerm = signal('');
   readonly observationSearchTerm = signal('');
@@ -150,7 +193,8 @@ export class DashboardComponent {
         { label: 'Igraci', icon: 'I' },
         { label: 'Performanse', icon: 'F' },
         { label: 'Analize', icon: 'A' },
-        { label: 'Preporuke', icon: 'P' }
+        { label: 'Preporuke', icon: 'P' },
+        { label: 'Sistem preporuke', icon: 'S' }
       ];
     }
 
@@ -295,6 +339,14 @@ export class DashboardComponent {
     explanation: ['', Validators.required]
   });
 
+  readonly recommendationModelForm = this.formBuilder.group({
+    name: ['', Validators.required],
+    position: [''],
+    minimumHeight: [null as number | null, Validators.min(120)],
+    minimumScore: [70, [Validators.required, Validators.min(0), Validators.max(100)]],
+    criteria: this.formBuilder.array([] as ReturnType<typeof this.createCriterionGroup>[])
+  });
+
   constructor() {
     this.loadPlayerOverview();
     this.loadMetrics();
@@ -302,6 +354,7 @@ export class DashboardComponent {
     this.loadObservations();
     this.loadAnalyses();
     this.loadRecommendations();
+    this.loadRecommendationModels();
   }
 
   logout(): void {
@@ -365,6 +418,125 @@ export class DashboardComponent {
     this.recommendationError.set('');
     this.activeView.set('recommendations');
     this.loadRecommendations();
+  }
+
+  showRecommendationModels(): void {
+    this.modelMessage.set('');
+    this.modelError.set('');
+    this.activeView.set('recommendation-models');
+    this.loadRecommendationModels();
+  }
+
+  showAddRecommendationModel(): void {
+    this.selectedRecommendationModel.set(null);
+    this.modelMessage.set('');
+    this.modelError.set('');
+    this.resetRecommendationModelForm();
+    this.addRecommendationCriterion();
+    this.activeView.set('add-recommendation-model');
+  }
+
+  showEditRecommendationModel(model: RecommendationModelResponse): void {
+    this.selectedRecommendationModel.set(model);
+    this.modelMessage.set('');
+    this.modelError.set('');
+    this.resetRecommendationModelForm();
+    this.recommendationModelForm.patchValue({
+      name: model.name,
+      position: model.position || '',
+      minimumHeight: model.minimumHeight,
+      minimumScore: model.minimumScore
+    });
+    model.criteria.forEach((criterion) => this.addRecommendationCriterion(criterion));
+    this.activeView.set('edit-recommendation-model');
+  }
+
+  get recommendationCriteria() {
+    return this.recommendationModelForm.controls.criteria;
+  }
+
+  addRecommendationCriterion(criterion?: RecommendationCriterionResponse): void {
+    this.recommendationCriteria.push(this.createCriterionGroup(criterion));
+  }
+
+  removeRecommendationCriterion(index: number): void {
+    if (this.recommendationCriteria.length > 1) {
+      this.recommendationCriteria.removeAt(index);
+    }
+  }
+
+  saveRecommendationModel(): void {
+    if (this.recommendationModelForm.invalid || this.recommendationCriteria.length === 0) {
+      this.recommendationModelForm.markAllAsTouched();
+      this.modelError.set('Popuni obavezna polja i dodaj najmanje jedan kriterijum.');
+      return;
+    }
+
+    var totalWeight = this.recommendationCriteria.getRawValue()
+      .reduce((sum, criterion) => sum + Number(criterion.weight || 0), 0);
+    if (Math.abs(totalWeight - 100) > 0.01) {
+      this.modelError.set(`Zbir tezina kriterijuma mora biti 100. Trenutni zbir je ${totalWeight}.`);
+      return;
+    }
+
+    this.modelError.set('');
+    this.isSavingModel.set(true);
+    var selectedModel = this.selectedRecommendationModel();
+    var request = this.activeView() === 'edit-recommendation-model' && selectedModel
+      ? this.http.put<RecommendationModelResponse>(`http://localhost:8080/api/recommendation-models/${selectedModel.id}`, this.recommendationModelForm.getRawValue())
+      : this.http.post<RecommendationModelResponse>('http://localhost:8080/api/recommendation-models', this.recommendationModelForm.getRawValue());
+
+    request.subscribe({
+      next: () => {
+        this.isSavingModel.set(false);
+        this.modelMessage.set('Model preporuke je sacuvan u bazi.');
+        this.loadRecommendationModels();
+        this.activeView.set('recommendation-models');
+      },
+      error: (error) => {
+        this.isSavingModel.set(false);
+        this.modelError.set(error.error?.detail || error.error?.message || 'Model preporuke nije sacuvan.');
+      }
+    });
+  }
+
+  deleteRecommendationModel(model: RecommendationModelResponse): void {
+    this.http.delete(`http://localhost:8080/api/recommendation-models/${model.id}`).subscribe({
+      next: () => {
+        this.modelMessage.set('Model preporuke je obrisan.');
+        this.loadRecommendationModels();
+      },
+      error: () => this.modelError.set('Model preporuke nije obrisan.')
+    });
+  }
+
+  calculateRecommendationModel(model: RecommendationModelResponse): void {
+    this.selectedRecommendationModel.set(model);
+    this.modelError.set('');
+    this.isCalculatingModel.set(true);
+    this.http.post<RecommendationResultResponse[]>(`http://localhost:8080/api/recommendation-models/${model.id}/calculate`, {}).subscribe({
+      next: (results) => {
+        this.recommendationResults.set(results);
+        this.isCalculatingModel.set(false);
+        this.activeView.set('recommendation-results');
+      },
+      error: (error) => {
+        this.isCalculatingModel.set(false);
+        this.modelError.set(error.error?.detail || error.error?.message || 'Rang-lista nije izracunata.');
+      }
+    });
+  }
+
+  showRecommendationResults(model: RecommendationModelResponse): void {
+    this.selectedRecommendationModel.set(model);
+    this.modelError.set('');
+    this.http.get<RecommendationResultResponse[]>(`http://localhost:8080/api/recommendation-models/${model.id}/results`).subscribe({
+      next: (results) => {
+        this.recommendationResults.set(results);
+        this.activeView.set('recommendation-results');
+      },
+      error: () => this.modelError.set('Rezultati nisu ucitani.')
+    });
   }
 
   showAddAnalysis(): void {
@@ -775,6 +947,10 @@ export class DashboardComponent {
       return label === 'Preporuke';
     }
 
+    if (['recommendation-models', 'add-recommendation-model', 'edit-recommendation-model', 'recommendation-results'].includes(this.activeView())) {
+      return label === 'Sistem preporuke';
+    }
+
     return label === 'Dashboard';
   }
 
@@ -811,6 +987,11 @@ export class DashboardComponent {
 
     if (label === 'Preporuke') {
       this.showRecommendations();
+      return;
+    }
+
+    if (label === 'Sistem preporuke') {
+      this.showRecommendationModels();
     }
   }
 
@@ -919,6 +1100,16 @@ export class DashboardComponent {
     return `${performance.value}${unit ? ' ' + unit : ''}`;
   }
 
+  recommendationStatusLabel(status: RecommendationResultResponse['status']): string {
+    var labels: Record<RecommendationResultResponse['status'], string> = {
+      PREPORUCEN: 'Preporucen',
+      UZI_IZBOR: 'Uzi izbor',
+      NASTAVITI_PRACENJE: 'Nastaviti pracenje',
+      NE_ISPUNJAVA: 'Ne ispunjava'
+    };
+    return labels[status];
+  }
+
   get roleTitle(): string {
     var role = this.user()?.role;
 
@@ -935,6 +1126,251 @@ export class DashboardComponent {
     };
 
     return titles[role];
+  }
+
+  generatePdfReport(): void {
+    var reportWindow = window.open('', '_blank', 'width=1100,height=800');
+
+    if (!reportWindow) {
+      alert('Pregledac je blokirao otvaranje izvestaja. Dozvoli pop-up prozor za aplikaciju.');
+      return;
+    }
+
+    reportWindow.document.open();
+    reportWindow.document.write(this.buildPdfReportHtml());
+    reportWindow.document.close();
+    reportWindow.focus();
+  }
+
+  private buildPdfReportHtml(): string {
+    var generatedAt = new Date().toLocaleString('sr-RS');
+    var userName = this.user()
+      ? `${this.user()?.firstName || ''} ${this.user()?.lastName || ''}`.trim() || this.roleTitle
+      : this.roleTitle;
+    var selectedModel = this.selectedRecommendationModel();
+    var resultsTitle = selectedModel
+      ? `Rang-lista za model: ${selectedModel.name}`
+      : 'Rang-lista sistema preporuke';
+
+    return `<!doctype html>
+      <html lang="sr">
+        <head>
+          <meta charset="utf-8">
+          <title>PDF izvestaj</title>
+          <style>
+            @page { margin: 18mm; }
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              color: #172033;
+              font-family: Arial, sans-serif;
+              line-height: 1.45;
+            }
+            header {
+              display: flex;
+              justify-content: space-between;
+              gap: 24px;
+              border-bottom: 2px solid #0c7fda;
+              padding-bottom: 16px;
+              margin-bottom: 24px;
+            }
+            h1, h2, h3, p { margin-top: 0; }
+            h1 { margin-bottom: 6px; font-size: 28px; }
+            h2 { margin: 28px 0 12px; font-size: 19px; color: #0f3358; }
+            .meta {
+              min-width: 230px;
+              color: #53647c;
+              font-size: 13px;
+              text-align: right;
+            }
+            .summary {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 10px;
+              margin-bottom: 8px;
+            }
+            .summary div {
+              border: 1px solid #d8e0ea;
+              border-radius: 8px;
+              padding: 12px;
+              background: #f7fafc;
+            }
+            .summary span {
+              display: block;
+              color: #62728a;
+              font-size: 12px;
+              font-weight: 700;
+            }
+            .summary strong {
+              display: block;
+              margin-top: 4px;
+              font-size: 22px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 16px;
+              page-break-inside: auto;
+            }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            th, td {
+              border-bottom: 1px solid #e6ebf1;
+              padding: 8px;
+              text-align: left;
+              vertical-align: top;
+              font-size: 12px;
+            }
+            th {
+              background: #eef5fb;
+              color: #172033;
+              font-size: 12px;
+            }
+            .empty {
+              border: 1px solid #e6ebf1;
+              border-radius: 8px;
+              padding: 12px;
+              color: #62728a;
+              background: #f7fafc;
+            }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <header>
+            <div>
+              <h1>Izvestaj skauting sistema</h1>
+              <p>Automatski izvestaj napravljen na osnovu podataka ucitanih iz aplikacije.</p>
+            </div>
+            <div class="meta">
+              <strong>${this.escapeHtml(this.roleTitle)}</strong><br>
+              Korisnik: ${this.escapeHtml(userName)}<br>
+              Datum: ${this.escapeHtml(generatedAt)}
+            </div>
+          </header>
+
+          <section class="summary">
+            <div><span>Igraci</span><strong>${this.playerCount()}</strong></div>
+            <div><span>Metrike</span><strong>${this.metrics().length}</strong></div>
+            <div><span>Performanse</span><strong>${this.performances().length}</strong></div>
+            <div><span>Posmatranja</span><strong>${this.observations().length}</strong></div>
+          </section>
+
+          <h2>Igraci</h2>
+          ${this.buildReportTable(this.players(), [
+            { header: 'Ime i prezime', cell: (player) => `${player.firstName} ${player.lastName}` },
+            { header: 'Pozicija', cell: (player) => player.position },
+            { header: 'Klub', cell: (player) => player.club },
+            { header: 'Godiste', cell: (player) => player.birthYear },
+            { header: 'Visina', cell: (player) => player.height ? `${player.height} cm` : null }
+          ], 'Nema evidentiranih igraca.')}
+
+          <h2>Metrike</h2>
+          ${this.buildReportTable(this.metrics(), [
+            { header: 'Naziv', cell: (metric) => metric.name },
+            { header: 'Tip', cell: (metric) => metric.standardMetric ? 'Standardna' : 'Specijalna' },
+            { header: 'Jedinica', cell: (metric) => metric.unitOfMeasure },
+            { header: 'Opis', cell: (metric) => metric.description }
+          ], 'Nema evidentiranih metrika.')}
+
+          <h2>Performanse</h2>
+          ${this.buildReportTable(this.performances(), [
+            { header: 'Igrac', cell: (performance) => performance.playerName },
+            { header: 'Pozicija', cell: (performance) => performance.position },
+            { header: 'Metrika', cell: (performance) => performance.metricName },
+            { header: 'Vrednost', cell: (performance) => `${performance.value}${performance.unitOfMeasure ? ' ' + performance.unitOfMeasure : ''}` },
+            { header: 'Komentar', cell: (performance) => performance.comment }
+          ], 'Nema evidentiranih performansi.')}
+
+          <h2>Posmatranja</h2>
+          ${this.buildReportTable(this.observations(), [
+            { header: 'Igrac', cell: (observation) => observation.playerName },
+            { header: 'Pozicija', cell: (observation) => observation.position },
+            { header: 'Datum', cell: (observation) => observation.observationDate },
+            { header: 'Period', cell: (observation) => observation.period },
+            { header: 'Napomena', cell: (observation) => observation.note }
+          ], 'Nema evidentiranih posmatranja.')}
+
+          <h2>Analize</h2>
+          ${this.buildReportTable(this.analyses(), [
+            { header: 'Igrac', cell: (analysis) => analysis.playerName },
+            { header: 'Pozicija', cell: (analysis) => analysis.position },
+            { header: 'Datum', cell: (analysis) => analysis.analysisDate },
+            { header: 'Zakljucak', cell: (analysis) => analysis.conclusion },
+            { header: 'Analiticar', cell: (analysis) => analysis.analystName }
+          ], 'Nema evidentiranih analiza.')}
+
+          <h2>Rucne preporuke</h2>
+          ${this.buildReportTable(this.recommendations(), [
+            { header: 'Igrac', cell: (recommendation) => recommendation.playerName },
+            { header: 'Pozicija', cell: (recommendation) => recommendation.position },
+            { header: 'Datum', cell: (recommendation) => recommendation.recommendationDate },
+            { header: 'Kriterijumi', cell: (recommendation) => recommendation.criteria },
+            { header: 'Obrazlozenje', cell: (recommendation) => recommendation.explanation }
+          ], 'Nema evidentiranih preporuka.')}
+
+          <h2>Modeli preporuke</h2>
+          ${this.buildReportTable(this.recommendationModels(), [
+            { header: 'Naziv', cell: (model) => model.name },
+            { header: 'Pozicija', cell: (model) => model.position || 'Sve pozicije' },
+            { header: 'Minimalna visina', cell: (model) => model.minimumHeight ? `${model.minimumHeight} cm` : null },
+            { header: 'Minimalna ocena', cell: (model) => `${model.minimumScore}/100` },
+            { header: 'Broj kriterijuma', cell: (model) => model.criteria.length }
+          ], 'Nema evidentiranih modela preporuke.')}
+
+          <h2>${this.escapeHtml(resultsTitle)}</h2>
+          ${this.buildReportTable(this.recommendationResults(), [
+            { header: 'Rang', cell: (_result, index) => `#${index + 1}` },
+            { header: 'Igrac', cell: (result) => result.playerName },
+            { header: 'Pozicija / klub', cell: (result) => `${result.position || '-'} / ${result.club || '-'}` },
+            { header: 'Visina', cell: (result) => result.height ? `${result.height} cm` : null },
+            { header: 'Ocena', cell: (result) => `${result.score}/100` },
+            { header: 'Status', cell: (result) => this.recommendationStatusLabel(result.status) },
+            { header: 'Obrazlozenje', cell: (result) => result.explanation }
+          ], 'Rang-lista nije ucitana ili nije izracunata.')}
+
+          <script>
+            window.addEventListener('load', function () {
+              setTimeout(function () { window.print(); }, 250);
+            });
+          </script>
+        </body>
+      </html>`;
+  }
+
+  private buildReportTable<T>(
+    items: T[],
+    columns: Array<{ header: string; cell: (item: T, index: number) => unknown }>,
+    emptyMessage: string
+  ): string {
+    if (!items.length) {
+      return `<p class="empty">${this.escapeHtml(emptyMessage)}</p>`;
+    }
+
+    var header = columns.map((column) => `<th>${this.escapeHtml(column.header)}</th>`).join('');
+    var rows = items.map((item, index) => {
+      var cells = columns
+        .map((column) => `<td>${this.escapeHtml(column.cell(item, index))}</td>`)
+        .join('');
+
+      return `<tr>${cells}</tr>`;
+    }).join('');
+
+    return `<table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  private escapeHtml(value: unknown): string {
+    var text = value === null || value === undefined || value === '' ? '-' : String(value);
+    var replacements: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    };
+
+    return text.replace(/[&<>"']/g, (character) => replacements[character]);
   }
 
   private loadPlayerOverview(): void {
@@ -990,6 +1426,13 @@ export class DashboardComponent {
     });
   }
 
+  private loadRecommendationModels(): void {
+    this.http.get<RecommendationModelResponse[]>('http://localhost:8080/api/recommendation-models').subscribe({
+      next: (models) => this.recommendationModels.set(models),
+      error: () => this.recommendationModels.set([])
+    });
+  }
+
   private loadPlayerObservations(playerId: number): void {
     this.playerObservations.set([]);
     this.http.get<ObservationResponse[]>(`http://localhost:8080/api/observations?playerId=${playerId}`).subscribe({
@@ -1032,6 +1475,26 @@ export class DashboardComponent {
       unitOfMeasure: '',
       description: ''
     });
+  }
+
+  private createCriterionGroup(criterion?: RecommendationCriterionResponse) {
+    return this.formBuilder.group({
+      metricId: [criterion?.metricId ?? null as number | null, Validators.required],
+      comparison: [criterion?.comparison ?? 'MINIMUM', Validators.required],
+      thresholdValue: [criterion?.thresholdValue ?? null as number | null, [Validators.required, Validators.min(0.01)]],
+      weight: [criterion?.weight ?? null as number | null, [Validators.required, Validators.min(0.01), Validators.max(100)]],
+      required: [criterion?.required ?? false]
+    });
+  }
+
+  private resetRecommendationModelForm(): void {
+    this.recommendationModelForm.reset({
+      name: '',
+      position: '',
+      minimumHeight: null,
+      minimumScore: 70
+    });
+    this.recommendationCriteria.clear();
   }
 
   private uniqueValues(values: Array<string | null>): string[] {

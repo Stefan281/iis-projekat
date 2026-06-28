@@ -35,6 +35,7 @@ public class PlayerService {
     @Transactional
     public PlayerResponse create(CreatePlayerRequest request) {
         var club = clubRepository.findByNameIgnoreCase(request.club().trim())
+        
                 .orElseGet(() -> clubRepository.save(new Club(request.club().trim(), null, null)));
         var position = positionRepository.findByNameIgnoreCase(request.position().trim())
                 .orElseGet(() -> positionRepository.save(new Position(request.position().trim())));

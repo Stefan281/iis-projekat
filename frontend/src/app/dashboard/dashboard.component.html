@@ -20,7 +20,13 @@
   @if (activeView() === 'dashboard') {
     <section class="dashboard-content">
       <section class="notice-card" aria-labelledby="notice-title">
-        <h2 id="notice-title">Obavestenja</h2>
+        <div class="notice-header">
+          <h2 id="notice-title">Obavestenja</h2>
+          <button type="button" class="report-button" (click)="generatePdfReport()">
+            <span class="action-icon">PDF</span>
+            PDF izvestaj
+          </button>
+        </div>
 
         <div class="stats-grid">
           @for (stat of stats; track stat.label) {
@@ -82,6 +88,10 @@
           <button type="button" (click)="showAddRecommendation()">
             <span class="action-icon">+</span>
             Nova preporuka
+          </button>
+          <button type="button" (click)="showRecommendationModels()">
+            <span class="action-icon">S</span>
+            Sistem preporuke
           </button>
         </section>
       }
@@ -875,6 +885,190 @@
           </button>
         </div>
       </form>
+    </section>
+  }
+
+  @if (activeView() === 'recommendation-models') {
+    <section class="recommendation-models-page">
+      <section class="page-card recommendation-models-hero">
+        <div>
+          <h2>Sistem preporuke</h2>
+          <p>Parametrizovano rangiranje igraca na osnovu pozicije, visine i izmerenih performansi</p>
+        </div>
+        <button type="button" class="inline-action" (click)="showAddRecommendationModel()">
+          <span class="action-icon">+</span>
+          Novi model
+        </button>
+      </section>
+
+      @if (modelMessage()) {
+        <p class="success-message compact">{{ modelMessage() }}</p>
+      }
+      @if (modelError()) {
+        <p class="error-message model-feedback">{{ modelError() }}</p>
+      }
+
+      <section class="recommendation-models-table-card">
+        <div class="recommendation-models-table header-row">
+          <span>Naziv modela</span>
+          <span>Pozicija</span>
+          <span>Min. visina</span>
+          <span>Min. ocena</span>
+          <span>Kriterijumi</span>
+          <span>Akcije</span>
+        </div>
+
+        @for (model of recommendationModels(); track model.id) {
+          <div class="recommendation-models-table">
+            <strong>{{ model.name }}</strong>
+            <span>{{ model.position || 'Sve pozicije' }}</span>
+            <span>{{ model.minimumHeight ? model.minimumHeight + ' cm' : '-' }}</span>
+            <span>{{ model.minimumScore }}/100</span>
+            <span>{{ model.criteria.length }}</span>
+            <div class="table-actions model-actions">
+              <button type="button" (click)="calculateRecommendationModel(model)" [disabled]="isCalculatingModel()">Izracunaj</button>
+              <button type="button" (click)="showRecommendationResults(model)">Rezultati</button>
+              <button type="button" (click)="showEditRecommendationModel(model)">Izmeni</button>
+              <button type="button" (click)="deleteRecommendationModel(model)">Obrisi</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty-state">Jos nema definisanih modela preporuke.</p>
+        }
+      </section>
+    </section>
+  }
+
+  @if (activeView() === 'add-recommendation-model' || activeView() === 'edit-recommendation-model') {
+    <section class="recommendation-model-form-page">
+      <header class="form-topbar metric-topbar">
+        <div>
+          <span>{{ activeView() === 'edit-recommendation-model' ? 'Izmeni model' : 'Novi model' }}</span>
+          <h2>{{ activeView() === 'edit-recommendation-model' ? 'Izmeni model preporuke' : 'Novi model preporuke' }}</h2>
+          <p>Definisi osnovne parametre, granice i znacaj metrika u ukupnoj oceni</p>
+        </div>
+        <button type="button" class="secondary-button" (click)="showRecommendationModels()">Nazad</button>
+      </header>
+
+      <form class="recommendation-model-form" [formGroup]="recommendationModelForm" (ngSubmit)="saveRecommendationModel()">
+        <section class="model-basics">
+          <label>
+            Naziv modela
+            <input type="text" formControlName="name" placeholder="Npr. Primac za prvi tim" />
+          </label>
+          <label>
+            Pozicija
+            <select formControlName="position">
+              <option value="">Sve pozicije</option>
+              @for (position of positions(); track position) {
+                <option [value]="position">{{ position }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Minimalna visina (cm)
+            <input type="number" formControlName="minimumHeight" placeholder="Npr. 190" />
+          </label>
+          <label>
+            Minimalna ukupna ocena
+            <input type="number" formControlName="minimumScore" min="0" max="100" />
+          </label>
+        </section>
+
+        <section class="criteria-editor" formArrayName="criteria">
+          <header>
+            <div>
+              <h3>Kriterijumi performansi</h3>
+              <p>Zbir tezina svih kriterijuma mora biti 100.</p>
+            </div>
+            <button type="button" class="secondary-button mini-button" (click)="addRecommendationCriterion()">Dodaj kriterijum</button>
+          </header>
+
+          @for (criterion of recommendationCriteria.controls; track criterion; let index = $index) {
+            <article class="criterion-row" [formGroupName]="index">
+              <label>
+                Metrika
+                <select formControlName="metricId">
+                  <option [ngValue]="null">Izaberi metriku</option>
+                  @for (metric of metrics(); track metric.id) {
+                    <option [ngValue]="metric.id">{{ metric.name }} ({{ metric.unitOfMeasure }})</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Uslov
+                <select formControlName="comparison">
+                  <option value="MINIMUM">Najmanje</option>
+                  <option value="MAXIMUM">Najvise</option>
+                </select>
+              </label>
+              <label>
+                Granicna vrednost
+                <input type="number" formControlName="thresholdValue" step="0.01" />
+              </label>
+              <label>
+                Tezina (%)
+                <input type="number" formControlName="weight" min="0.01" max="100" step="0.01" />
+              </label>
+              <label class="required-toggle">
+                <input type="checkbox" formControlName="required" />
+                Obavezan kriterijum
+              </label>
+              <button type="button" class="remove-criterion" (click)="removeRecommendationCriterion(index)" [disabled]="recommendationCriteria.length === 1">Ukloni</button>
+            </article>
+          }
+        </section>
+
+        @if (modelError()) {
+          <p class="error-message">{{ modelError() }}</p>
+        }
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="showRecommendationModels()">Otkazi</button>
+          <button type="submit" class="primary-button" [disabled]="isSavingModel()">
+            {{ isSavingModel() ? 'Cuvanje...' : 'Sacuvaj model' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (activeView() === 'recommendation-results' && selectedRecommendationModel(); as model) {
+    <section class="recommendation-results-page">
+      <section class="page-card recommendation-results-hero">
+        <div>
+          <h2>Rang-lista igraca</h2>
+          <p>{{ model.name }} · {{ model.position || 'Sve pozicije' }} · minimalna ocena {{ model.minimumScore }}/100</p>
+        </div>
+        <div class="results-header-actions">
+          <button type="button" class="secondary-button" (click)="showRecommendationModels()">Nazad</button>
+          <button type="button" class="primary-button" (click)="calculateRecommendationModel(model)" [disabled]="isCalculatingModel()">Ponovo izracunaj</button>
+        </div>
+      </section>
+
+      <section class="recommendation-results-table-card">
+        <div class="recommendation-results-table header-row">
+          <span>Rang</span>
+          <span>Igrac</span>
+          <span>Pozicija / klub</span>
+          <span>Visina</span>
+          <span>Ocena</span>
+          <span>Status</span>
+          <span>Obrazlozenje</span>
+        </div>
+        @for (result of recommendationResults(); track result.id; let rank = $index) {
+          <div class="recommendation-results-table">
+            <strong>#{{ rank + 1 }}</strong>
+            <strong>{{ result.playerName }}</strong>
+            <span>{{ result.position || '-' }} / {{ result.club || '-' }}</span>
+            <span>{{ result.height ? result.height + ' cm' : '-' }}</span>
+            <strong class="score-value">{{ result.score }}/100</strong>
+            <span class="result-status" [class.preporucen]="result.status === 'PREPORUCEN'" [class.uzi-izbor]="result.status === 'UZI_IZBOR'" [class.pracenje]="result.status === 'NASTAVITI_PRACENJE'" [class.ne-ispunjava]="result.status === 'NE_ISPUNJAVA'">{{ recommendationStatusLabel(result.status) }}</span>
+            <span class="result-explanation">{{ result.explanation }}</span>
+          </div>
+        } @empty {
+          <p class="empty-state">Rang-lista jos nije izracunata. Vrati se i klikni Izracunaj.</p>
+        }
+      </section>
     </section>
   }
 </main>
