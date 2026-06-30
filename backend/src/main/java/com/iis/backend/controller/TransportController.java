@@ -32,16 +32,24 @@ public class TransportController {
     }
 
     @PostMapping
-    public ResponseEntity<TransportDTO> create(@PathVariable Long tripId,
-                                               @Valid @RequestBody TransportCreateRequest request) {
-        TransportDTO created = transportService.create(tripId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<?> create(@PathVariable Long tripId,
+                                    @Valid @RequestBody TransportCreateRequest request) {
+        try {
+            TransportDTO created = transportService.create(tripId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}/select")
-    public ResponseEntity<TransportDTO> select(@PathVariable Long tripId,
-                                               @PathVariable Long id) {
-        return ResponseEntity.ok(transportService.select(tripId, id));
+    public ResponseEntity<?> select(@PathVariable Long tripId,
+                                    @PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(transportService.select(tripId, id));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @GetMapping("/selected")

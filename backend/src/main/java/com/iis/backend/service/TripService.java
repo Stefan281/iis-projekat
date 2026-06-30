@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,11 +24,33 @@ public class TripService {
         this.tripRepository = tripRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<TripResponse> getAllTrips() {
-        return tripRepository.findAll().stream()
-                .map(TripResponse::from)
-                .toList();
+        List<Trip> trips = tripRepository.findAll();
+        List<TripResponse> responses = new ArrayList<>();
+        for (Trip trip : trips) {
+            syncStatusIfNeeded(trip);
+            responses.add(TripResponse.from(trip));
+        }
+        return responses;
+    }
+
+    private void syncStatusIfNeeded(Trip trip) {
+        if (trip.getStatus() == TripStatus.COMPLETED) {
+            return;
+        }
+        LocalDate today = LocalDate.now();
+        if (trip.getReturnDate() != null) {
+            if (trip.getReturnDate().isBefore(today)) {
+                trip.setStatus(TripStatus.COMPLETED);
+                tripRepository.save(trip);
+            }
+        } else {
+            if (trip.getDepartureDate() != null && trip.getDepartureDate().isBefore(today)) {
+                trip.setStatus(TripStatus.COMPLETED);
+                tripRepository.save(trip);
+            }
+        }
     }
 
     @Transactional(readOnly = true)
@@ -38,6 +61,9 @@ public class TripService {
 
     @Transactional
     public TripResponse createTrip(TripRequest request) {
+        if (request.getDepartureDate() != null && request.getDepartureDate().isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Nije moguće kreirati putovanje sa datumima koji su već prošli.");
+        }
         checkDateOverlap(request.getDepartureDate(), request.getReturnDate(), null);
         Trip trip = new Trip();
         applyRequest(trip, request);
@@ -48,6 +74,9 @@ public class TripService {
     @Transactional
     public TripResponse updateTrip(Long id, TripRequest request) {
         Trip trip = findTripOrThrow(id);
+        if (trip.getDepartureDate() != null && trip.getDepartureDate().isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Nije moguće menjati putovanje koje je već počelo.");
+        }
         checkDateOverlap(request.getDepartureDate(), request.getReturnDate(), id);
         applyRequest(trip, request);
         Trip saved = tripRepository.save(trip);
@@ -73,11 +102,7 @@ public class TripService {
         return TripResponse.from(saved);
     }
 
-    /**
-     * Rejects a trip whose dates overlap with any other trip. A missing return date is
-     * treated as a single-day trip ({@code end = start}). When {@code excludeId} is set
-     * (update) that trip is excluded so it does not clash with itself.
-     */
+
     private void checkDateOverlap(LocalDate start, LocalDate end, Long excludeId) {
         if (start == null) {
             return;
@@ -96,7 +121,7 @@ public class TripService {
             }
             LocalDate otherEnd = other.getReturnDate() != null ? other.getReturnDate() : otherStart;
 
-            // Two date ranges overlap unless one ends strictly before the other begins.
+            // ili je jedno pre pocetka drugog skroz ili je skroz posle kraja, inace se poklapa
             if (!newStart.isAfter(otherEnd) && !newEnd.isBefore(otherStart)) {
                 throw new DateOverlapException(
                         "Putovanje se poklapa sa postojećim putovanjem: " + other.getName());

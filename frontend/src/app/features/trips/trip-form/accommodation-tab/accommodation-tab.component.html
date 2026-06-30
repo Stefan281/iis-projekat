@@ -13,7 +13,7 @@
             <input type="text" formControlName="address" [class.invalid]="form.controls.address.invalid && form.controls.address.touched" />
           </div>
           <div class="form-field">
-            <label>Cena (U eurima)</label>
+            <label>Cena (€)</label>
             <input type="number" formControlName="price" [class.invalid]="form.controls.price.invalid && form.controls.price.touched" />
           </div>
           <div class="form-actions">
@@ -34,7 +34,7 @@
         >
           <div class="offer-name">{{ p.name }}</div>
           <div class="offer-meta">📍 {{ p.address }}</div>
-          <div class="offer-meta">💶 {{ p.price }}€</div>
+          <div class="offer-meta">💲 {{ p.price }}€</div>
           @if (p.selected) {
             <span class="chosen-badge">✓ Izabran</span>
           }

@@ -10,6 +10,7 @@ import com.iis.backend.repository.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,7 @@ public class AccommodationService {
     @Transactional
     public AccommodationDTO create(Long tripId, AccommodationCreateRequest request) {
         Trip trip = findTripOrThrow(tripId);
+        checkTripNotStarted(trip);
 
         Accommodation a = new Accommodation();
         a.setTrip(trip);
@@ -52,7 +54,8 @@ public class AccommodationService {
 
     @Transactional
     public AccommodationDTO select(Long tripId, Long accommodationId) {
-        ensureTripExists(tripId);
+        Trip trip = findTripOrThrow(tripId);
+        checkTripNotStarted(trip);
         List<Accommodation> all = accommodationRepository.findByTripId(tripId);
         Accommodation target = null;
         for (Accommodation a : all) {
@@ -92,6 +95,12 @@ public class AccommodationService {
     private void ensureTripExists(Long tripId) {
         if (!tripRepository.existsById(tripId)) {
             throw new ResourceNotFoundException("Trip with ID " + tripId + " was not found");
+        }
+    }
+
+    private void checkTripNotStarted(Trip trip) {
+        if (trip.getDepartureDate() != null && trip.getDepartureDate().isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Nije moguće menjati putovanje koje je već počelo.");
         }
     }
 }

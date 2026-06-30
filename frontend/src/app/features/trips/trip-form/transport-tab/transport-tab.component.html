@@ -17,7 +17,7 @@
             </select>
           </div>
           <div class="form-field">
-            <label>Cena (U eurima)</label>
+            <label>Cena (€)</label>
             <input type="number" formControlName="price" [class.invalid]="form.controls.price.invalid && form.controls.price.touched" />
           </div>
           <div class="form-actions">
@@ -38,7 +38,7 @@
         >
           <div class="offer-name">{{ p.carrierName }}</div>
           <div class="offer-meta">{{ typeIcon(p.transportType) }} {{ p.transportType }}</div>
-          <div class="offer-meta">💶  {{ p.price }}€</div>
+          <div class="offer-meta">💲 {{ p.price }}€</div>
           @if (p.selected) {
             <span class="chosen-badge">✓ Izabran</span>
           }

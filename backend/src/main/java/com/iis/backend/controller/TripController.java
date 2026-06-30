@@ -39,15 +39,23 @@ public class TripController {
     }
 
     @PostMapping
-    public ResponseEntity<TripResponse> create(@Valid @RequestBody TripRequest request) {
-        TripResponse created = tripService.createTrip(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<?> create(@Valid @RequestBody TripRequest request) {
+        try {
+            TripResponse created = tripService.createTrip(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TripResponse> update(@PathVariable Long id,
-                                               @Valid @RequestBody TripRequest request) {
-        return ResponseEntity.ok(tripService.updateTrip(id, request));
+    public ResponseEntity<?> update(@PathVariable Long id,
+                                    @Valid @RequestBody TripRequest request) {
+        try {
+            return ResponseEntity.ok(tripService.updateTrip(id, request));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

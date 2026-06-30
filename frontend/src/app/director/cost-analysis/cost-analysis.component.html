@@ -1,0 +1,116 @@
+<div class="cost-page">
+  <div class="page-header">
+    <h2>Analiza troškova</h2>
+    <button class="btn btn-primary" (click)="downloadPdf()">Generiši izveštaj</button>
+  </div>
+
+  <div class="filter-row">
+    <label class="form-label">Godina:</label>
+    <select class="select-input" [(ngModel)]="selectedYear">
+      @for (year of years; track year) {
+        <option [ngValue]="year">{{ year }}</option>
+      }
+    </select>
+    <label class="form-label">Mesec:</label>
+    <select class="select-input" [(ngModel)]="selectedMonth">
+      @for (month of months; track month.value) {
+        <option [ngValue]="month.value">{{ month.label }}</option>
+      }
+    </select>
+    <button class="btn btn-primary" (click)="onShowClick()">Prikaži</button>
+  </div>
+
+  @if (errorMessage) {
+    <div class="error-box">{{ errorMessage }}</div>
+  }
+
+  @if (!data) {
+    <div class="loading-msg">Učitavanje...</div>
+  }
+
+  @if (data) {
+    <h3 class="period-title">{{ periodLabel() }}</h3>
+
+    <div class="cards-row cards-3">
+      <div class="card stat-card">
+        <div class="stat-label">Ukupna potrošnja</div>
+        <div class="stat-value">{{ formatMoney(data.summary.totalSpent) }}</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Prosečni trošak po putovanju</div>
+        <div class="stat-value">{{ formatMoney(data.summary.averageCostPerTrip) }}</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-label">Broj putovanja</div>
+        <div class="stat-value">{{ data.summary.tripCount }}</div>
+      </div>
+    </div>
+
+    @if (displayedMonth === 0) {
+      <div class="card chart-card">
+        <div class="chart-title">Potrošnja po mesecima</div>
+        <div class="chart-vertical">
+          @for (month of data.monthlyBreakdown; track month.monthLabel) {
+            <div class="vbar-col">
+              <div class="vbar-value">{{ formatMoney(month.totalCost) }}</div>
+              <div class="vbar" [style.height]="getBarHeight(month.totalCost, getMaxMonthly())"></div>
+              <div class="vbar-label">{{ monthAbbrev(month.monthLabel) }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (displayedMonth !== 0) {
+      <div class="card chart-card">
+        <div class="chart-title">Poređenje putovanja</div>
+        @if (data.trips.length > 0) {
+          <div class="chart-horizontal">
+            @for (trip of data.trips; track trip.tripName) {
+              <div class="hbar-row">
+                <div class="hbar-name">{{ trip.tripName }}</div>
+                <div class="hbar" [style.width]="getBarWidth(trip.totalCost, getMaxTrip())"></div>
+                <div class="hbar-value">{{ formatMoney(trip.totalCost) }}</div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-chart">Nema putovanja u ovom mesecu.</div>
+        }
+      </div>
+    }
+
+    <div class="card table-card">
+      <div class="table-scroll">
+        <table class="cost-table">
+          <thead>
+          <tr>
+            <th>Naziv putovanja</th>
+            <th>Destinacija</th>
+            <th>Datumi</th>
+            <th>Smeštaj</th>
+            <th>Prevoz</th>
+            <th>Ukupno</th>
+          </tr>
+          </thead>
+          <tbody>
+            @for (trip of data.trips; track trip.tripName) {
+              <tr>
+                <td>{{ trip.tripName }}</td>
+                <td>{{ trip.destination }}</td>
+                <td>{{ formatDates(trip) }}</td>
+                <td>{{ trip.accommodationName }} - {{ formatMoney(trip.accommodationCost) }}</td>
+                <td>{{ trip.transportName }} - {{ formatMoney(trip.transportCost) }}</td>
+                <td>{{ formatMoney(trip.totalCost) }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-row">Nema putovanja za izabrani period.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

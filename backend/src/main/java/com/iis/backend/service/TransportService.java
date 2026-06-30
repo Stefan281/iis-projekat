@@ -10,6 +10,7 @@ import com.iis.backend.repository.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,7 @@ public class TransportService {
     @Transactional
     public TransportDTO create(Long tripId, TransportCreateRequest request) {
         Trip trip = findTripOrThrow(tripId);
+        checkTripNotStarted(trip);
 
         Transport t = new Transport();
         t.setTrip(trip);
@@ -52,7 +54,8 @@ public class TransportService {
 
     @Transactional
     public TransportDTO select(Long tripId, Long transportId) {
-        ensureTripExists(tripId);
+        Trip trip = findTripOrThrow(tripId);
+        checkTripNotStarted(trip);
         List<Transport> all = transportRepository.findByTripId(tripId);
         Transport target = null;
         for (Transport t : all) {
@@ -92,6 +95,12 @@ public class TransportService {
     private void ensureTripExists(Long tripId) {
         if (!tripRepository.existsById(tripId)) {
             throw new ResourceNotFoundException("Trip with ID " + tripId + " was not found");
+        }
+    }
+
+    private void checkTripNotStarted(Trip trip) {
+        if (trip.getDepartureDate() != null && trip.getDepartureDate().isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Nije moguće menjati putovanje koje je već počelo.");
         }
     }
 }
