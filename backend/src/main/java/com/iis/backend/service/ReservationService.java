@@ -68,10 +68,10 @@ public class ReservationService {
         reservation.setCustomer(customer);
         reservation.setMatch(match);
         reservation.setSeat(seat);
-        reservation.setPrice(pricingService.calculatePrice(match, seat));
+        var basePrice = pricingService.calculatePrice(match, seat);
+        reservation.setPrice(pricingService.applyPromotion(basePrice, request.promotionId()));
         reservation.setStatus(ReservationStatus.ACTIVE);
         reservation.setCreatedAt(now);
-        reservation.setExpiresAt(now.toLocalDate().plusDays(1).atTime(17, 0));
 
         return toResponse(reservationRepository.save(reservation));
     }

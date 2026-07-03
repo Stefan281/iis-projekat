@@ -11,6 +11,7 @@ import { MatchFormComponent } from './tickets/matches/match-form.component';
 import { MatchListComponent } from './tickets/matches/match-list.component';
 import { MyReservationsComponent } from './tickets/my-reservations/my-reservations.component';
 import { MyTicketsComponent } from './tickets/my-tickets/my-tickets.component';
+import { PromotionListComponent } from './tickets/promotions/promotion-list.component';
 import { SeatFormComponent } from './tickets/seats/seat-form.component';
 import { SeatListComponent } from './tickets/seats/seat-list.component';
 import { ZoneFormComponent } from './tickets/zones/zone-form.component';
@@ -36,6 +37,7 @@ export const routes: Routes = [
       { path: 'zones', component: ZoneListComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN'] } },
       { path: 'zones/new', component: ZoneFormComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN'] } },
       { path: 'zones/:id/edit', component: ZoneFormComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN'] } },
+      { path: 'promotions', component: PromotionListComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN'] } },
       { path: 'seats', component: SeatListComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] } },
       { path: 'seats/new', component: SeatFormComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] } },
       { path: 'seats/:id/edit', component: SeatFormComponent, canActivate: [roleGuard], data: { roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] } }

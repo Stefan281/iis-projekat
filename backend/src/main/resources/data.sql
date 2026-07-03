@@ -3,17 +3,15 @@ ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_status_check;
 ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_status_check;
 ALTER TABLE seats DROP CONSTRAINT IF EXISTS seats_status_check;
 
-DELETE FROM reservations;
-DELETE FROM tickets;
-DELETE FROM seats;
-DELETE FROM zones;
+ALTER TABLE reservations ALTER COLUMN expires_at DROP NOT NULL;
+
 
 INSERT INTO zones (id, name, description, price_coefficient, capacity, occupied_seats, occupancy_rate)
 VALUES
-    (1, 'North', 'North stand', 1.00, 40, 0, 0.00),
-    (2, 'West', 'West stand', 1.20, 40, 0, 0.00),
-    (3, 'East', 'East stand', 1.20, 40, 0, 0.00),
-    (4, 'South', 'South stand', 1.00, 40, 0, 0.00)
+    (1, 'North', 'North stand', 1.10, 40, 0, 0.00),
+    (2, 'West', 'West stand', 1.60, 40, 0, 0.00),
+    (3, 'East', 'East stand', 1.60, 40, 0, 0.00),
+    (4, 'South', 'South stand', 1.10, 40, 0, 0.00)
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
@@ -64,19 +62,27 @@ INSERT INTO seats (row_label, seat_number, status, zone_id)
 SELECT row_data.row_label, seat_data.seat_number, 'AVAILABLE', zone_data.zone_id
 FROM (VALUES (1), (2), (3), (4)) AS zone_data(zone_id)
 CROSS JOIN (VALUES ('A'), ('B'), ('C'), ('D')) AS row_data(row_label)
-CROSS JOIN generate_series(1, 10) AS seat_data(seat_number);
+CROSS JOIN generate_series(1, 10) AS seat_data(seat_number)
+WHERE NOT EXISTS (SELECT 1 FROM seats LIMIT 1);
 
 SELECT setval(pg_get_serial_sequence('seats', 'id'), COALESCE((SELECT MAX(id) FROM seats), 1), true);
 
-UPDATE seats
-SET status = 'AVAILABLE'
-WHERE status IN ('RESERVED', 'SOLD');
+ALTER TABLE promotions ADD COLUMN IF NOT EXISTS min_tickets INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE promotions ADD COLUMN IF NOT EXISTS promotion_type VARCHAR(30) NOT NULL DEFAULT 'PERCENTAGE';
+ALTER TABLE promotions ADD COLUMN IF NOT EXISTS promo_code VARCHAR(50);
 
-INSERT INTO promotions (id, name, discount_percentage, start_date, end_date, status)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_promotions_promo_code ON promotions(promo_code) WHERE promo_code IS NOT NULL;
+
+INSERT INTO promotions (id, name, discount_percentage, start_date, end_date, status, min_tickets, promotion_type, promo_code)
 VALUES
-    (1, 'Student discount', 20.00, '2026-06-01', '2026-06-30', 'ACTIVE'),
-    (2, 'Family offer', 10.00, '2026-06-10', '2026-07-10', 'ACTIVE')
-ON CONFLICT (id) DO NOTHING;
+    (1, 'Studentski popust', 10.00, '2026-01-01', '2099-12-31', 'ACTIVE', 1, 'PERCENTAGE', 'STUDENT10')
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    discount_percentage = EXCLUDED.discount_percentage,
+    status = EXCLUDED.status,
+    min_tickets = EXCLUDED.min_tickets,
+    promotion_type = EXCLUDED.promotion_type,
+    promo_code = EXCLUDED.promo_code;
 
 INSERT INTO ticket_types (id, name, description, coefficient)
 VALUES
@@ -112,7 +118,7 @@ CHECK (status IN ('ACTIVE', 'CANCELLED', 'EXPIRED', 'SOLD'));
 ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_status_check;
 
 ALTER TABLE tickets ADD CONSTRAINT tickets_status_check
-CHECK (status IN ('VALID', 'CANCELLED', 'REFUNDED'));
+CHECK (status IN ('VALID', 'CANCELLED'));
 
 ALTER TABLE seats DROP CONSTRAINT IF EXISTS seats_status_check;
 

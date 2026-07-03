@@ -12,6 +12,10 @@ export class PromotionService {
     return this.http.get<Promotion[]>(this.apiUrl);
   }
 
+  getActive() {
+    return this.http.get<Promotion[]>(`${this.apiUrl}/active`);
+  }
+
   getById(id: number) {
     return this.http.get<Promotion>(`${this.apiUrl}/${id}`);
   }
@@ -26,5 +30,9 @@ export class PromotionService {
 
   delete(id: number) {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getByCode(code: string) {
+    return this.http.get<Promotion>(`${this.apiUrl}/by-code/${encodeURIComponent(code)}`);
   }
 }

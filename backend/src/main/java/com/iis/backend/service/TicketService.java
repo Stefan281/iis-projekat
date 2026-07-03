@@ -13,9 +13,12 @@ import com.iis.backend.model.User;
 import com.iis.backend.repository.ReservationRepository;
 import com.iis.backend.repository.SeatRepository;
 import com.iis.backend.repository.TicketRepository;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,18 +31,21 @@ public class TicketService {
     private final SeatRepository seatRepository;
     private final ReservationRepository reservationRepository;
     private final PricingService pricingService;
+    private final PromotionService promotionService;
 
     public TicketService(
             TicketRepository ticketRepository,
             MatchService matchService,
             SeatRepository seatRepository,
             ReservationRepository reservationRepository,
-            PricingService pricingService) {
+            PricingService pricingService,
+            PromotionService promotionService) {
         this.ticketRepository = ticketRepository;
         this.matchService = matchService;
         this.seatRepository = seatRepository;
         this.reservationRepository = reservationRepository;
         this.pricingService = pricingService;
+        this.promotionService = promotionService;
     }
 
     public List<TicketResponse> findByCustomer(User customer) {
@@ -54,25 +60,42 @@ public class TicketService {
         var seatIds = requestedSeatIds(request);
         var tickets = new ArrayList<TicketResponse>();
 
+        // Pre-resolve seats and check availability before creating any ticket
+        Map<Long, Seat> seatsById = new HashMap<>();
+        Map<Long, Reservation> reservationsById = new HashMap<>();
         for (Long seatId : seatIds) {
             var seat = findSeat(seatId);
             var activeReservation = reservationRepository
                     .findByMatchIdAndSeatIdAndStatus(match.getId(), seat.getId(), ReservationStatus.ACTIVE)
                     .orElse(null);
-
             if (!isSeatAvailableForPurchase(match.getId(), customer, seat, activeReservation)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Seat is not available");
             }
+            seatsById.put(seatId, seat);
+            if (activeReservation != null) {
+                reservationsById.put(seatId, activeReservation);
+            }
+        }
+
+        // Calculate base prices for all seats
+        Map<Long, BigDecimal> basePrices = new HashMap<>();
+        for (Long seatId : seatIds) {
+            basePrices.put(seatId, pricingService.calculatePrice(match, seatsById.get(seatId)));
+        }
+
+        for (Long seatId : seatIds) {
+            BigDecimal price = pricingService.applyPromotion(basePrices.get(seatId), request.promotionId());
 
             var ticket = new Ticket();
             ticket.setCustomer(customer);
             ticket.setMatch(match);
-            ticket.setSeat(seat);
-            ticket.setPrice(pricingService.calculatePrice(match, seat));
+            ticket.setSeat(seatsById.get(seatId));
+            ticket.setPrice(price);
             ticket.setStatus(TicketStatus.VALID);
             ticket.setPurchasedAt(LocalDateTime.now());
             tickets.add(toResponse(ticketRepository.save(ticket)));
 
+            var activeReservation = reservationsById.get(seatId);
             if (activeReservation != null) {
                 activeReservation.setStatus(ReservationStatus.SOLD);
                 reservationRepository.save(activeReservation);

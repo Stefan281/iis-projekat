@@ -2,7 +2,8 @@ export type MatchStatus = 'SCHEDULED' | 'CANCELLED' | 'FINISHED';
 export type MatchAttractiveness = 'LOW' | 'MEDIUM' | 'HIGH' | 'DERBY';
 export type SeatStatus = 'AVAILABLE' | 'RESERVED' | 'SOLD' | 'BLOCKED';
 export type PromotionStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
-export type TicketStatus = 'VALID' | 'CANCELLED' | 'REFUNDED';
+export type PromotionType = 'PERCENTAGE';
+export type TicketStatus = 'VALID' | 'CANCELLED';
 export type ReservationStatus = 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'SOLD';
 
 export interface Match {
@@ -57,12 +58,20 @@ export interface Promotion {
   id: number;
   name: string;
   discountPercentage: number;
-  startDate: string;
-  endDate: string;
   status: PromotionStatus;
+  minTickets: number;
+  promotionType: PromotionType;
+  promoCode: string | null;
 }
 
-export type PromotionRequest = Omit<Promotion, 'id'>;
+export interface PromotionRequest {
+  name: string;
+  discountPercentage: number;
+  active: boolean;
+  minTickets: number;
+  promotionType: PromotionType;
+  promoCode: string | null;
+}
 
 export interface TicketType {
   id: number;
@@ -77,11 +86,13 @@ export interface PurchaseRequest {
   matchId: number;
   seatId?: number;
   seatIds?: number[];
+  promotionId?: number;
 }
 
 export interface ReservationRequest {
   matchId: number;
   seatId: number;
+  promotionId?: number;
 }
 
 export interface Ticket {
@@ -100,6 +111,69 @@ export interface Ticket {
   price: number;
   status: TicketStatus;
   purchasedAt: string;
+}
+
+export type PricingRuleCondition =
+  | 'DERBY' | 'HIGH_ATTRACTIVENESS' | 'LOW_ATTRACTIVENESS'
+  | 'HIGH_OCCUPANCY' | 'MEDIUM_OCCUPANCY' | 'LOW_OCCUPANCY'
+  | 'WEEKEND' | 'TODAY' | 'EARLY_BIRD';
+
+export interface PricingRule {
+  id: number;
+  name: string;
+  description: string;
+  condition: PricingRuleCondition;
+  coefficient: number;
+  active: boolean;
+  priority: number;
+}
+
+export type PricingRuleRequest = Omit<PricingRule, 'id'>;
+
+export interface AppliedRule {
+  name: string;
+  coefficient: number;
+}
+
+export interface PriceTotalResponse {
+  baseTotal: number;
+  discount: number;
+  finalTotal: number;
+  promotionName: string | null;
+}
+
+export interface PriceBreakdown {
+  basePrice: number;
+  zoneCoefficient: number;
+  zoneName: string;
+  ticketTypeCoefficient: number;
+  ticketTypeName: string;
+  appliedRules: AppliedRule[];
+  promotionDiscount: number;
+  promotionName: string;
+  finalPrice: number;
+}
+
+export interface PriceHistoryEntry {
+  id: number;
+  pricingRuleId: number;
+  pricingRuleName: string;
+  oldCoefficient: number;
+  newCoefficient: number;
+  description: string;
+  source: string;
+  changedAt: string;
+}
+
+export interface MatchSalesStats {
+  matchId: number;
+  homeTeam: string;
+  awayTeam: string;
+  matchDate: string;
+  soldTickets: number;
+  activeReservations: number;
+  availableSeats: number;
+  revenue: number;
 }
 
 export interface Reservation {

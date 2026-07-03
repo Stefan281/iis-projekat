@@ -31,7 +31,8 @@ export class AppShellComponent {
     { label: 'Moje rezervacije', path: '/my-reservations', icon: 'R', roles: ['CUSTOMER'] },
     { label: 'Rezervacije', path: '/my-reservations', icon: 'R', roles: ['MANAGER', 'STATISTICAR', 'STRUCNI_STAB'] },
     { label: 'Zone', path: '/zones', icon: 'Z', roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] },
-    { label: 'Sedista', path: '/seats', icon: 'S', roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] }
+    { label: 'Sedista', path: '/seats', icon: 'S', roles: ['MANAGER', 'ADMIN', 'STATISTICAR', 'STRUCNI_STAB'] },
+    { label: 'Akcije', path: '/promotions', icon: 'A', roles: ['MANAGER', 'ADMIN'] }
   ];
 
   readonly visibleNavItems = computed(() => {
@@ -48,6 +49,7 @@ export class AppShellComponent {
     if (url.startsWith('/my-reservations')) return role === 'CUSTOMER' ? 'Moje rezervacije' : 'Rezervacije';
     if (url.startsWith('/seats')) return 'Upravljanje sedistima';
     if (url.startsWith('/zones')) return 'Zone';
+    if (url.startsWith('/promotions')) return 'Akcije';
 
     if (role === 'ADMIN') return 'Administratorski panel';
     if (role === 'MANAGER' || role === 'STATISTICAR' || role === 'STRUCNI_STAB') return 'Menadzerski panel';
@@ -63,6 +65,7 @@ export class AppShellComponent {
     if (url.startsWith('/my-reservations')) return 'Pregled aktivnih i istorijskih rezervacija.';
     if (url.startsWith('/seats')) return 'Postavljanje kapaciteta i cena po zonama.';
     if (url.startsWith('/zones')) return 'Upravljanje zonama hale.';
+    if (url.startsWith('/promotions')) return 'Dodavanje i upravljanje popustima koji vaze globalno.';
 
     if (role === 'ADMIN') return 'Pregled kljucnih metrika sistema.';
     if (role === 'MANAGER' || role === 'STATISTICAR' || role === 'STRUCNI_STAB') return 'Pregled prodaje i aktivnosti.';

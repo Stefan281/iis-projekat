@@ -28,8 +28,17 @@ public class PromotionController {
     @GetMapping
     public List<Promotion> findAll() { return promotionService.findAll(); }
 
+    @GetMapping("/active")
+    public List<Promotion> findActive() { return promotionService.findAllActive(); }
+
     @GetMapping("/{id}")
     public Promotion findById(@PathVariable Long id) { return promotionService.findById(id); }
+
+    @GetMapping("/by-code/{code}")
+    public Promotion findByCode(@PathVariable String code) {
+        return promotionService.findByPromoCode(code)
+                .orElseThrow(() -> new com.iis.backend.exception.ResourceNotFoundException("Promo kod nije pronađen"));
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

@@ -42,7 +42,7 @@ import { ReservationService } from '../reservation.service';
                   <button type="button" class="zone-tile" [class.selected]="selectedZoneId() === zone.id" (click)="selectZone(zone.id)">
                     <span>{{ zone.name }}</span>
                     <strong>{{ priceForZone(selectedMatch.basePrice, zone) }} RSD</strong>
-                    <small>{{ zone.occupancyRate }}% popunjeno</small>
+                    <small>{{ zoneOccupancyPercent(zone.id) }}% popunjeno</small>
                   </button>
                 }
               </div>
@@ -73,21 +73,21 @@ import { ReservationService } from '../reservation.service';
 
             <aside class="panel checkout-panel">
               <h2>Tvoj izbor</h2>
+              @if (message()) {
+                <p class="success">{{ message() }}</p>
+              }
+              @if (error()) {
+                <p class="error">{{ error() }}</p>
+              }
               @if (selectedSeats().length > 0) {
                 <dl>
                   <div><dt>Broj karata</dt><dd>{{ selectedSeats().length }}</dd></div>
                   <div><dt>Sedista</dt><dd>{{ selectedSeatsLabel() }}</dd></div>
-                  <div><dt>Ukupno</dt><dd>{{ totalPrice(selectedMatch) }} RSD</dd></div>
+                  <div><dt>Ukupno</dt><dd><strong>{{ totalPrice(selectedMatch) }} RSD</strong></dd></div>
                 </dl>
-                @if (message()) {
-                  <p class="success">{{ message() }}</p>
-                }
-                @if (error()) {
-                  <p class="error">{{ error() }}</p>
-                }
                 <button class="button primary" type="button" (click)="goToCheckout(selectedMatch.id)">Kupi karte</button>
                 <button class="button" type="button" (click)="reserve(selectedMatch.id)">Rezervisi karte</button>
-              } @else {
+              } @else if (!message()) {
                 <p class="muted">Prvo izaberi jedno ili vise slobodnih sedista.</p>
               }
             </aside>
@@ -225,6 +225,7 @@ import { ReservationService } from '../reservation.service';
         grid-template-columns: repeat(5, minmax(44px, 1fr));
       }
     }
+
   `
 })
 export class MatchDetailsComponent implements OnInit {
@@ -303,7 +304,6 @@ export class MatchDetailsComponent implements OnInit {
 
   selectZone(zoneId: number): void {
     this.selectedZoneId.set(zoneId);
-    this.selectedSeatIds.set([]);
   }
 
   selectSeat(seatId: number): void {
@@ -339,10 +339,7 @@ export class MatchDetailsComponent implements OnInit {
   goToCheckout(matchId: number): void {
     const seatIds = this.selectedSeatIds();
     this.router.navigate(['/checkout'], {
-      queryParams: {
-        matchId,
-        seatIds: seatIds.join(',')
-      }
+      queryParams: { matchId, seatIds: seatIds.join(',') }
     });
   }
 
@@ -429,6 +426,13 @@ export class MatchDetailsComponent implements OnInit {
       DERBY: 1.3
     };
     return coefficients[attractiveness];
+  }
+
+  zoneOccupancyPercent(zoneId: number): number {
+    const zoneSeats = this.seats().filter((seat) => seat.zoneId === zoneId);
+    if (zoneSeats.length === 0) return 0;
+    const occupied = zoneSeats.filter((seat) => seat.status !== 'AVAILABLE').length;
+    return Math.round((occupied / zoneSeats.length) * 100);
   }
 
   private occupiedSeatsCount(): number {

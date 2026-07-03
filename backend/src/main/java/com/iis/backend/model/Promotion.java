@@ -34,6 +34,16 @@ public class Promotion {
     @Column(nullable = false, length = 30)
     private PromotionStatus status;
 
+    @Column(nullable = false)
+    private int minTickets = 1;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private PromotionType promotionType = PromotionType.PERCENTAGE;
+
+    @Column(unique = true, length = 50)
+    private String promoCode;
+
     public Long getId() { return id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -45,4 +55,10 @@ public class Promotion {
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
     public PromotionStatus getStatus() { return status; }
     public void setStatus(PromotionStatus status) { this.status = status; }
+    public int getMinTickets() { return minTickets; }
+    public void setMinTickets(int minTickets) { this.minTickets = minTickets; }
+    public PromotionType getPromotionType() { return promotionType; }
+    public void setPromotionType(PromotionType promotionType) { this.promotionType = promotionType; }
+    public String getPromoCode() { return promoCode; }
+    public void setPromoCode(String promoCode) { this.promoCode = promoCode; }
 }

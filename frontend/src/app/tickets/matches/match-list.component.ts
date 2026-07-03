@@ -30,6 +30,7 @@ import { MatchService } from '../match.service';
           <tr>
             <th>Utakmica</th>
             <th>Datum</th>
+            <th>Vreme</th>
             <th>Lokacija</th>
             <th>Status</th>
             <th>Cena od</th>
@@ -40,7 +41,8 @@ import { MatchService } from '../match.service';
           @for (match of filteredMatches(); track match.id) {
             <tr>
               <td>{{ match.homeTeam }} vs {{ match.awayTeam }}</td>
-              <td>{{ match.date }} u {{ match.time }}</td>
+              <td>{{ match.date }}</td>
+              <td>{{ match.time }}</td>
               <td>{{ match.location }}</td>
               <td>{{ statusLabel(match.status) }}</td>
               <td>{{ match.basePrice }} RSD</td>

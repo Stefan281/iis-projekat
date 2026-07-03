@@ -43,7 +43,7 @@ public class Reservation {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime expiresAt;
 
     public Long getId() { return id; }

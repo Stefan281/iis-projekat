@@ -6,5 +6,6 @@ import java.util.List;
 public record PurchaseRequest(
         @NotNull Long matchId,
         Long seatId,
-        List<Long> seatIds) {
+        List<Long> seatIds,
+        Long promotionId) {
 }

@@ -2,11 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Match, Seat, Zone } from '../ticketing.models';
+import { Match, Promotion, PriceTotalResponse, Seat } from '../ticketing.models';
 import { MatchService } from '../match.service';
+import { PriceService } from '../price.service';
+import { PromotionService } from '../promotion.service';
 import { SeatService } from '../seat.service';
 import { TicketService } from '../ticket.service';
-import { ZoneService } from '../zone.service';
 
 @Component({
   selector: 'app-checkout',
@@ -31,14 +32,46 @@ import { ZoneService } from '../zone.service';
             <dl>
               <div><dt>Broj karata</dt><dd>{{ selectedSeats().length }}</dd></div>
               <div><dt>Sedista</dt><dd>{{ selectedSeatsLabel() }}</dd></div>
-              <div><dt>Ukupno</dt><dd>{{ totalPrice(selectedMatch) }} RSD</dd></div>
+              @if (priceTotal(); as pt) {
+                @if (pt.discount > 0) {
+                  <div><dt>Osnovna cena</dt><dd>{{ pt.baseTotal }} RSD</dd></div>
+                  <div><dt>Popust{{ pt.promotionName ? ' (' + pt.promotionName + ')' : '' }}</dt><dd>-{{ pt.discount }} RSD</dd></div>
+                }
+                <div><dt><strong>Ukupno za naplatu</strong></dt><dd><strong>{{ pt.finalTotal }} RSD</strong></dd></div>
+              } @else {
+                <div><dt>Ukupno za naplatu</dt><dd>Učitavanje...</dd></div>
+              }
             </dl>
+
+            <div class="promo-section">
+              <label class="promo-label">Promo kod</label>
+              <div class="promo-input-row">
+                <input
+                  name="promoCodeInput"
+                  [(ngModel)]="promoCode"
+                  placeholder="Unesite promo kod"
+                  [disabled]="!!appliedPromotion()"
+                  autocomplete="off"
+                />
+                @if (!appliedPromotion()) {
+                  <button class="button" type="button" (click)="applyPromoCode()" [disabled]="!promoCode.trim()">Primeni</button>
+                } @else {
+                  <button class="button" type="button" (click)="removePromoCode()">Ukloni</button>
+                }
+              </div>
+              @if (promoError()) {
+                <p class="promo-error">{{ promoError() }}</p>
+              }
+              @if (appliedPromotion(); as promo) {
+                <p class="promo-success">Primenjen: {{ promo.name }} (-{{ promo.discountPercentage }}%)</p>
+              }
+            </div>
           </div>
 
           <div class="entity-form">
             <label>
               Ime na kartici
-              <input name="buyerFullName" [(ngModel)]="cardholderName" autocomplete="off" pattern="[A-Za-z ]+" required />
+              <input name="buyerFullName" [(ngModel)]="cardholderName" autocomplete="off" required />
             </label>
 
             <label>
@@ -114,7 +147,63 @@ import { ZoneService } from '../zone.service';
     }
 
     .success.dark {
-      color: #166534;
+      display: block;
+      border-radius: 6px;
+      background: #dcfce7;
+      color: #16a34a;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .promo-section {
+      display: grid;
+      gap: 6px;
+      padding: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f9fafb;
+    }
+
+    .promo-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .promo-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .promo-input-row input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+    }
+
+    .promo-input-row input:disabled {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .promo-error {
+      margin: 0;
+      font-size: 0.82rem;
+      color: #dc2626;
+    }
+
+    .promo-success {
+      margin: 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #16a34a;
     }
 
     @media (max-width: 760px) {
@@ -128,24 +217,28 @@ import { ZoneService } from '../zone.service';
 export class CheckoutComponent implements OnInit {
   readonly match = signal<Match | null>(null);
   readonly seats = signal<Seat[]>([]);
-  readonly zones = signal<Zone[]>([]);
+  readonly priceTotal = signal<PriceTotalResponse | null>(null);
   readonly matchId = signal<number | null>(null);
   readonly selectedSeatIds = signal<number[]>([]);
   readonly message = signal('');
   readonly error = signal('');
   readonly isSubmitting = signal(false);
+  readonly appliedPromotion = signal<Promotion | null>(null);
+  readonly promoError = signal('');
 
   cardholderName = '';
   cardNumber = '';
   expiry = '';
   cvv = '';
+  promoCode = '';
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly matchService: MatchService,
     private readonly seatService: SeatService,
     private readonly ticketService: TicketService,
-    private readonly zoneService: ZoneService
+    private readonly priceService: PriceService,
+    private readonly promotionService: PromotionService
   ) {}
 
   ngOnInit(): void {
@@ -163,8 +256,43 @@ export class CheckoutComponent implements OnInit {
     this.matchId.set(matchId);
     this.selectedSeatIds.set(seatIds);
     this.matchService.getById(matchId).subscribe((match) => this.match.set(match));
-    this.zoneService.getAll().subscribe((zones) => this.zones.set(zones));
     this.seatService.getAll(undefined, matchId).subscribe((seats) => this.seats.set(seats));
+    this.priceService.getTotal(matchId, seatIds).subscribe((total) => this.priceTotal.set(total));
+  }
+
+  applyPromoCode(): void {
+    const code = this.promoCode.trim();
+    if (!code) return;
+
+    this.promotionService.getByCode(code).subscribe({
+      next: (promo) => {
+        if (promo.status !== 'ACTIVE') {
+          this.promoError.set('Promo kod nije aktivan.');
+          return;
+        }
+        if (promo.minTickets > this.selectedSeatIds().length) {
+          this.promoError.set(`Ovaj kod važi za minimum ${promo.minTickets} karte.`);
+          return;
+        }
+        this.appliedPromotion.set(promo);
+        this.promoError.set('');
+        const matchId = this.matchId()!;
+        this.priceService.getTotal(matchId, this.selectedSeatIds(), promo.id)
+          .subscribe((total) => this.priceTotal.set(total));
+      },
+      error: () => {
+        this.promoError.set('Promo kod nije pronađen.');
+      }
+    });
+  }
+
+  removePromoCode(): void {
+    this.appliedPromotion.set(null);
+    this.promoCode = '';
+    this.promoError.set('');
+    const matchId = this.matchId()!;
+    this.priceService.getTotal(matchId, this.selectedSeatIds())
+      .subscribe((total) => this.priceTotal.set(total));
   }
 
   selectedSeats(): Seat[] {
@@ -180,10 +308,6 @@ export class CheckoutComponent implements OnInit {
       .join(', ');
   }
 
-  totalPrice(match: Match): number {
-    return this.selectedSeats().reduce((total, seat) => total + this.priceForSeat(match.basePrice, seat), 0);
-  }
-
   submit(matchId: number): void {
     this.message.set('');
     this.error.set('');
@@ -194,7 +318,8 @@ export class CheckoutComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    this.ticketService.purchase({ matchId, seatIds: this.selectedSeatIds() }).subscribe({
+    const promotionId = this.appliedPromotion()?.id ?? undefined;
+    this.ticketService.purchase({ matchId, seatIds: this.selectedSeatIds(), promotionId }).subscribe({
       next: () => {
         this.message.set('Kupovina je uspesno izvrsena.');
         this.error.set('');
@@ -207,13 +332,8 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
-  private priceForSeat(basePrice: number, seat: Seat): number {
-    const zone = this.zones().find((item) => item.id === seat.zoneId);
-    return Math.round(basePrice * (zone?.priceCoefficient ?? 1));
-  }
-
   private isCardFormValid(): boolean {
-    return /^[A-Za-z ]+$/.test(this.cardholderName.trim())
+    return /^[\p{L} ]+$/u.test(this.cardholderName.trim())
       && /^\d{16}$/.test(this.cardNumber.trim())
       && /^\d{4}$/.test(this.expiry.trim())
       && /^\d{3}$/.test(this.cvv.trim());
